@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>START TIME — CMA</title>
+<meta name="description" content="START TIME — CMA: interactive CMA study platform by ASHRAF FATHY. Part 1: all six sections, built section by section.">
+<meta name="theme-color" content="#112240">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css?v=66">
+<script>try{var t=localStorage.getItem('st-p1a-theme')||'light',r=document.documentElement;r.setAttribute('data-theme',t);var dk=t==='dark',bg=localStorage.getItem('st-bg-'+(dk?'dark':'light'));if(bg){r.style.setProperty('--bg',bg);if(!dk)r.style.setProperty('--muted','#4F5C73')}}catch(e){}</script>
+</head>
+<body>
+<header class="top" id="top">
+  <a class="brand" href="#/" aria-label="Home">
+    <span class="logo" aria-hidden="true">ST</span>
+    <span class="brand-t"><b>START TIME — CMA</b><small>ASHRAF FATHY · Part 1 · Section A</small></span>
+  </a>
+  <nav class="top-act">
+    <a class="ib" href="#/" id="nHome" title="Home" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></a>
+    <a class="ib" href="#/map" id="nMap" title="LOS map" aria-label="LOS map"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg></a>
+    <button class="ib" id="nHelp" title="How to use" aria-label="How to use"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14M12 17.5v.01"/></svg></button>
+    <button class="ib" id="nTheme" title="Settings: appearance, focus tools, exam tools, reading time" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </nav>
+</header>
+
+<main id="app" tabindex="-1"></main>
+
+<footer class="foot" id="foot">An independent study tool by START TIME ACADEMY — prepared by ASHRAF FATHY. Not affiliated with the Institute of Management Accountants (IMA) or Prometric. CMA® is a registered trademark of IMA. All cases, examples and questions are original START TIME content.</footer>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <button class="ib modal-x" id="mClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h2 id="mTitle"></h2>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<script src="assets/config.js?v=9"></script>
+<script src="assets/los.js?v=3"></script>
+<script src="assets/sections.js?v=30ed54330"></script>
+<script src="assets/ledger.js?v=3"></script>
+<script src="assets/core.js?v=43"></script>
+<script src="assets/sync.js?v=14"></script>
+<script src="assets/extras.js?v=20"></script>
+<script src="assets/access.js?v=11"></script>
+<script src="assets/staff.js?v=12"></script>
+<script src="assets/focus.js?v=1"></script>
+<script src="assets/tools.js?v=2"></script>
+<script src="assets/fun.js?v=3"></script>
+<script src="assets/start.js?v=3"></script>
+<script src="assets/anim.js?v=3"></script>
+<script src="assets/trsel.js?v=5"></script>
+<script src="assets/speak.js?v=8"></script>
+<script>ST.loadTopics()</script>
+<script>ST.boot(function(){ST.start()});if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(function(){})</script>
+</body>
+</html>
