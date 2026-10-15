@@ -4,7 +4,7 @@
    A section with no topic files yet shows as "coming soon". Loaded after config.js and los.js, before core.js. */
 (function(){
 var ST=window.ST=window.ST||{};
-ST.ENC={"p1a":"2d42de023f","p1b":"6b4d2565fc","p1c":"368817f84d","p1d":"1a90dc82e2"};
+ST.ENC={"p1a":"2d42de023f","p1b":"6b4d2565fc","p1c":"3a9da90bdd","p1d":"1a90dc82e2"};
 ST.SECTIONS=[
  {k:'A',deck:'p1a',section:'Section A',title:'External Financial Reporting Decisions',weight:15,
   blurb:'Every LOS in Section A, explained in order: a short story about a company that fits each idea, pictures that move when movement helps, and exam-style practice.',
@@ -19,7 +19,7 @@ ST.SECTIONS=[
  {k:'C',deck:'p1c',section:'Section C',title:'Performance Management',weight:20,
   blurb:'How a company measures what happened against the plan: variances, responsibility centers and performance measures.',
   groups:[['C.1','Cost and variance measures'],['C.2','Responsibility centers and reporting segments'],['C.3','Performance measures']],
-  files:['c1-master.js?v=5','c1-flex.js?v=4','c1-std.js?v=2','c1-oh.js?v=3','c1-mix.js?v=3','c1-act.js?v=2','c2-resp.js?v=2','c2-seg.js?v=1','c2-tp.js?v=2','c2-mnc.js?v=1','c3-goals.js?v=1','c3-prof.js?v=1','c3-roi.js?v=1','c3-comp.js?v=1','c3-bsc.js?v=1']},
+  files:['c1-master.js?v=5','c1-flex.js?v=4','c1-std.js?v=2','c1-oh.js?v=3','c1-mix.js?v=3','c1-act.js?v=2','c2-resp.js?v=3','c2-seg.js?v=2','c2-tp.js?v=3','c2-mnc.js?v=2','c3-goals.js?v=2','c3-prof.js?v=2','c3-roi.js?v=2','c3-comp.js?v=2','c3-bsc.js?v=2']},
  {k:'D',deck:'p1d',section:'Section D',title:'Cost Management',weight:15,
   blurb:'What a product really costs: costing systems, overhead, the supply chain and process improvement.',
   groups:[['D.1','Measurement concepts'],['D.2','Costing systems'],['D.3','Overhead costs'],['D.4','Supply chain management'],['D.5','Business process improvement']],
