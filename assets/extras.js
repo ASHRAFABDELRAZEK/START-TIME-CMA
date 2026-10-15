@@ -333,19 +333,21 @@ function loadXL(){if(window.ExcelJS)return Promise.resolve(window.ExcelJS);if(xl
   xlP=new Promise(function(res,rej){var sc=document.createElement('script');sc.src=XLSX_URL;sc.onload=function(){res(window.ExcelJS)};sc.onerror=function(){xlP=null;rej(new Error('Could not load the Excel library — check the internet connection.'))};document.head.appendChild(sc)});return xlP}
 function cellText(c){var t=(c.innerText||c.textContent||'').replace(/ /g,' ').replace(/[ \t]+/g,' ').replace(/\n\s*/g,' ').trim();return t}
 function parseNum(t){
-  if(t==='–'||t==='-')return {v:0,f:'n'};
-  var m=t.replace(/\s/g,'').match(/^([+−\-])?\(?([+−\-])?([\d,]+(?:\.\d+)?)\)?(%)?$/);
+  if(t==='–'||t==='-'||t==='—')return {v:0,f:'n'};
+  var m=t.replace(/\s/g,'').match(/^([+−\-])?\(?([+−\-])?(\$)?([\d,]+(?:\.\d+)?)\)?(%)?$/);
   if(!m)return null;
-  var v=parseFloat(m[3].replace(/,/g,''));if(isNaN(v))return null;
+  var v=parseFloat(m[4].replace(/,/g,''));if(isNaN(v))return null;
   if(/^\(.*\)$/.test(t.replace(/\s/g,'').replace(/^[+−\-]/,''))||m[1]==='−'||m[1]==='-'||m[2]==='−'||m[2]==='-')v=-v;
-  return m[4]?{v:v/100,f:'p'}:{v:v,f:'n'};
+  return m[5]?{v:v/100,f:'p'}:{v:v,f:'n',cur:m[3]?'$':''};
 }
+/* a variance written the CMA way: "15,000 F" (favorable) or "2,000 U" (unfavorable) */
+function parseFU(t){var m=String(t||'').replace(/\s+/g,' ').trim().match(/^\$?([\d,]+(?:\.\d+)?) ?(F|U)$/);if(!m)return null;var n=parseFloat(m[1].replace(/,/g,''));return isNaN(n)?null:{n:n,s:m[2]==='F'?1:-1}}
 function grid(tbl){
   var rows=[],occ=[];
-  $$('tr',tbl).forEach(function(tr,ri){var r=[],ci=0,hdr=true,span=false;occ[ri]=occ[ri]||[];
+  $$('tr',tbl).forEach(function(tr,ri){var r=[],xs=[],ci=0,hdr=true,span=false;occ[ri]=occ[ri]||[];
     $$('th,td',tr).forEach(function(c){while(occ[ri][ci])ci++;var cs=+c.getAttribute('colspan')||1,rs=+c.getAttribute('rowspan')||1;if(cs>1)span=true;if(c.tagName!=='TH')hdr=false;
-      var tx=cellText(c);r[ci]=tx;for(var k=1;k<cs;k++)r[ci+k]=hdr?{g:tx}:'';for(var j=1;j<rs;j++){occ[ri+j]=occ[ri+j]||[];occ[ri+j][ci]=1}ci+=cs});
-    rows.push({c:r,hdr:hdr,span:span,cls:tr.className||''})});
+      var tx=cellText(c);r[ci]=tx;if(c.getAttribute('data-x'))xs[ci]=c.getAttribute('data-x');for(var k=1;k<cs;k++)r[ci+k]=hdr?{g:tx}:'';for(var j=1;j<rs;j++){occ[ri+j]=occ[ri+j]||[];occ[ri+j][ci]=1}ci+=cs});
+    rows.push({c:r,x:xs,hdr:hdr,span:span,cls:tr.className||''})});
   /* fold a spanning header row (group labels) into the header row below it — no merged cells */
   var out=[];
   for(var i=0;i<rows.length;i++){var r=rows[i],nx=rows[i+1];
@@ -353,34 +355,148 @@ function grid(tbl){
     r.c=r.c.map(function(v){return v&&typeof v==='object'?'':v});out.push(r)}
   return out;
 }
-function sheetName(s,used){s=s.replace(/[\[\]\:\*\?\/\\]/g,' ').replace(/\s+/g,' ').trim().slice(0,28).trim()||'Table';var n=s,k=2;while(used[n.toLowerCase()])n=s.slice(0,26)+' ('+(k++)+')';used[n.toLowerCase()]=1;return n}
+function sheetName(s,used){s=s.replace(/[\[\]\:\*\?\/\\]/g,' ').replace(/\s+/g,' ').trim().slice(0,28).replace(/^[\s']+|[\s']+$/g,'')||'Table';var n=s,k=2;while(used[n.toLowerCase()])n=s.slice(0,26)+' ('+(k++)+')';used[n.toLowerCase()]=1;return n}
+/* ---------- live formulas: a figure becomes a formula only if the formula gives the slide's figure exactly ----------
+   automatic: totals (rows tot/tt/s or labelled Total/Net/Gross…) = sum of the run above, first minus the rest,
+   or the unused totals above; a "Total" column = the other figures in its row.
+   authored: <td data-x="=-20%*{-1}"> — {dr} = same column dr rows away, {dr,dc} = dr rows and dc columns away. */
+function colL(i){var s='',n=i+1;while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
+var TOTC=/\b(tot|tt|s)\b/,TOTL=/^(=|total|net |gross |sub-?total|balance at|cash at|ending )/i;
+function near(a,b){return Math.abs(a-b)<=1e-9*Math.max(1,Math.abs(a),Math.abs(b))}
+function lnorm(t){return String(t||'').replace(/\s+/g,' ').trim().toLowerCase()}
+/* the value of an authored formula once its cells are replaced by numbers: + − × ÷ ( ) % and ROUND only */
+function arith(js){if(!/^[\d\s+\-*\/().%,eE]*$/.test(js.replace(/ROUND|SUM/g,'')))return null;
+  try{var v=Function('"use strict";function ROUND(a,b){var p=Math.pow(10,b||0);return Math.round(a*p)/p}function SUM(){var s=0;for(var i=0;i<arguments.length;i++)s+=arguments[i];return s}return ('+js.replace(/(\d+(?:\.\d+)?)%/g,'($1/100)')+')')();return isFinite(v)?v:null}catch(e){return null}}
+var XREF=/\{(?:@([^}]+)|(-?\d+)(?:,(-?\d+))?)\}/g,XRANGE=/\{(-?\d+)(?:,(-?\d+))?\}:\{(-?\d+)(?:,(-?\d+))?\}/g;
+function liveFormulas(rows,r0,L){
+  var N=[],F={},used={},hd=[],cur=null;
+  rows.forEach(function(r,ri){if(r.hdr)cur=r.c;hd[ri]=cur;
+    N[ri]=r.c.map(function(v,ci){if(r.hdr||!ci)return null;var p=parseNum(v==null?'':String(v));return p?p.v:null})});
+  function A(ri,ci){return colL(ci)+(r0+ri)}
+  function isTot(ri){var r=rows[ri];return !r.hdr&&(TOTC.test(r.cls)||TOTL.test(String(r.c[0]||'').trim()))}
+  function put(ri,ci,f,refs){F[ri+','+ci]={f:f,v:N[ri][ci],refs:refs};refs.forEach(function(p){used[p[0]+','+p[1]]=1})}
+  /* 1. authored formulas */
+  /* {dr} / {dr,dc}: a cell of this table counted from this one; {@Label}: the row with that label, here or in a table above on the same slide */
+  rows.forEach(function(r,ri){(r.x||[]).forEach(function(x,ci){if(!x||N[ri][ci]==null)return;var refs=[],bad=false;
+    var js=x.replace(/^=/,'').replace(XRANGE,function(_,a,b,c,d){var r1=ri+(+a),c1=ci+(+(b||0)),r2=ri+(+c),c2=ci+(+(d||0)),t=[];   /* {a}:{b} = the cells between, empty ones count 0 */
+        for(var rr=Math.min(r1,r2);rr<=Math.max(r1,r2);rr++)for(var cc=Math.min(c1,c2);cc<=Math.max(c1,c2);cc++){var q=N[rr]&&N[rr][cc];
+          if(q==null){var tx=rows[rr]&&rows[rr].c[cc];if(tx!=null&&String(tx).trim()!==''&&!rows[rr].hdr){bad=true;q=0}else q=0}else refs.push([rr,cc]);t.push('('+q+')')}
+        return '('+(t.join('+')||'0')+')'}).replace(XREF,function(_,lab,dr,dc){
+      if(lab){var e=L&&L[lnorm(lab)];if(!e||e.N[ci]==null){bad=true;return '0'}if(e.ri!=null)refs.push([e.ri,ci]);return '('+e.N[ci]+')'}
+      var rr=ri+(+dr),cc=ci+(+(dc||0));if(!N[rr]||N[rr][cc]==null){bad=true;return '0'}refs.push([rr,cc]);return '('+N[rr][cc]+')'});
+    var xl=x.replace(/^=/,'').replace(XRANGE,function(_,a,b,c,d){return A(ri+(+a),ci+(+(b||0)))+':'+A(ri+(+c),ci+(+(d||0)))})
+      .replace(XREF,function(_,lab,dr,dc){return lab?colL(ci)+L[lnorm(lab)].row:A(ri+(+dr),ci+(+(dc||0)))});
+    var v=bad?null:arith(js);if(v==null)return;
+    if(near(v,N[ri][ci])||nearR(v,ri,ci))put(ri,ci,xl,refs);else if(window.console)console.warn('Excel formula does not give the slide figure:',x,v,N[ri][ci])})});
+  /* 2. a "Total" column = the other figures in its row */
+  rows.forEach(function(r,ri){var h=hd[ri];if(r.hdr||!h)return;var tc=[],oc=[];
+    h.forEach(function(t,ci){if(ci&&N[ri][ci]!=null)(/\b(total|quarter)\b/i.test(String(t||''))?tc:oc).push(ci)});
+    if(tc.length!==1||oc.length<2||F[ri+','+tc[0]])return;var s=0;oc.forEach(function(ci){s+=N[ri][ci]});
+    if(near(s,N[ri][tc[0]]))put(ri,tc[0],oc.map(function(ci){return A(ri,ci)}).join('+'),oc.map(function(ci){return [ri,ci]}))});
+  /* 2b. a column that is the product (or the quotient) of two other columns in every row of a block: Allowance = Receivables × Loss rate.
+         At least two rows must agree and none may disagree; the slide's rounding is allowed, since the cell shows the same figure. */
+  var nc0=0;rows.forEach(function(r){nc0=Math.max(nc0,r.c.length)});
+  function dec(ri,ci){var t=String(rows[ri].c[ci]||''),d=((t.match(/\.(\d+)/)||[0,''])[1]).length;return /%\s*$/.test(t)?d+2:d}
+  function nearR(x,ri,ci){var v=N[ri][ci];return near(x,v)||Math.abs(x-v)<=0.5*Math.pow(10,-dec(ri,ci))+1e-9}
+  var blocks=[],cb=[];rows.forEach(function(r,ri){if(r.hdr){if(cb.length)blocks.push(cb);cb=[]}else if(!isTot(ri))cb.push(ri)});if(cb.length)blocks.push(cb);
+  blocks.forEach(function(body){if(body.length<2)return;var role={};       /* the result is looked for from the right; its two columns become inputs (no circle) */
+    for(var k=nc0-1;k>=1;k--){var done=false;if(role[k]||body.some(function(ri){return F[ri+','+k]}))continue;   /* a column with formulas of its own is left alone */
+      for(var i=1;i<nc0&&!done;i++)for(var j=1;j<nc0&&!done;j++){if(i===k||j===k||i===j||role[i]==='out'&&role[j]==='out')continue;
+        ['*','/','-'].forEach(function(op){if(done||(op==='*'&&j<i))return;var good=0,bad=0,use=[];
+          body.forEach(function(ri){var a=N[ri][i],b=N[ri][j],v=N[ri][k];if(a==null||b==null||v==null||F[ri+','+k])return;
+            if([i,j].some(function(c){var e=F[ri+','+c];return e&&e.refs.some(function(q){return q[0]===ri&&q[1]===k})})){bad++;return}   /* never a circle */
+            var x=op==='*'?a*b:op==='-'?a-b:(b?a/b:NaN);if(!isFinite(x)){bad++;return}
+            if(nearR(x,ri,k)){if(v&&Math.abs(a)!==1&&Math.abs(b)!==1&&!near(a,v)&&!near(b,v))good++;use.push(ri)}else bad++});
+          if(good>=2&&!bad){use.forEach(function(ri){put(ri,k,A(ri,i)+op+A(ri,j),[[ri,i],[ri,j]])});done=true;role[k]='out';role[i]=role[i]||'in';role[j]=role[j]||'in'}})}}});
+  /* 2c. a variance column written "15,000 F" / "2,000 U": the gap between two figure columns of the same row, F or U as on the slide.
+         The same two columns must explain at least two variances of the table and every one of them. */
+  var FU=rows.map(function(r){return r.c.map(function(v,ci){return r.hdr||!ci?null:parseFU(v)})});
+  for(var kf=1;kf<nc0;kf++){var cells=[];rows.forEach(function(r,ri){if(FU[ri][kf])cells.push(ri)});if(cells.length<2)continue;
+    var pair=null;
+    for(var i2=1;i2<nc0&&!pair;i2++)for(var j2=i2+1;j2<nc0&&!pair;j2++){if(i2===kf||j2===kf)continue;
+      if(cells.every(function(ri){var a=N[ri][i2],b=N[ri][j2];return a!=null&&b!=null&&Math.abs(Math.abs(a-b)-FU[ri][kf].n)<=0.5*Math.pow(10,-dec(ri,kf))+1e-9}))pair=[i2,j2]}
+    if(pair)cells.forEach(function(ri){var a=N[ri][pair[0]],b=N[ri][pair[1]],s=FU[ri][kf].s,f=(a-b)*s>=0?A(ri,pair[0])+'-'+A(ri,pair[1]):A(ri,pair[1])+'-'+A(ri,pair[0]);
+      var d=dec(ri,kf),z=d?'.'+'0'.repeat(d):'';
+      F[ri+','+kf]={f:f,v:FU[ri][kf].n*s,refs:[[ri,pair[0]],[ri,pair[1]]],fu:'#,##0'+z+' "F";#,##0'+z+' "U";"-"'};
+      used[ri+','+pair[0]]=used[ri+','+pair[1]]=1})}
+  /* 3. totals down a column: one set of source rows must give the figure in EVERY column of the total row,
+        so a zero that happens to sit inside a window cannot pass for a real component */
+  var nc=0;rows.forEach(function(r){nc=Math.max(nc,r.c.length)});
+  function val(ri,ci){if(N[ri][ci]!=null)return N[ri][ci];var t=rows[ri].c[ci];return t==null||String(t).trim()===''?0:NaN}
+  function cands(ri,ci){var out=[],run=[],tl=[],k,j;
+    for(k=ri-1;k>=0&&!rows[k].hdr&&N[k][ci]!=null;k--)run.push(k);
+    for(j=0;j<run.length;j++)if(j>0||run.length===1)out.push({p:run.slice(0,j+1).reverse(),m:0});   /* sum of the run above, shortest first */
+    for(j=1;j<run.length;j++)out.push({p:run.slice(0,j+1).reverse(),m:1});                           /* first minus the rest */
+    for(k=ri-1;k>=0&&!rows[k].hdr;k--)if(isTot(k)&&N[k][ci]!=null&&!used[k+','+ci])tl.push(k);
+    if(tl.length>=2)out.push({p:tl.reverse(),m:0});                                                   /* the unused totals above */
+    return out}
+  function calc(c,ci){var s=0;for(var i=0;i<c.p.length;i++){var x=val(c.p[i],ci);if(isNaN(x))return NaN;s+=c.m&&i?-x:x}return s}
+  function seq(p,ci){return p.length===1?A(p[0],ci):p[p.length-1]-p[0]===p.length-1?'SUM('+A(p[0],ci)+':'+A(p[p.length-1],ci)+')':p.map(function(q){return A(q,ci)}).join('+')}
+  function ftext(c,ci){if(!c.m)return seq(c.p,ci);var r=c.p.slice(1),t=seq(r,ci);return A(c.p[0],ci)+'-'+(r.length>1&&!/^SUM/.test(t)?'('+t+')':t)}
+  /* per column: 1 = gives the figure, 0 = cannot judge (no figures to add, text, or off only by the slide's rounding), -1 = contradicts */
+  function judge(c,ri,cj){var n=0,i;for(i=0;i<c.p.length;i++){if(N[c.p[i]][cj]!=null)n++;else if(isNaN(val(c.p[i],cj)))return 0}
+    if(!n)return 0;var s=calc(c,cj),v=N[ri][cj];if(near(s,v))return 1;
+    var d=((String(rows[ri].c[cj]).match(/\.(\d+)/)||[0,''])[1]).length;return Math.abs(s-v)<=0.5*n*Math.pow(10,-d)+1e-9?0:-1}
+  for(var ri=0;ri<rows.length;ri++){if(!isTot(ri))continue;
+    var cols=[],tried={},pick=null,ok=[];for(var ci=1;ci<nc;ci++)if(N[ri][ci]!=null&&!F[ri+','+ci])cols.push(ci);
+    cols.some(function(ci){return cands(ri,ci).some(function(c){var key=c.m+':'+c.p.join(',');if(tried[key])return false;tried[key]=1;
+      var j=cols.map(function(cj){return judge(c,ri,cj)});
+      if(j.indexOf(-1)<0&&j.indexOf(1)>=0){pick=c;ok=cols.filter(function(cj,i){return j[i]===1});return true}return false})});
+    if(pick)ok.forEach(function(ci){put(ri,ci,ftext(pick,ci),pick.p.map(function(q){return [q,ci]}))});
+  }
+  return F;
+}
+function numFmt(txt,pct,plain,cur){var d=((txt.match(/\.(\d+)/)||[0,''])[1]).length,z=d?'.'+'0'.repeat(d):'',b=(cur?'"$"':'')+(pct?'0'+z+'%':'#,##0'+z);
+  return b+';'+(plain?'':'[Red]')+'('+b+');"-"'}
 function exportTables(groups,title,fname){
   var note=el('div','fb ok','<b class="v">Preparing the Excel file…</b>');ST.modal('Export to Excel',note);
   loadXL().then(function(XL){
-    var wb=new XL.Workbook();wb.creator='START TIME — ASHRAF FATHY';wb.created=new Date();
+    var wb=new XL.Workbook();wb.creator='START TIME — ASHRAF FATHY';wb.created=new Date();wb.calcProperties={fullCalcOnLoad:true};
     var NAVY='FF1F3864',HEAD='FFBDD7EE',BORDER={style:'thin',color:{argb:'FFBFBFBF'}},B={top:BORDER,left:BORDER,bottom:BORDER,right:BORDER};
     var NUM='#,##0.00;(#,##0.00);"-"',font={name:'Arial',size:10};
     var used={index:1},idx=wb.addWorksheet('Index'),list=[];
-    groups.forEach(function(g){g.tables.forEach(function(tbl,ti){
-      var rows=grid(tbl);if(!rows.length)return;
-      var nm=sheetName((g.tables.length>1?g.h+' t'+(ti+1):g.h),used),ws=wb.addWorksheet(nm,{views:[{state:'frozen',ySplit:0}]});
+    /* one sheet per slide: its tables one under the other (a balance sheet split into two tables stays one page) */
+    groups.forEach(function(g){
+      var tabs=g.tables.map(function(t){return {t:t,rows:grid(t)}}).filter(function(o){return o.rows.length});if(!tabs.length)return;
+      var nm=sheetName(g.h,used),ws=wb.addWorksheet(nm);
       var c1=ws.getCell('A1');c1.value=g.h.replace(/^\d+\s*/,'')||title;c1.font={name:'Arial',size:14,bold:true,color:{argb:NAVY}};
       var c2=ws.getCell('B1');c2.value={text:'← Index',hyperlink:"#'Index'!A1"};c2.font={name:'Arial',size:10,color:{argb:'FF0563C1'},underline:true};
       var c3=ws.getCell('A2');c3.value=title+' · slide '+(g.h.match(/^\d+/)||[''])[0];c3.font={name:'Arial',size:9,italic:true,color:{argb:'FF808080'}};
-      var r0=4,maxC=0,widths=[],firstData=0;
-      rows.forEach(function(r,ri){var row=ws.getRow(r0+ri);maxC=Math.max(maxC,r.c.length);
-        r.c.forEach(function(v,ci){var cell=row.getCell(ci+1),txt=v==null?'':String(v),pn=(!r.hdr&&ci>0)?parseNum(txt):null;
-          if(pn){cell.value=pn.v;cell.numFmt=pn.f==='p'?'0.0%':NUM;cell.alignment={horizontal:'right'}}else{cell.value=txt;cell.alignment={wrapText:true,vertical:'top'}}
-          cell.font=font;cell.border=B;
-          if(r.hdr){cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:HEAD}};cell.font={name:'Arial',size:10,bold:true,color:{argb:NAVY}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true}}
-          else if(/\btt\b/.test(r.cls)){cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};cell.font={name:'Arial',size:10,bold:true,color:{argb:'FFFFFFFF'}}}
-          else if(/\b(s|tot)\b/.test(r.cls)){cell.font={name:'Arial',size:10,bold:true}}
-          widths[ci]=Math.max(widths[ci]||8,Math.min(ci===0?60:24,txt.length+2))});
-        if(r.hdr&&!firstData)ws.views=[{state:'frozen',ySplit:r0+ri}];});
+      var r0=4,maxC=0,widths=[],live=false,frz=0,L={};
+      tabs.forEach(function(o){var rows=o.rows;
+        Object.keys(L).forEach(function(k){L[k].ri=null});                /* labels of the tables above: no row number inside this table */
+        rows.forEach(function(r,ri){if(r.hdr||!r.c[0])return;L[lnorm(r.c[0])]={row:r0+ri,ri:ri,N:r.c.map(function(v,ci){var p=ci?parseNum(v==null?'':String(v)):null;return p?p.v:null})}});
+        var FX=liveFormulas(rows,r0,L),refd={};if(Object.keys(FX).length)live=true;
+        Object.keys(FX).forEach(function(k){FX[k].refs.forEach(function(p){refd[p[0]+','+p[1]]=1})});
+        rows.forEach(function(r,ri){var row=ws.getRow(r0+ri);maxC=Math.max(maxC,r.c.length);
+          var navy=/\btt\b/.test(r.cls),bold=navy||/\b(s|tot)\b/.test(r.cls);
+          r.c.forEach(function(v,ci){var cell=row.getCell(ci+1),txt=v==null?'':String(v),pn=(!r.hdr&&ci>0)?parseNum(txt):null,fx=FX[ri+','+ci];
+            if(pn){cell.value=fx?{formula:fx.f,result:pn.v}:pn.v;cell.numFmt=numFmt(txt,pn.f==='p',navy,pn.cur);cell.alignment={horizontal:'right'}}
+            else if(fx&&fx.fu){cell.value={formula:fx.f,result:fx.v};cell.numFmt=fx.fu;cell.alignment={horizontal:'right'}}
+            else{cell.value=txt;cell.alignment={wrapText:true,vertical:'top'}}
+            cell.font=font;cell.border=B;
+            if(r.hdr){cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:HEAD}};cell.font={name:'Arial',size:10,bold:true,color:{argb:NAVY}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true}}
+            else if(navy){cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};cell.font={name:'Arial',size:10,bold:true,color:{argb:'FFFFFFFF'}}}
+            else{if(bold)cell.font={name:'Arial',size:10,bold:true};if(pn&&!fx&&refd[ri+','+ci])cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF2CC'}}}
+            widths[ci]=Math.max(widths[ci]||8,Math.min(ci===0?60:24,txt.length+2))});
+          if(r.hdr&&tabs.length===1)frz=r0+ri});
+        /* a check row under the table (data-xcheck="Label|={@Total assets}-{@Total liabilities and equity}"): green when 0, red otherwise */
+        var xc=o.t.getAttribute&&o.t.getAttribute('data-xcheck'),chk=0;
+        if(xc){var xp=xc.split('|'),xf=(xp[1]||'').replace(/^=/,''),crow=ws.getRow(r0+rows.length);
+          for(var ci=1;ci<maxC;ci++){var bad=false;
+            var js=xf.replace(/\{@([^}]+)\}/g,function(_,l){var e=L[lnorm(l)];if(!e||e.N[ci]==null){bad=true;return '0'}return '('+e.N[ci]+')'}),v=bad?null:arith(js);
+            if(v==null)continue;if(!near(v,0)){if(window.console)console.warn('Excel check is not 0 on the slide figures:',xc,v);continue}
+            var cc=crow.getCell(ci+1);cc.value={formula:xf.replace(/\{@([^}]+)\}/g,function(_,l){return colL(ci)+L[lnorm(l)].row}),result:0};
+            cc.numFmt='[Red]#,##0;[Red](#,##0);"0 \u2713"';cc.font={name:'Arial',size:10,bold:true,color:{argb:'FF00703C'}};cc.border=B;cc.alignment={horizontal:'right'};chk=1}
+          if(chk){var lc=crow.getCell(1);lc.value=xp[0];lc.font={name:'Arial',size:10,bold:true,italic:true,color:{argb:'FFC00000'}};lc.border=B;lc.alignment={wrapText:true,vertical:'top'};
+            widths[0]=Math.max(widths[0]||8,Math.min(60,xp[0].length+2));live=true}}
+        r0+=rows.length+chk+2});
+      if(live){var c4=ws.getCell('A3');c4.value='Yellow cells are the inputs: change one and every total that depends on it updates.';c4.font={name:'Arial',size:9,italic:true,color:{argb:'FF7F6000'}}}
+      if(frz)ws.views=[{state:'frozen',ySplit:frz}];
       widths.forEach(function(w,i){ws.getColumn(i+1).width=w});
       ws.pageSetup={orientation:maxC>4?'landscape':'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,paperSize:9,margins:{left:0.4,right:0.4,top:0.5,bottom:0.5,header:0.2,footer:0.2}};
       list.push(nm);
-    })});
+    });
     idx.getCell('A1').value=title;idx.getCell('A1').font={name:'Arial',size:14,bold:true,color:{argb:NAVY}};
     idx.getCell('A2').value='START TIME — ASHRAF FATHY · CMA '+PART+' · '+SECT+' · exported '+new Date().toLocaleDateString('en-GB');idx.getCell('A2').font={name:'Arial',size:9,italic:true,color:{argb:'FF808080'}};
     list.forEach(function(nm,i){var c=idx.getCell('A'+(4+i));c.value={text:nm,hyperlink:"#'"+nm.replace(/'/g,"''")+"'!A1"};c.font={name:'Arial',size:10,color:{argb:'FF0563C1'},underline:true}});
