@@ -27,7 +27,7 @@ var TONES={asset:1,liab:1,eq:1,inc:1,exp:1,cash:1,key:1,neu:1};
 function tn(t){return 'tn-'+(TONES[t]?t:'neu')}
 function tw(s,px){return Math.round(String(s).length*(px||16)*0.55)}
 /* keep a label inside its shape: a size down first, then squeeze */
-function fit(t,avail,px){var w=String(t).length*(px||16)*0.6;if(w<=avail)return '';if(String(t).length*14*0.6<=avail)return ' style="font-size:14px"';return ' style="font-size:14px" textLength="'+Math.round(avail)+'" lengthAdjust="spacingAndGlyphs"'}
+function fit(t,avail,px){if(!String(t==null?'':t).length)return '';var w=String(t).length*(px||16)*0.6;if(w<=avail)return '';if(String(t).length*14*0.6<=avail)return ' style="font-size:14px"';return ' style="font-size:14px" textLength="'+Math.round(avail)+'" lengthAdjust="spacingAndGlyphs"'}
 
 /* ---------- the cast: simple shapes drawn around (0,0), about 64 units tall ---------- */
 var CAST={
