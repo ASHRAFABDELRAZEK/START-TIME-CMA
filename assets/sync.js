@@ -52,7 +52,7 @@ function syncNow(){
       if(res.readSec&&res.readSec!==a.readSec){a.readSec=res.readSec;ch=true}
       if(ch)ST.setSession(a);
       if(accCh&&ST.route)ST.route();                  // a topic opened or closed: redraw what the student sees
-      lastOk=Date.now();state='ok';lastErr='';
+      lastOk=Date.now();state='ok';lastErr='';thanks(res);
     })
     .catch(function(e){state='err';lastErr=(e&&e.message)||'No connection';if(e&&e.auth)lockOut(lastErr)})
     .then(function(){busy=false;paint();refresh();if(again){again=false;schedule(3000)}});
@@ -90,6 +90,30 @@ function catalog(){var key='st-cat2-'+DECK,list=ST.topics.filter(function(t){ret
     .then(function(r){if(r&&r.ok&&typeof r.added==='number')try{localStorage.setItem(key,sigc)}catch(e){}}).catch(function(){})}
 
 /* staff panel: every action goes to the script, which checks the role on the Roles sheet */
+/* translation inside the page (assets/trsel.js): English parts → Arabic from the sheet's script, for a signed-in code with the permission */
+ST.translateCall=function(parts,where,mode){
+  var s=ST.session();
+  if(!enabled()||!s||!s.code)return Promise.reject(new Error('offline'));
+  return post({op:'translate',code:s.code,parts:parts,where:where==='bank'?'bank':'lesson',mode:mode==='all'?'all':'sel'})
+    .then(function(res){if(res&&!res.ok&&res.auth)lockOut(res.error);return res||{ok:false,error:'No answer from the sheet.'}});
+};
+/* "اقترح ترجمة أفضل": [{en, ar, sug}] → the Suggestions sheet (the owner approves it there) */
+ST.suggestCall=function(items,where){
+  var s=ST.session();
+  if(!enabled()||!s||!s.code)return Promise.reject(new Error('offline'));
+  return post({op:'trSuggest',code:s.code,items:items,where:where==='bank'?'bank':'lesson'})
+    .then(function(res){if(res&&!res.ok&&res.auth)lockOut(res.error);return res||{ok:false,error:'No answer from the sheet.'}});
+};
+/* a suggestion of this student was approved: a thank-you message, shown once (the script is told it was seen) */
+var thxShown={};
+function thanks(res){var t=((res&&res.thx)||[]).filter(function(x){return x&&x.id&&!thxShown[x.id]});if(!t.length||!ST.modal)return;
+  t.forEach(function(x){thxShown[x.id]=1});
+  var e=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var h='<div class="thx" dir="rtl" lang="ar"><p>'+(t.length>1?'اقتراحاتك للترجمة اتعتمدت ✓':'اقتراحك للترجمة اتعتمد ✓')+'</p>'+
+    t.map(function(x){return '<blockquote><bdi dir="ltr">'+e(x.en)+(x.en.length>=90?'…':'')+'</bdi><br><b>'+e(x.ar)+'</b></blockquote>'}).join('')+
+    '<p>شكراً لمساهمتك! الطلبة كلهم بيشوفوا ترجمتك دلوقتي.</p></div>';
+  setTimeout(function(){ST.modal('شكراً لمساهمتك',h)},700);
+  var s=ST.session();if(s&&s.code)post({op:'thxSeen',code:s.code,ids:t.map(function(x){return x.id})}).catch(function(){})}
 ST.adminCall=function(action,data){
   var s=ST.session();
   if(!enabled())return Promise.reject(new Error('The sheet is not connected.'));
@@ -122,6 +146,7 @@ ST.accessLogin=function(code){
     if(res.role!=='student'){ST.setSession({role:res.role||'assistant',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',view:'trainer',answers:false,perms:res.perms||null,sperms:res.sperms||null,readSec:res.readSec||0,keys:res.keys||null});return res}
     ST.setSession({role:'student',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',need:res.need||[],confirmBy:res.confirmBy||'',access:res.access||{},group:res.group||'',perms:res.perms||null,sperms:res.perms||null,readSec:res.readSec||0,keys:res.keys||null});
     ST.progress.replace(ST.progress.merge(ST.progress.get(),res.data));
+    thanks(res);
     return res;
   });
 };

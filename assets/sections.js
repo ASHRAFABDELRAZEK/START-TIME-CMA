@@ -4,12 +4,12 @@
    A section with no topic files yet shows as "coming soon". Loaded after config.js and los.js, before core.js. */
 (function(){
 var ST=window.ST=window.ST||{};
-ST.ENC={"p1a":"4a3da72975","p1b":"e6102a8279","p1c":"774969db24","p1d":"1a90dc82e2"};
+ST.ENC={"p1a":"031c88f419","p1b":"e6102a8279","p1c":"774969db24","p1d":"1a90dc82e2"};
 ST.SECTIONS=[
  {k:'A',deck:'p1a',section:'Section A',title:'External Financial Reporting Decisions',weight:15,
   blurb:'Every LOS in Section A, explained in order: a short story about a company that fits each idea, pictures that move when movement helps, and exam-style practice.',
   groups:[['A.1','Financial statements'],['A.2','Recognition, measurement, and valuation']],
-  files:['a1-primer.js?v=1','a1-users.js?v=7','a1-comp.js?v=6','a1-limits.js?v=4','a1-effects.js?v=4','a1-links.js?v=5','a1-prep.js?v=4','a1-consolidation.js?v=9','a1-ir.js?v=9',
+  files:['a1-primer.js?v=2','a1-users.js?v=7','a1-comp.js?v=6','a1-limits.js?v=4','a1-effects.js?v=4','a1-links.js?v=5','a1-prep.js?v=4','a1-consolidation.js?v=9','a1-ir.js?v=9',
    'a2-receivables.js?v=8','a2-inventory.js?v=7','a2-investments.js?v=8','a2-ppe.js?v=7','a2-liabilities.js?v=7','a2-taxes.js?v=7','a2-leases.js?v=7',
    'a2-equity.js?v=9','a2-revenue.js?v=8','a2-income.js?v=7','a2-gaap-ifrs.js?v=8']},
  {k:'B',deck:'p1b',section:'Section B',title:'Planning, Budgeting, and Forecasting',weight:20,
