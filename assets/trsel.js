@@ -42,7 +42,13 @@ function qText(s){var out=[];if(s.q)out.push(strip(s.q));
   return out.join('\n')}
 function slideText(sec,s){var h=s.h?strip(s.h)+'\n\n':'';
   if(ST.isPractice&&ST.isPractice(s)&&s.t!=='trace')return h+qText(s);
-  var b=sec.querySelector('.sb');return h+(b?(b.innerText||'').replace(/\n{3,}/g,'\n\n').trim():'')}
+  var b=sec.querySelector('.sb');return h+(b?bodyText(b).replace(/\n{3,}/g,'\n\n').trim():'')}
+/* the words of a slide without its controls (an animation's Play / Slow / Normal / Fast / 6/6, game buttons, tabs, inputs);
+   a quick check's answer choices stay. The copy is laid out off screen for a moment so that line breaks stay as on the slide. */
+var NOISE='.anm-ctl,.anm-pb,button:not(.qc-o),[role=tab],[role=toolbar],input,select,textarea,.trs-sl,.trs-panel,.trs-pop,svg,[aria-hidden="true"]';
+function bodyText(b){var c=b.cloneNode(true);Array.prototype.forEach.call(c.querySelectorAll(NOISE),function(e){e.parentNode.removeChild(e)});
+  c.setAttribute('aria-hidden','true');c.style.cssText='position:absolute;left:-10000px;top:0;width:'+(b.clientWidth||800)+'px;pointer-events:none';
+  b.parentNode.appendChild(c);var t=c.innerText||'';c.parentNode.removeChild(c);return t}
 /* a text → the parts the script translates one by one (one paragraph or line each) */
 function parts(text){var out=[];String(text||'').split(/\n+/).forEach(function(l){
   l=l.replace(/\t+/g,' | ').replace(/([A-Z]{2,})([A-Z][a-z])/g,'$1: $2').replace(/\s+/g,' ').replace(/^\|\s*|\s*\|$/g,'').trim();   // table cells stay apart; "QUICK CHECKWhich" → "QUICK CHECK: Which"
