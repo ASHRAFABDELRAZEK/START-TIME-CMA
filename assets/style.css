@@ -1562,7 +1562,7 @@ table.gl-print tr.gl-let td{background:var(--soft-teal);font-weight:700;color:va
 table.gl-print td.gl-pt{font-size:.85em;color:var(--muted);white-space:normal}
 table.gl-print .gl-pw{font-size:.9em;color:var(--muted);margin-top:2px}
 table.gl-print{table-layout:fixed;width:100%}
-table.gl-print td:first-child{white-space:normal}
+table.t.gl.gl-print td:first-child{white-space:normal;overflow-wrap:anywhere}   /* beats table.t.gl td:first-child (nowrap): a long term wraps instead of running over the Arabic column */
 table.gl-print th:nth-child(1){width:28%}table.gl-print th:nth-child(2){width:24%}
 table.gl-print.gl-m th:nth-child(1){width:24%}table.gl-print.gl-m th:nth-child(2){width:20%}table.gl-print.gl-m th:nth-child(4){width:20%}
 .gp-r[hidden],.gp-g[hidden]{display:none}
