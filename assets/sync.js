@@ -50,6 +50,7 @@ function syncNow(){
       var accCh=false;if(res.access&&accSig(res.access)!==accSig(a.access)){a.access=res.access;a.group=res.group||'';ch=true;accCh=true}
       if(res.perms&&sig(res.perms)!==sig(a.perms)){a.perms=res.perms;a.sperms=res.sperms||res.perms;ch=true}
       if(res.readSec&&res.readSec!==a.readSec){a.readSec=res.readSec;ch=true}
+      if(res.ui&&uiSig(res.ui)!==uiSig(a.ui)){a.ui=res.ui;a.sui=res.sui||res.ui;ch=true}   // Slide tools rows changed on the Roles sheet: the next slide follows them
       if(ch)ST.setSession(a);
       if(accCh&&ST.route)ST.route();                  // a topic opened or closed: redraw what the student sees
       lastOk=Date.now();state='ok';lastErr='';thanks(res);
@@ -69,12 +70,13 @@ window.addEventListener('online',function(){if(acct())schedule(1000)});
    No connection = stay signed in. */
 function accSig(a){if(!a)return '';return Object.keys(a).sort().map(function(k){return k+'='+a[k]}).join(',')}
 function sig(p){if(!p)return '';return Object.keys(p).sort().map(function(k){return k+(p[k]?1:0)}).join(',')}
+function uiSig(u){if(!u)return '';return Object.keys(u).sort().map(function(k){return k+'='+u[k]}).join(',')}
 function recheck(){var s=ST.session();if(!enabled()||!s||!s.code)return;
   post({op:'login',code:s.code}).then(function(res){
     if(res&&res.ok){
       if(res.role==='student'){lockOut('Please sign in again.');return}
-      var changed=res.role!==s.role||sig(res.perms)!==sig(s.perms)||sig(res.sperms)!==sig(s.sperms)||(res.readSec||0)!==(s.readSec||0);
-      s.role=res.role;s.name=res.name||s.name;s.email=res.email||'';s.mobile=res.mobile||'';s.perms=res.perms||null;s.sperms=res.sperms||null;s.readSec=res.readSec||0;if(res.keys)s.keys=res.keys;ST.setSession(s);
+      var changed=res.role!==s.role||sig(res.perms)!==sig(s.perms)||sig(res.sperms)!==sig(s.sperms)||(res.readSec||0)!==(s.readSec||0)||uiSig(res.ui)!==uiSig(s.ui)||uiSig(res.sui)!==uiSig(s.sui);
+      s.role=res.role;s.name=res.name||s.name;s.email=res.email||'';s.mobile=res.mobile||'';s.perms=res.perms||null;s.sperms=res.sperms||null;s.readSec=res.readSec||0;s.ui=res.ui||null;s.sui=res.sui||null;if(res.keys)s.keys=res.keys;ST.setSession(s);
       if(changed)location.reload();               // role or permissions were changed in the sheet
       catalog();
       return}
@@ -150,8 +152,8 @@ ST.accessLogin=function(code){
   if(!enabled())return Promise.reject(new Error('Sign-in is not available yet. Please try again later or contact your instructor.'));
   return post({op:'login',code:code,dname:devName()}).then(function(res){
     if(!res||!res.ok)throw new Error(res&&res.error||'Sign-in failed');
-    if(res.role!=='student'){ST.setSession({role:res.role||'assistant',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',view:'trainer',answers:false,perms:res.perms||null,sperms:res.sperms||null,readSec:res.readSec||0,keys:res.keys||null});return res}
-    ST.setSession({role:'student',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',need:res.need||[],confirmBy:res.confirmBy||'',access:res.access||{},group:res.group||'',perms:res.perms||null,sperms:res.perms||null,readSec:res.readSec||0,keys:res.keys||null});
+    if(res.role!=='student'){ST.setSession({role:res.role||'assistant',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',view:'trainer',answers:false,perms:res.perms||null,sperms:res.sperms||null,ui:res.ui||null,sui:res.sui||null,readSec:res.readSec||0,keys:res.keys||null});return res}
+    ST.setSession({role:'student',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',need:res.need||[],confirmBy:res.confirmBy||'',access:res.access||{},group:res.group||'',perms:res.perms||null,sperms:res.perms||null,ui:res.ui||null,sui:res.ui||null,readSec:res.readSec||0,keys:res.keys||null});
     ST.progress.replace(ST.progress.merge(ST.progress.get(),res.data));
     thanks(res);
     return res;

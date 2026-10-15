@@ -1566,3 +1566,53 @@ table.t.gl.gl-print td:first-child{white-space:normal;overflow-wrap:anywhere}   
 table.gl-print th:nth-child(1){width:28%}table.gl-print th:nth-child(2){width:24%}
 table.gl-print.gl-m th:nth-child(1){width:24%}table.gl-print.gl-m th:nth-child(2){width:20%}table.gl-print.gl-m th:nth-child(4){width:20%}
 .gp-r[hidden],.gp-g[hidden]{display:none}
+
+/* ---------- Your screen (ui.js): the slide's tool row, the ⋯ menu, focus mode, the staff chip ---------- */
+.s-meta{flex-wrap:nowrap;align-items:center;gap:10px}
+@media (max-width:520px){.s-meta{flex-wrap:wrap;row-gap:4px}.s-tools .ib{width:36px;height:36px}}
+.s-meta>.s-kind{flex:none}
+.s-meta>.chips{flex:1 1 auto;min-width:0}
+.s-tools{display:flex;align-items:center;gap:2px;margin-inline-start:auto;flex:none}
+.s-tools .ib{width:38px;height:38px;border-radius:10px}
+.s-tools .ib svg{width:20px;height:20px}
+.s-tools .ib.on{background:var(--soft-teal);border-color:color-mix(in srgb,var(--teal) 40%,transparent);color:var(--teal)}
+.ui-ar{font:600 19px/1 'IBM Plex Sans Arabic',var(--f)}
+.ui-hide{display:none!important}
+.ui-man .tts-bar.ui-min:not(.playing):not(.paused):not(:has(.tts-rec.on)){display:none}
+.s-menu{position:fixed;z-index:70;width:290px;max-width:calc(100vw - 16px);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 34px rgba(17,34,64,.2);padding:6px}
+.s-mi{display:flex;gap:12px;align-items:center;width:100%;min-height:46px;padding:7px 10px;border:0;background:transparent;border-radius:10px;color:var(--ink);text-align:start;cursor:pointer;font:inherit}
+.s-mi:hover,.s-mi:focus-visible{background:var(--soft-navy);outline:none}
+.s-mi-i{width:24px;display:grid;place-items:center;flex:none;color:var(--ink2)}
+.s-mi-i svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.s-mi b{display:block;font-size:14.5px;font-weight:600;line-height:1.3}
+.s-mi small{display:block;font-size:12px;color:var(--muted);line-height:1.35}
+.s-msep{height:1px;background:var(--line);margin:5px 8px}
+body.ui-focus #top,body.ui-focus .foot{display:none}
+body.ui-focus main{padding-top:10px}
+/* Settings → Your screen */
+.ui-pre{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:8px 0 12px}
+.ui-pre button{text-align:start;padding:10px 12px;border:1px solid var(--line2);border-radius:12px;background:var(--card);cursor:pointer;font:inherit;color:var(--ink);min-height:44px}
+.ui-pre button b{display:block;font-size:14.5px}
+.ui-pre button small{display:block;font-size:12px;color:var(--muted);line-height:1.35;margin-top:2px}
+.ui-pre button.on{border:2px solid var(--teal);background:var(--soft-teal);padding:9px 11px}
+.ui-rows{display:grid;gap:0;margin:4px 0 8px}
+.ui-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
+.ui-row>span:first-child{min-width:0;flex:1 1 200px}
+.ui-row b{display:block;font-size:14.5px;font-weight:600}
+.ui-row small{display:block;font-size:12px;color:var(--muted);line-height:1.35}
+.ui-row .seg{margin:0}
+/* staff: one chip in the top bar, the tools in a panel under it */
+.st-chip{display:inline-flex;align-items:center;gap:6px;height:36px;align-self:center;padding:0 10px 0 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--gold) 55%,transparent);background:var(--soft-gold);color:var(--ink);font:700 12px var(--f);letter-spacing:.06em;cursor:pointer;white-space:nowrap}
+.st-chip .st-v{font-weight:600;letter-spacing:0;color:var(--ink2)}
+.st-chip.stu{background:var(--gold);border-color:var(--gold);color:#112240}
+.st-chip.stu .st-v{color:#112240}
+.st-chip svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.st-chip.on svg{transform:rotate(180deg)}
+.tbar.tb-pop{position:fixed;z-index:70;flex-direction:column;align-items:stretch;gap:12px;width:300px;max-width:calc(100vw - 16px);padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);box-shadow:0 14px 34px rgba(17,34,64,.2)}
+.tbar.tb-pop[hidden]{display:none}
+.tb-pop .tb-who{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tb-pop .tb-grp{justify-content:space-between}
+.tb-pop #tbOut{margin-inline-start:0}
+.tb-pop .btn{width:100%}
+@media (max-width:520px){.st-chip .st-v{display:none}.st-chip{padding:0 8px 0 10px}}
+@media print{.s-tools,.s-menu,.st-chip,.tb-pop{display:none!important}}

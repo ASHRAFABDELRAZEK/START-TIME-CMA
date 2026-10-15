@@ -30,6 +30,7 @@ ST.CONFIG={
     listen:    ['trainer'],            /* Listen: lessons */
     listenBank:['trainer'],            /* Listen: question bank */
     listenAuto:['trainer'],            /* Listen: hands-free */
-    listenRecord:['trainer']           /* Listen: record MP3 (computer) */
+    listenRecord:['trainer'],          /* Listen: record MP3 (computer) */
+    uiCustom:  ['trainer','student']   /* Your screen: each person chooses the tools on the slide */
   }
 };

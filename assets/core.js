@@ -809,6 +809,7 @@ function deck(tid,idx){
   var mid=el('button','mid','<span>'+(si>=0?'Question '+(si+1)+' / '+rv0.a.length:inB?'Bank '+(idx-nL+1)+' / '+(n-nL):(idx+1)+' / '+nL)+'</span>'+ICON.list);mid.type='button';mid.title=si>=0?'Every question in this set (G)':'Go to a slide (G, or type its number and Enter)';mid.setAttribute('aria-label',si>=0?'Every question in this set':'Go to a slide');mid.onclick=function(){if(si>=0)setGrid(revGet()||rv0,si);else toc(t)};
   nav.appendChild(pv);nav.appendChild(mid);nav.appendChild(nx);
   d.appendChild(nav);app.appendChild(d);
+  if(ST.deckDone)try{ST.deckDone(d,t,s,idx)}catch(e){console.error(e)}   // ui.js: the slide's tool row
   window.scrollTo(0,0);
   if(LAND){fitLand();setTimeout(fitLand,120);setTimeout(fitLand,600);$$('img',sec).forEach(function(im){if(!im.complete)im.addEventListener('load',fitLand)})}
   startDwell(t,s,k);if(isPractice(s))startQTimer(t,k);
@@ -1225,13 +1226,13 @@ function help(){
   '<li><b>Interactive</b> slides let you change the numbers and watch the four statements react.</li>'+
   '<li>Each lesson ends with <b>one closing question</b> or a short case. Every other exam-style question, and the topic\'s full case, is in the <b>question bank</b>, with an explanation for every option.</li></ul>'+
   '<p><b>Keyboard:</b> → next, ← previous, F full screen, L portrait / landscape, G (or the slide number at the bottom) to go to any slide. On a phone use the buttons at the bottom.</p>'+
-  '<p><b>Slide view</b> (Settings): portrait for reading, or — for presenting — one screen or in parts with large text, as your role allows. <b>Portrait or landscape</b> (the screen icon at the top of a slide): portrait is for reading — the text, then its picture. Landscape is for presenting — one screen, the text beside its picture, sized to fit. Full screen opens in landscape.</p>'+
+  '<p><b>Slide view</b> (Settings): portrait for reading, or — for presenting — one screen or in parts with large text, as your role allows. <b>Portrait or landscape</b> (the screen icon in the slide\'s tools, or under ⋯): portrait is for reading — the text, then its picture. Landscape is for presenting — one screen, the text beside its picture, sized to fit. Full screen opens in landscape.</p>'+
   '<p><b>Readiness &amp; mistakes</b> (home page): your exam readiness (knowledge, memory and pace), questions due for <b>spaced review</b>, every practice question whose latest answer was wrong with its likely cause, your pace against the exam, and how sure you were. Before answering a practice question you can tap <b>Sure</b>, <b>Not sure</b> or <b>Guessing</b>.</p>'+
   '<p><b>Question bank</b> (home page): every topic has its own section there — practise all its questions, by LOS, as a timed set, or its case on its own. At the top you can build a set: pick the whole section or some topics and how many questions — they are spread across the LOS the way the exam spreads them. <b>Practice</b> shows the answer after each question; <b>Exam</b> runs one clock at exam pace and shows the answers, a score by LOS and every explanation at the end.</p>'+
   '<p><b>Print / PDF</b> (printer icon in a topic): the whole topic as a handout — clean white or screen colours — with an answer key at the end. <b>Excel</b> (table icon): download the tables on the slide, or every table in the topic from the handout page.</p>'+
   '<p>Progress measures <b>mastery</b>: slides read for at least '+readTxt()+' and practice answered correctly. The <b>LOS map</b> shows which LOS you have mastered.'+(ST.sync&&ST.sync.enabled()?' Sign in with your student code to use the same progress on every device.':'')+'</p>'+
   
-  '<p><b>Settings</b> (gear icon): light or dark theme, background colour, reading time, and the optional <b>focus tools</b> (Pomodoro timer, background sound, daily goal) and <b>exam tools</b> (basic calculator, present and future value tables). The calculator and table buttons also appear at the top of slides that need them.</p>'+
+  '<p><b>Settings</b> (gear icon): light or dark theme, background colour, reading time, and the optional <b>focus tools</b> (Pomodoro timer, background sound, daily goal) and <b>exam tools</b> (basic calculator, present and future value tables). The calculator and table buttons also appear in the slide\'s tools on slides that need them.</p><p><b>Your screen</b> (Settings, or ⋯ on a slide): the tools at the top right of each slide — Listen, ع, calculator and the rest — sit on the slide, under ⋯, or are hidden, as you choose. <b>Focus mode</b> hides the top bar so only the slide stays.</p>'+
   '<p class="muted">Every company, person, number, case and question is invented START TIME material — any likeness to a real company is accidental. Amounts are in U.S. dollars unless stated.</p>'+
   (ST.fun?'<div class="row"><button class="btn sm" type="button" id="hTour">Take the welcome tour again</button></div>':''));
   var ht=document.getElementById('hTour');if(ht)ht.onclick=function(){ST.fun.tour()};
@@ -1275,7 +1276,8 @@ ST.appearanceBox=appearance;
 /* Settings (gear in the top bar): appearance for everyone; reading time for the roles ticked on Roles → Staff panel: reading time */
 function settings(){
   var box=el('div','sett');
-  box.innerHTML='<h3 class="sett-h">Appearance</h3>';box.appendChild(appearance());
+  if(ST.uiSettings)try{box.appendChild(ST.uiSettings())}catch(e){console.error(e)}   // Your screen: the tools on the slide (ui.js)
+  box.appendChild(el('h3','sett-h','Appearance'));box.appendChild(appearance());
   var vs=landStyles();if(vs.length){var vw=el('div','');var curV=function(){return orientPref()==='l'?landMode():'p'};
     vw.innerHTML='<h3 class="sett-h">Slide view</h3><p class="note">Portrait is for reading. The other views are for presenting on a wide screen (a computer or a projector); phones always show portrait. The L key, or the screen icon at the top of a slide, switches between portrait and the view you pick here.</p>'+
       '<div class="apx-r"><span class="seg sm vw-seg" role="group" aria-label="Slide view"><button type="button" data-v="p">Portrait</button>'+LSTY.filter(function(x){return vs.indexOf(x[0])>=0}).map(function(x){return '<button type="button" data-v="'+x[0]+'">'+x[2]+'</button>'}).join('')+'</span></div>'+
@@ -1288,7 +1290,7 @@ function settings(){
   if(ST.fun)box.appendChild(ST.fun.settingsRow());
   (ST.settingsExtra||[]).forEach(function(f){try{var n=f();if(n)box.appendChild(n)}catch(e){}});   // rows added by other scripts (e.g. trsel.js)
   if(ST.focus){var fc=el('div','','<h3 class="sett-h">Focus tools</h3><p class="note">A Pomodoro timer, calm background sound and a daily goal. All optional — turn each on or off whenever you like.</p><div class="apx-r"><button class="btn sm" type="button">Open focus tools</button></div>');fc.querySelector('button').onclick=ST.focus.panel;box.appendChild(fc)}
-  if(ST.tools){var xt=el('div','','<h3 class="sett-h">Exam tools</h3><p class="note">The basic calculator and the present / future value tables. On slides that need them they also open from the buttons at the top of the slide.</p><div class="apx-r"><button class="btn sm" type="button" data-x="c">Calculator</button><button class="btn sm" type="button" data-x="t">PV / FV tables</button></div>');
+  if(ST.tools){var xt=el('div','','<h3 class="sett-h">Exam tools</h3><p class="note">The basic calculator and the present / future value tables. On slides that need them they also open from the slide\'s tools (on the slide or under ⋯).</p><div class="apx-r"><button class="btn sm" type="button" data-x="c">Calculator</button><button class="btn sm" type="button" data-x="t">PV / FV tables</button></div>');
     $$('[data-x]',xt).forEach(function(b){b.onclick=function(){closeModal();if(b.dataset.x==='c')ST.tools.calc();else ST.tools.tables()}});box.appendChild(xt)}
   var rt=el('div');rt.innerHTML='<h3 class="sett-h">Reading time</h3>';box.appendChild(rt);
   if(ST.canStaff('readTime')&&ST.adminCall){
@@ -1308,6 +1310,7 @@ function settings(){
   }else rt.insertAdjacentHTML('beforeend','<p class="note">A concept slide counts as read after <b>'+readTxt()+'</b> on screen'+(ST.can('markRead')?', or when you press <b>Mark as read</b>':'')+'. A read slide can be marked unread again.</p>');
   if(!standalone()&&(INST||isIOS())){var ins=el('div');ins.innerHTML='<h3 class="sett-h">App</h3><div class="apx-r"><button class="btn sm" type="button">Install the app on this device</button></div>';ins.querySelector('button').onclick=doInstall;box.appendChild(ins)}
   modal('Settings',box)}
+ST.settings=function(at){settings();if(at==='ui'){var u=document.getElementById('uiSett');if(u)setTimeout(function(){u.scrollIntoView({block:'start'})},30)}};
 
 /* install as an app: Chrome / Edge / Android offer it (button appears), iPhone / iPad get the Safari steps.
    Installed, it opens full screen from its own icon on the desktop, start menu or home screen. */

@@ -11,7 +11,7 @@
 (function(){
 var ST=window.ST,SS=window.speechSynthesis;if(!ST||!SS||!window.SpeechSynthesisUtterance)return;
 var K={p:'st-tts-p',l:'st-tts-l',b:'st-tts-b',a:'st-tts-a',w:'st-tts-w',t:'st-tts-t',e:'st-tts-e',v:'st-tts-voice',r:'st-tts-rate2'};
-var DEF={p:'0',l:'0',b:'0',a:'0',w:'1',t:'1',e:'1'};   // off until the person turns it on in Settings
+var DEF={p:'0',l:'1',b:'1',a:'0',w:'1',t:'1',e:'1'};   // Listen is on where the role allows it (its button: Settings → Your screen); hands-free stays off until turned on
 var RATES=[['0.8','Slower'],['0.95','Normal'],['1.1','Faster']];
 var HL=!!(window.CSS&&CSS.highlights&&window.Highlight);
 var voices=[],run=null,cur=null,pendingAuto=false,fl=null,REC=null;

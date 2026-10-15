@@ -101,13 +101,13 @@ ST.roleInit=function(){
   if(ST.role!=='trainer')return;
   var s=ST.session()||{},bar=el('div','tbar');
   var stu=s.view==='student',label=String(ST.staffRole||'staff').toUpperCase(),panel=ST.staffTabs&&ST.staffTabs().length;
-  bar.innerHTML='<span class="chip t" title="'+esc(s.name||'')+'">'+label+'</span>'+
+  bar.innerHTML='<div class="tb-who"><span class="chip t">'+label+'</span>'+(s.name?'<span class="note">'+esc(s.name)+'</span>':'')+'</div>'+
     (ST.canStaff('studentView')||stu?'<div class="tb-grp"><span class="note">View</span><div class="seg tb-seg" id="tbView"><button data-v="trainer"'+(stu?'':' class="on"')+'>Trainer</button><button data-v="student"'+(stu?' class="on"':'')+'>Student</button></div></div>':'')+
     (stu?'<div class="tb-grp"><span class="note">As group</span><select class="sel-in sm" id="tbGrp" aria-label="See the deck as this group sees it"><option value="">'+(s.preview?esc(s.preview.group):'Every topic open')+'</option></select></div>':'')+
     (!ST.can('answers')?'':'<div class="tb-grp"><span class="note">Answers</span><div class="seg tb-seg" id="tbAns"><button data-a="0"'+(s.answers?'':' class="on"')+'>Hidden</button><button data-a="1"'+(s.answers?' class="on"':'')+'>Shown</button></div></div>')+
     (panel?'<a class="btn sm" href="#/staff">Staff panel</a>':'')+
     '<button class="btn sm ghost" id="tbOut">Sign out</button>';
-  var top=$('#top');top.parentNode.insertBefore(bar,top.nextSibling);
+  if(ST.staffChip)ST.staffChip(bar);else{var top=$('#top');top.parentNode.insertBefore(bar,top.nextSibling)}   // ui.js: all of it behind one chip in the top bar
   ST.h.$$('#tbView button',bar).forEach(function(b){b.onclick=function(){var o=ST.session();o.view=b.dataset.v;if(o.view!=='student')delete o.preview;ST.setSession(o);location.reload()}});
   var gs=$('#tbGrp',bar);
   if(gs&&ST.adminCall){                                                  // Student view as one group: the locks that group sees, from the sheet

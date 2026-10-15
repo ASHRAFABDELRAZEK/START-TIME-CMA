@@ -93,7 +93,9 @@ function tables(which){var w=win('xtTab','Present & future value tables','xt-tab
 /* ---------- which slides get the buttons: practice and numeric slides get the calculator; time-value wording gets the tables ---------- */
 var TVM=/present value|\bPV\b|annuit|discount(ed|ing)? (rate|at)|future value|effective[- ]interest|market rate of interest|time value|implicit rate|incremental borrowing rate/i;
 function text(s){var o=[s.h,s.q,s.body,s.e];if(s.o)o=o.concat(s.o);if(s.f&&s.f.forEach)s.f.forEach(function(f){o.push(f.l)});return o.filter(function(x){return typeof x==='string'}).join(' ').replace(/<[^>]*>/g,' ')}
-function need(s){var t=s.tools||[],x=text(s);return {calc:t.indexOf('calc')>=0||ST.isPractice(s)||s.t==='num'||s.t==='lab',pv:t.indexOf('pv')>=0||TVM.test(x)}}
+/* numbers worth a calculator: 10 or more, not a year (2026) and not a LOS code (C.1.e) */
+function nums(x){return (x.match(/\d[\d,]*(\.\d+)?/g)||[]).filter(function(n){var v=n.replace(/,/g,'');return !/^(19|20)\d\d$/.test(v)&&+v>=10}).length}
+function need(s){var t=s.tools||[],x=text(s);return {calc:t.indexOf('calc')>=0||s.t==='num'||s.t==='lab'||nums(x)>=2,pv:t.indexOf('pv')>=0||TVM.test(x)}}
 var IC_C='<svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 14.5h.01M12 14.5h.01M16 14.5h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>';
 var IC_T='<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3"/><text x="12" y="15.6" text-anchor="middle" font-size="8.5" font-weight="700" font-family="Inter,Arial,sans-serif" fill="currentColor" stroke="none">PV</text></svg>';
 function paintBtns(){var c=document.getElementById('xtCalc'),t=document.getElementById('xtTab');

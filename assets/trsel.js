@@ -5,7 +5,7 @@
    Select any text → a small "ترجم" button → the Arabic shows in a box right under the text (from the sheet's script, which keeps every
    translation and the owner's glossary). Each slide also gets a "translate this slide / question" button that opens the Arabic under the title.
    Without the sheet (no connection, a preview) it falls back to Google Translate in a new tab. Every box keeps a link to Google Translate.
-   Turned on or off in Settings (remembered on this device; off until turned on). Nothing shows where the person has no permission. */
+   Turned on or off in Settings (remembered on this device; on until turned off). Nothing shows where the person has no permission. */
 (function(){
 var ST=window.ST;if(!ST)return;
 var KEY='st-trs',KEYB='st-trs-b',MAX=4500,PART=1800,PARTS=40,fl=null,pop=null,tmr=null,memo={};
@@ -14,7 +14,7 @@ function inBank(){var h=location.hash||'';if(/^#\/(bank|practice|mistakes|set-re
 function allowedSel(){return perm(inBank()?'langBank':'language')}       // selected text, here on this page or slide
 function allowedAll(){return perm(inBank()?'langQ':'langSlide')}          // the whole slide / question
 function allowedAny(){return perm('language')||perm('langBank')||perm('langSlide')||perm('langQ')}
-function isOnK(k){var v='0';try{v=localStorage.getItem(k)||'0'}catch(e){}return v==='1'}
+function isOnK(k){var v='1';try{v=localStorage.getItem(k)||'1'}catch(e){}return v==='1'}   // on where the role allows it, until the person turns it off
 function isOn(){return isOnK(inBank()?KEYB:KEY)}                        // the switch for where the person is now: lessons or question bank
 function setOnK(k,v){try{localStorage.setItem(k,v?'1':'0')}catch(e){}boot();if(!v){hideFl();hidePop()}}
 function strip(h){var d=document.createElement('div');d.innerHTML=h==null?'':String(h);return (d.textContent||'').replace(/\s+/g,' ').trim()}
@@ -113,7 +113,7 @@ document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&
   if(b.classList.contains('trs-sug'))editOn(box);else if(b.classList.contains('trs-cancel'))render(box,box.__tr);else send(box)});
 var WAIT='<p class="trs-wait">جاري الترجمة<span>.</span><span>.</span><span>.</span></p>';
 
-/* on / off in Settings — shown only to roles with the permission; off until turned on */
+/* on / off in Settings — shown only to roles with the permission; on until turned off */
 (ST.settingsExtra=ST.settingsExtra||[]).push(function(){if(!allowedAny())return null;
   var rows=[];if(perm('language')||perm('langSlide'))rows.push([KEY,'Lessons','the explanation slides']);if(perm('langBank')||perm('langQ'))rows.push([KEYB,'Question bank','the questions in the bank, sets and mistakes']);
   var w=document.createElement('div');w.innerHTML='<h3 class="sett-h">Translate</h3><p class="note">Select any English text and press ترجم, or use the button under a slide title: the Arabic shows right there, with a link to Google Translate. Each part has its own switch.</p>'+

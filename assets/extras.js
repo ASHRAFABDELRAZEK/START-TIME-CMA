@@ -27,7 +27,7 @@ ST.solHTML=solHTML;
 /* ---------- trainer: show answer on practice slides ---------- */
 ST.deckSlide=function(sec,body,t,s){
   if(!ST.can('answers')||!ST.isPractice(s)||s.t==='trace')return;
-  var b=el('button','btn sm ghost','Show answer');b.style.marginTop='10px';
+  var b=el('button','btn sm ghost sol-b','Show answer');b.style.marginTop='10px';
   function show(){sec.appendChild(el('div','call key sol','<div class="ct">'+ST.ICON.key+'Answer</div>'+solHTML(s)));b.textContent='Hide answer'}
   b.onclick=function(){var p=$('.sol',sec);if(p){p.remove();b.textContent='Show answer';return}show()};
   sec.appendChild(b);var ss=ST.session();if(ss&&ss.answers)show();
@@ -36,12 +36,12 @@ ST.deckSlide=function(sec,body,t,s){
 /* ---------- deck top bar: Excel + print ---------- */
 ST.deckTop=function(top,t,idx){
   if(ST.can('excel')){
-  var x=el('button','ib',ICO.xls);x.title='Export this slide\'s tables to Excel';x.setAttribute('aria-label','Export tables to Excel');
+  var x=el('button','ib dk-xl',ICO.xls);x.title='Export this slide\'s tables to Excel';x.setAttribute('aria-label','Export tables to Excel');
   x.onclick=function(){var sec=$('.slide');var tabs=sec?$$('table.t',sec):[];if(!tabs.length){ST.modal('Export to Excel','<p>This slide has no tables. Open <b>Print / PDF</b> from the slide list to export every table in the topic.</p>');return}
     exportTables([{h:(idx+1)+' '+strip(t.slides[idx].h||''),tables:tabs}],t.n,t.id+'-slide'+(idx+1))};
   top.appendChild(x)}
   if(ST.can('print')){
-  var p=el('button','ib',ICO.prt);p.title='Print / PDF this topic';p.setAttribute('aria-label','Print or save as PDF');
+  var p=el('button','ib dk-pr',ICO.prt);p.title='Print / PDF this topic';p.setAttribute('aria-label','Print or save as PDF');
   p.onclick=function(){printDialog(t)};
   top.appendChild(p)}
 };
