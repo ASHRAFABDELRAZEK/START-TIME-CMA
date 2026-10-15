@@ -63,7 +63,7 @@ function failText(r){if(r&&r.limit)return 'وصلت لحد الترجمة بتا
   if(r&&r.quota)return 'خدمة الترجمة وصلت لحدها النهارده. افتحها في Google Translate.';
   if(r&&r.error&&/not open/i.test(r.error))return 'الترجمة مش مفتوحة لكودك.';
   return 'الترجمة مش متاحة دلوقتي. جرّب تاني، أو افتحها في Google Translate.'}
-/* the box contents: the Arabic paragraphs, the glossary terms found, and the Google Translate link */
+/* the box contents: the Arabic paragraphs and the Google Translate link (key terms have their own place: Key terms column, Glossary page) */
 function body(r,ps,text){var h='';
   if(r&&r.ar&&r.ar.some(function(a){return a})){var rows=[];
     var flush=function(){if(!rows.length)return;var n=Math.max.apply(null,rows.map(function(c){return c.length}));
@@ -76,7 +76,6 @@ function body(r,ps,text){var h='';
       flush();h+=a?'<p data-i="'+i+'">'+arHtml(a)+'</p>':(a===null?'<p class="trs-miss" dir="ltr">'+esc(ps[i])+'</p>':'')});
     flush()}
   if(!r||!r.ok)h+='<p class="trs-err">'+esc(failText(r))+'</p>';
-  if(r&&r.terms&&r.terms.length)h+='<div class="trs-terms"><b>المصطلحات</b>'+r.terms.map(function(t){return '<span><bdi>'+esc(t[1])+'</bdi><bdi dir="ltr">'+esc(t[0])+'</bdi></span>'}).join('')+'</div>';
   if(r&&r.ok&&perm('trSuggest')&&r.ar&&r.ar.some(function(a){return a}))h+='<button type="button" class="trs-sug">اقترح ترجمة أفضل</button>';
   h+='<a class="trs-g" href="'+esc(gUrl(text))+'" target="_blank" rel="noopener">افتحها في Google Translate ↗</a>';
   return h}
@@ -93,7 +92,7 @@ function editOn(box){if(box.querySelector('.trs-edit-bar'))return;
   var bar=document.createElement('div');bar.className='trs-edit-bar';
   bar.innerHTML='<p class="trs-hint">عدّل الترجمة مكانها (اكتب على الكلام نفسه)، وبعدين اضغط إرسال. اقتراحك هيتراجع قبل ما يتعمل بيه.</p>'+
     '<button type="button" class="btn sm pri trs-send">إرسال الاقتراح</button> <button type="button" class="btn sm ghost trs-cancel">إلغاء</button>';
-  var at=box.querySelector('.trs-terms')||box.querySelector('.trs-g');box.insertBefore(bar,at||null);
+  var at=box.querySelector('.trs-g');box.insertBefore(bar,at||null);
   if(eds[0])eds[0].focus()}
 function edited(el){if(el.tagName!=='TR')return norm(el.textContent);
   var pad=+el.dataset.pad||0,n=+el.dataset.n||el.cells.length;

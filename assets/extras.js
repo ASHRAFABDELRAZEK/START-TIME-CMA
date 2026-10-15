@@ -56,7 +56,8 @@ function printDialog(t){
      var lk=ST.lock&&ST.lock(x);
      return '<label class="ck'+(lk?' off':'')+'"><input type="checkbox" name="pt" value="'+x.id+'"'+(x===t&&!lk?' checked':'')+(lk?' disabled':'')+'><span>'+esc(x.n)+' <span class="note">· '+(lk?esc(ST.lockText(lk)):x.slides.length)+'</span></span></label>'}).join('')+'</div>'}).join('')+'</fieldset>'+
    '<fieldset class="pd-f" id="pdSl"><legend>Slides</legend><div id="pdSlBody"></div></fieldset>'+
-   '<div class="ctl"><label>Include<select class="sel-in" id="pKind"><option value="a">Everything</option><option value="c">Explanations only</option><option value="p">Practice questions only</option></select></label>'+
+   '<div class="ctl"><label>Include<select class="sel-in" id="pKind"><option value="a">Everything</option><option value="c">Explanations only</option><option value="p">Practice questions only</option>'+(ST.can('glossPrint')?'<option value="g">Glossary only</option>':'')+'</select></label>'+
+   (ST.can('glossPrint')?'<label id="pGlW">Glossary<select class="sel-in" id="pGl"><option value="0">Leave it out</option><option value="1">At the end</option></select></label>':'')+
    '<label>Style<select class="sel-in" id="pStyle"><option value="clean">Clean — white page, saves ink</option><option value="color">Screen colours</option></select></label>'+
    (ST.can('answerKey')?'<label>Answer key<select class="sel-in" id="pAns"><option value="1">At the end</option><option value="0">Leave it out</option></select></label>':'')+'</div>'+
    '<div class="row"><label>Show first<select class="sel-in" id="pOri"><option value="p">A4 portrait</option><option value="l">A4 landscape</option></select></label></div>'+
@@ -64,7 +65,7 @@ function printDialog(t){
    '<div class="row pd-go"><button class="btn pri" id="pGo">Open handout</button><span class="note" id="pdCount"></span></div>';
   ST.modal('Print / PDF',box);
   var picked=function(){return $$('input[name="pt"]:checked',box).map(function(i){return i.value})};
-  var kindOk=function(s){var k=$('#pKind').value,pr=ST.isPractice(s)&&s.t!=='trace';return k==='a'||(k==='p'?pr:!pr)};
+  var kindOk=function(s){var k=$('#pKind').value,pr=ST.isPractice(s)&&s.t!=='trace';return k!=='g'&&(k==='a'||(k==='p'?pr:!pr))};
   function slides(){var ids=picked(),body=$('#pdSlBody');
     if(ids.length!==1){body.innerHTML='<p class="note">'+(ids.length?'With more than one topic, each topic is printed in full (filtered by <b>Include</b>).':'Tick at least one topic.')+'</p>';count();return}
     var tp=ST.byId[ids[0]];
@@ -76,6 +77,8 @@ function printDialog(t){
     $$('[data-sl]',body).forEach(function(b){b.onclick=function(){$$('input[name="ps"]',body).forEach(function(c){var s=tp.slides[c.value-1];
       c.checked=b.dataset.sl==='1'||(b.dataset.sl==='p'&&ST.isPractice(s)&&s.t!=='trace')});count()}});count()}
   function count(){var ids=picked(),n=0,pick=$('input[name="psm"][value="pick"]',box);
+    if($('#pGlW'))$('#pGlW').hidden=$('#pKind').value==='g';
+    if($('#pKind').value==='g'){n=ST.glRows(ids).length;$('#pdCount').textContent=ids.length?ids.length+' topic'+(ids.length>1?'s':'')+' · '+n+' key term'+(n===1?'':'s'):'';$('#pGo').disabled=!n;return}
     ids.forEach(function(id){var tp=ST.byId[id];tp.slides.forEach(function(s,i){
       if(!kindOk(s))return;if(ids.length===1&&pick&&pick.checked&&!$('input[name="ps"][value="'+(i+1)+'"]',box).checked)return;n++})});
     $('#pdCount').textContent=ids.length?ids.length+' topic'+(ids.length>1?'s':'')+' · '+n+' slide'+(n===1?'':'s'):'';$('#pGo').disabled=!n}
@@ -86,7 +89,8 @@ function printDialog(t){
     var st=$('#pStyle').value,an=ST.can('answerKey')?$('#pAns').value:'0',k=$('#pKind').value,sl='';
     var pick=$('input[name="psm"][value="pick"]',box);
     if(ids.length===1&&pick&&pick.checked)sl=$$('input[name="ps"]:checked',box).map(function(c){return c.value}).join('.');
-    var o=$('#pOri')?$('#pOri').value:'p';ST.closeModal();location.hash='#/print/'+ids.join(',')+'?style='+st+'&ans='+an+(k!=='a'?'&k='+k:'')+(sl?'&s='+sl:'')+(o==='l'?'&o=l':'')};
+    var gl=k!=='g'&&$('#pGl')&&$('#pGl').value==='1';if(k==='g')an='0';
+    var o=$('#pOri')?$('#pOri').value:'p';ST.closeModal();location.hash='#/print/'+ids.join(',')+'?style='+st+'&ans='+an+(k!=='a'?'&k='+k:'')+(sl?'&s='+sl:'')+(gl?'&g=1':'')+(o==='l'?'&o=l':'')};
 }
 ST.printDialog=function(t){if(ST.can('print'))printDialog(t)};
 
@@ -248,6 +252,7 @@ ST.printView=function(tidList){
   if(!ids.length||!ST.can('print')){location.hash='#/';return}
   var q=(location.hash.split('?')[1]||''),qp=function(k){var m=q.match(new RegExp('(?:^|&)'+k+'=([^&]*)'));return m?decodeURIComponent(m[1]):''};
   var style=qp('style')==='color'?'color':'clean',ans=ST.can('answerKey')&&qp('ans')!=='0',kind=qp('k')||'a',land=qp('o')==='l';
+  var glP=ST.can('glossPrint')&&(kind==='g'||qp('g')==='1');if(kind==='g'&&!glP)kind='a';if(kind==='g')ans=false;
   var only=ids.length===1&&qp('s')?qp('s').split('.').map(Number):null;
   setPage();
   var root=document.documentElement;
@@ -255,7 +260,7 @@ ST.printView=function(tidList){
   root.classList.add('printing');root.classList.toggle('pcolor',style==='color');root.classList.toggle('pclean',style==='clean');
   root.setAttribute('data-theme','light');
   app.innerHTML='';
-  var what=(kind==='c'?'Explanations only':kind==='p'?'Practice questions only':'Everything')+(only?' · slides '+only.join(', '):'');
+  var what=(kind==='g'?'Glossary only':(kind==='c'?'Explanations only':kind==='p'?'Practice questions only':'Everything')+(glP?' · with the glossary':''))+(only&&kind!=='g'?' · slides '+only.join(', '):'');
   var bar=el('div','prt-bar');
   bar.innerHTML='<a class="btn" href="#/t/'+ids[0]+'/1">← Back to the deck</a><button class="btn pri" id="pPrint" disabled>Print / save as PDF</button>'+
     '<div class="seg" role="group" aria-label="Preview"><button type="button" data-o="p">Portrait</button><button type="button" data-o="l">Landscape</button></div>'+
@@ -276,12 +281,13 @@ ST.printView=function(tidList){
         '<div class="cv-main"><div class="cv-kick">CMA® '+esc(PART.toUpperCase())+' · '+esc(SECT.toUpperCase())+'</div><h1>'+esc(SECT_T)+'</h1>'+
         '<p class="cv-sub">Study handout · '+ids.length+' topics · '+esc(what.toLowerCase())+(ans?' · with answer key':'')+'</p>'+
         (pw.line?'<div class="cv-who">'+(pw.student?'Prepared for':'Printed by')+' <b>'+esc(pw.line)+'</b> · '+today()+'</div>':'')+
-        '<div class="cv-h">Contents</div><ol class="cv-toc">'+ids.map(function(id){var t=ST.byId[id];return '<li><span class="g">'+esc(t.group)+'</span><span class="t">'+esc(t.n)+'</span><span class="p" data-p="'+id+'"></span></li>'}).join('')+
-        (ans?'<li><span class="g">✓</span><span class="t">Answer key</span><span class="p" data-p="__key"></span></li>':'')+'</ol></div>'+
+        '<div class="cv-h">Contents</div><ol class="cv-toc">'+(kind==='g'?'':ids.map(function(id){var t=ST.byId[id];return '<li><span class="g">'+esc(t.group)+'</span><span class="t">'+esc(t.n)+'</span><span class="p" data-p="'+id+'"></span></li>'}).join(''))+
+        (ans?'<li><span class="g">✓</span><span class="t">Answer key</span><span class="p" data-p="__key"></span></li>':'')+
+        (glP?'<li><span class="g">A–Z</span><span class="t">Glossary</span><span class="p" data-p="__gl"></span></li>':'')+'</ol></div>'+
         '<div class="cv-foot"><span>Original START TIME study material. Not affiliated with IMA; CMA® is a registered trademark of the Institute of Management Accountants.'+(pw.student?' <b>Personal copy — not for sharing.</b>':'')+'</span><span class="pn" data-d="'+today()+'"></span></div>';
       var cm=$('.cv-main',cover),over=function(){return cm.scrollHeight>cm.clientHeight+1};if(over())cover.classList.add('toc2');if(over())cover.classList.add('toc3')}   // a long contents list goes to two columns, then smaller
     var chain=Promise.resolve();
-    ids.forEach(function(id,ti){chain=chain.then(function(){
+    if(kind!=='g')ids.forEach(function(id,ti){chain=chain.then(function(){
       var t=ST.byId[id],n=0,tk=[];stat.textContent='Preparing the '+(isLand?'landscape':'portrait')+' pages… topic '+(ti+1)+' of '+ids.length;
       var th=el('div','pv-th','<div class="kick">'+esc(t.group)+' · '+esc(t.sub||'')+(multi?' · Topic '+(ti+1)+' of '+ids.length:'')+'</div><h1>'+esc(t.n)+'</h1><div class="chips">'+t.los.map(function(c){return '<span class="chip g">LOS '+c+'</span>'}).join('')+'</div>');
       tp[id]=P.topic(th,{k:t.group+' · '+(t.sub||''),n:t.n});
@@ -290,7 +296,7 @@ ST.printView=function(tidList){
         if(only&&only.indexOf(i+1)<0)return;
         if(kind==='c'&&prac||kind==='p'&&!prac)return;
         var bk=t.nB&&i>=t.nL,head=el('div','ps-hd','<div class="s-meta"><span class="s-kind">'+(bk?'B'+(i-t.nL+1):i+1)+' · '+(prac?(bk?'QUESTION BANK ':'PRACTICE ')+n:(s.t==='x'?'CONCEPT':'INTERACTIVE'))+'</span><span class="chips">'+ST.losOf(s).map(function(c){return '<span class="chip g">LOS '+c+'</span>'}).join('')+'</span></div>'+(s.h?'<h2>'+s.h+'</h2>':''));
-        var body=slideBlocks(s,i,n,prac,id);
+        var body=slideBlocks(s,i,n,prac,id);if(ST.glFill&&body.querySelector&&body.querySelector('.gl-ar'))ST.glFill(body);
         if(first){var tabs=$$('table.t',body);if(tabs.length)groups.push({h:(multi?t.n+' — ':'')+(i+1)+' '+strip(s.h||''),tables:tabs.map(function(x){return x.cloneNode(true)})})}
         if(prac)tk.push({i:i,n:n,s:s});
         P.slide(head,kids(body),'ps')});
@@ -302,6 +308,15 @@ ST.printView=function(tidList){
         keys.forEach(function(g){g.k.forEach(function(x,j){var sol=el('div');sol.innerHTML=solHTML(x.s);tidy(sol);
           var hd=el('div','pk-hd',(multi&&j===0?'<div class="pk-t">'+esc(g.t.n)+'</div>':'')+'<h3>Practice '+x.n+' (slide '+(g.t.nB&&x.i>=g.t.nL?'B'+(x.i-g.t.nL+1):x.i+1)+')'+(x.s.h?' — '+x.s.h:'')+'</h3>');
           P.slide(hd,kids(sol),'ps pk')})})}
+      if(glP){var gr=ST.glRows(ids);
+        if(gr.length){
+          tp.__gl=P.topic(el('div','pv-th','<div class="kick">Glossary</div><h1>Key terms, A to Z</h1>'),{k:'Glossary',n:'Key terms, A to Z'});
+          var L0='',rowsH='';
+          gr.forEach(function(r){var L=(r.k.match(/[a-z0-9]/)||['#'])[0].toUpperCase();if(/[0-9]/.test(L))L='#';
+            if(L!==L0){L0=L;rowsH+='<tr class="gl-let"><td colspan="'+(multi?4:3)+'">'+L+'</td></tr>'}
+            rowsH+='<tr><td><b>'+r.en+'</b></td><td class="gl-pa" dir="rtl" lang="ar">'+esc(ST.glAr(r.k))+'</td><td>'+r.m+(r.w?'<div class="gl-pw">'+r.w+'</div>':'')+'</td>'+(multi?'<td class="gl-pt">'+r.t.map(function(t){return esc(t.n)}).join('; ')+'</td>':'')+'</tr>'});
+          var gb=el('div');gb.innerHTML='<table class="t gl gl-print'+(multi?' gl-m':'')+'"><thead><tr><th>Term</th><th>بالعربي</th><th>What it means</th>'+(multi?'<th>Topic</th>':'')+'</tr></thead><tbody>'+rowsH+'</tbody></table>';
+          P.slide(el('div','pk-hd','<h3>'+gr.length+' key term'+(gr.length===1?'':'s')+(multi?' from '+ids.length+' topics':'')+'</h3>'),kids(gb),'ps')}}
       var N=P.pages.length;
       P.pages.forEach(function(pg,i){var pn=$('.pn',pg);if(pn)pn.textContent=(pn.dataset.d?pn.dataset.d+' · ':'')+'Page '+(i+1)+' of '+N});
       fitFeet(host);
@@ -315,6 +330,7 @@ ST.printView=function(tidList){
     if(hosts.p&&hosts.l)stat.textContent=hosts[o].dataset.n+' pages in '+(o==='l'?'landscape':'portrait')+' (the other layout: '+hosts[o==='l'?'p':'l'].dataset.n+')'}
   $$('[data-o]',bar).forEach(function(b){b.onclick=function(){show(b.dataset.o)}});
   (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){
+    return (glP||ST.can('glossAr'))&&ST.glLoad?ST.glLoad():null}).then(function(){   // the Arabic of the key terms is in place before the pages are measured
     return build(land,true).then(function(h){hosts[land?'l':'p']=h;show(want);return build(!land,false)}).then(function(h){
       hosts[land?'p':'l']=h;show(want);
       var pb=$('#pPrint',bar);pb.disabled=false;
@@ -449,6 +465,8 @@ function liveFormulas(rows,r0,L){
 function numFmt(txt,pct,plain,cur){var d=((txt.match(/\.(\d+)/)||[0,''])[1]).length,z=d?'.'+'0'.repeat(d):'',b=(cur?'"$"':'')+(pct?'0'+z+'%':'#,##0'+z);
   return b+';'+(plain?'':'[Red]')+'('+b+');"-"'}
 function exportTables(groups,title,fname){
+  if(!document.documentElement.classList.contains('gl-ar-on'))groups=groups.map(function(g){return {h:g.h,tables:g.tables.map(function(t){   // Key terms: no empty Arabic column
+    if(!t.querySelector('.gl-ar'))return t;var c=t.cloneNode(true);Array.prototype.forEach.call(c.querySelectorAll('.gl-ar'),function(x){x.parentNode.removeChild(x)});return c})}});
   var note=el('div','fb ok','<b class="v">Preparing the Excel file…</b>');ST.modal('Export to Excel',note);
   loadXL().then(function(XL){
     var wb=new XL.Workbook();wb.creator='START TIME — ASHRAF FATHY';wb.created=new Date();wb.calcProperties={fullCalcOnLoad:true};

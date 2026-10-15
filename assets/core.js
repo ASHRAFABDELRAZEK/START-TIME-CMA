@@ -4,7 +4,7 @@
 var ST=window.ST=window.ST||{};
 ST.topics=[];ST.byId={};
 function h36(str){var h=5381;for(var i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))|0;return (h>>>0).toString(36)}
-ST.topic=function(t){t.slides=t.slides||[];var used={};
+ST.topic=function(t){t.slides=t.slides||[];var used={};t.gl=ST._glp||[];ST._glp=[];   // the topic's key terms (ST.gloss), for the Glossary page and the printed glossary
   if(t.sortPractice){   // teach LOS by LOS: each LOS's explanations, then its practice (a practice slide on several LOS comes after the last one); the case and key terms stay at the end
     var P_={mcq:1,multi:1,num:1,sort:1,dd:1,order:1},cs=t.slides.length;
     t.slides.forEach(function(s,i){if(cs===t.slides.length&&s.case)cs=(i>0&&t.slides[i-1].t==='x'&&!t.slides[i-1].case)?i-1:i});
@@ -158,7 +158,38 @@ ST.call=function(kind,title,html){return '<div class="call '+kind+'"><div class=
    ST.qc(question, [options], index of the right one, explanation) */
 ST.qc=function(q,o,a,e){return '<div class="qc" data-a="'+a+'"><div class="qc-q"><span class="qc-t">Quick check</span>'+q+'</div><div class="qc-os">'+o.map(function(x,i){return '<button type="button" class="qc-o" data-i="'+i+'"><span class="k">'+'ABCDEFG'[i]+'</span><span>'+x+'</span></button>'}).join('')+'</div><div class="qc-e" hidden><b>Answer: '+'ABCDEFG'[a]+'.</b> '+e+'</div></div>'};
 /* key terms of a topic: [[term, meaning, watch out (optional)], …] */
-ST.gloss=function(rows){return '<div class="tw"><table class="t gl"><tr><th>Term</th><th>What it means</th><th>Watch out</th></tr>'+rows.map(function(r){return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+(r[2]||'')+'</td></tr>'}).join('')+'</table></div>'};
+/* The rows are also kept for the Glossary page and the printed glossary. The Arabic column shows only where Roles → glossAr allows
+   (html.gl-ar-on); its cells are filled from the Key terms sheet by ST.glFill. */
+ST._glp=[];
+function glText(t){var d=document.createElement('div');d.innerHTML=String(t==null?'':t);return d.textContent.replace(/\s+/g,' ').trim()}
+function glK(t){return glText(t).toLowerCase()}
+ST.glKey=glK;
+ST.gloss=function(rows){ST._glp=ST._glp.concat(rows);
+  return '<div class="tw"><table class="t gl"><tr><th>Term</th><th class="gl-ar">بالعربي</th><th>What it means</th><th>Watch out</th></tr>'+rows.map(function(r){
+    return '<tr><td><b>'+r[0]+'</b></td><td class="gl-ar" dir="rtl" lang="ar" data-k="'+esc(glK(r[0]))+'"></td><td>'+r[1]+'</td><td>'+(r[2]||'')+'</td></tr>'}).join('')+'</table></div>'};
+/* Arabic of the key terms: this device's copy at once, then fresh from the sheet once per visit (yours first, else Google's) */
+var GLM=null,GLP=null;
+function glMap(){if(GLM)return GLM;try{var o=JSON.parse(localStorage.getItem('st-gl-ar')||'null');GLM=(o&&o.m)||{}}catch(e){GLM={}}return GLM}
+function glOn(){return ST.can('glossAr')||ST.can('glossPage')||ST.can('glossPrint')}
+/* every key term of the topics open to this person: [{k, en, m, w, t:[topics]}], A to Z (ids = only these topics) */
+ST.glRows=function(ids){var rows=[],seen={};
+  ST.topics.forEach(function(t){if(t.soon||ST.lock(t)||(ids&&ids.indexOf(t.id)<0))return;
+    (t.gl||[]).forEach(function(r){var k=glK(r[0]);if(!k)return;if(seen[k]){if(seen[k].t.indexOf(t)<0)seen[k].t.push(t);return}
+      var o={k:k,en:r[0],m:r[1],w:r[2]||'',t:[t]};seen[k]=o;rows.push(o)})});
+  return rows.sort(function(a,b){return a.k.localeCompare(b.k)})};
+ST.glAr=function(k){return glMap()[k]||''};
+ST.glLoad=function(){
+  if(GLP)return GLP;
+  if(!glOn()||!ST.glossCall)return Promise.resolve(glMap());
+  var terms=ST.glRows().map(function(r){return glText(r.en)}),n=0;
+  var ask=function(){return ST.glossCall(terms).then(function(res){
+    if(res&&res.ok&&res.ar){GLM=Object.assign({},glMap(),res.ar);try{localStorage.setItem('st-gl-ar',JSON.stringify({t:Date.now(),m:GLM}))}catch(e){}}
+    if(res&&res.ok&&res.more>0&&++n<6)return ask();                     // a long list is translated 150 terms at a time
+    return glMap()},function(){return glMap()})};
+  GLP=ask();return GLP};
+ST.glFill=function(root){var m=glMap();
+  Array.prototype.forEach.call((root||document).querySelectorAll('.gl-ar[data-k],.gp-ar[data-k]'),function(c){var a=m[c.dataset.k];if(a&&c.textContent!==a)c.textContent=a});
+  if(!GLP&&glOn()&&ST.glossCall)ST.glLoad().then(function(){ST.glFill(document)})};
 ST.BLOOM={remember:'Remember',understand:'Understand',apply:'Apply',analyze:'Analyze',evaluate:'Evaluate'};
 
 /* ---------- modal ---------- */
@@ -239,7 +270,7 @@ function home(){
      return '<div class="fb set-run"><span><b>'+(v.ex?'An exam set':'A practice set')+' is running</b> · '+an+' of '+v.a.length+' answered</span><a class="btn sm pri" href="#/t/'+v.a[Math.max(0,j)]+'">Return to it</a></div>'})()+
    (noneOpen?'<div class="fb lk-n">'+LOCK+'<span>No topic is open for you yet. Your instructor opens each topic when its lecture comes.</span></div>':'')+
    '<div class="row">'+(cont?'<a class="btn pri" href="'+cont+'">Continue where you stopped</a>':(first?'<a class="btn pri" href="#/t/'+first.id+'/1">'+(first===ST.topics[0]?'Start from LOS '+(ST.LOS[0]?ST.LOS[0].c:''):'Start: '+esc(first.n))+'</a>':''))+
-   '<a class="btn" href="#/map">LOS map</a><a class="btn" href="#/bank">Question bank</a>'+(Object.keys(P.q).length?'<a class="btn" href="#/mistakes">Readiness &amp; mistakes'+(mistakes().length?' <span class="chip r" title="Mistakes to fix">'+mistakes().length+'</span>':'')+(dueList().length?' <span class="chip t" title="Due for review">↻ '+dueList().length+'</span>':'')+'</a>':'')+'<button class="btn ghost" id="howP">How progress works</button></div></div>'+
+   '<a class="btn" href="#/map">LOS map</a><a class="btn" href="#/bank">Question bank</a>'+(ST.can('glossPage')?'<a class="btn" href="#/glossary">Glossary</a>':'')+(Object.keys(P.q).length?'<a class="btn" href="#/mistakes">Readiness &amp; mistakes'+(mistakes().length?' <span class="chip r" title="Mistakes to fix">'+mistakes().length+'</span>':'')+(dueList().length?' <span class="chip t" title="Due for review">↻ '+dueList().length+'</span>':'')+'</a>':'')+'<button class="btn ghost" id="howP">How progress works</button></div></div>'+
    '<div class="ring" aria-label="Progress '+pct+'%"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--teal)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rv"><div><b>'+pct+'%</b><br><small>mastery</small></div></div></div>';
   app.appendChild(hero);
   $('#howP',hero).onclick=howProgress;
@@ -619,6 +650,31 @@ function reviewBar(t,idx){var rv=revGet();if(!rv)return null;var A=rv.a,me=t.id+
 /* =========================================================
    LOS MAP
    ========================================================= */
+/* Glossary (Roles → glossPage): every key term of the topics open to this person, English and Arabic, A to Z, with a search box */
+function glossPage(){
+  var app=$('#app');app.innerHTML='';
+  var rows=ST.glRows(),open=ST.topics.filter(function(t){return !t.soon&&!ST.lock(t)}).map(function(t){return t.id});
+  var hero=el('div','hero','<div><div class="kick">CMA '+esc(CFG.part||'Part 1')+' · '+esc(CFG.section||'')+' · key terms</div><h1>Glossary</h1>'+
+    '<p>Every key term of the topics open to you, in English and Arabic, with what it means, A to Z. The Arabic is your instructor\'s; where he has not written one yet, it is Google\'s.</p>'+
+    '<div class="row gp-tools"><input type="search" class="gp-q" placeholder="Search — English or عربي" aria-label="Search the glossary"><span class="note gp-n">'+rows.length+' terms</span>'+
+    (ST.can('glossPrint')&&ST.can('print')&&rows.length?'<a class="btn" href="#/print/'+open.join(',')+'?k=g&style=clean&ans=0">Print / PDF the glossary</a>':'')+'</div></div>');
+  app.appendChild(hero);
+  var wrap=el('div','gp');app.appendChild(wrap);
+  if(!rows.length){wrap.innerHTML='<p class="note">No key terms yet: they come from the Key terms slide at the end of each open topic.</p>';return}
+  var letter='',html='';
+  rows.forEach(function(r){var L=(r.k.match(/[a-z0-9]/)||['#'])[0].toUpperCase();if(/[0-9]/.test(L))L='#';
+    if(L!==letter){if(letter)html+='</div>';letter=L;html+='<div class="gp-g" data-l="'+L+'"><h2 class="gp-l">'+L+'</h2>'}
+    html+='<div class="gp-r" data-k="'+esc(r.k)+'"><div class="gp-h"><b class="gp-en">'+r.en+'</b><span class="gp-ar" dir="rtl" lang="ar" data-k="'+esc(r.k)+'"></span></div>'+
+      '<div class="gp-m">'+r.m+(r.w?'<span class="gp-w">'+r.w+'</span>':'')+'</div>'+
+      '<div class="gp-t">'+r.t.map(function(t){return '<a href="#/t/'+t.id+'/'+(t.nL||1)+'">'+esc(t.n)+'</a>'}).join(' · ')+'</div></div>'});
+  wrap.innerHTML=html+'</div>';
+  ST.glFill(wrap);
+  var q=$('.gp-q',hero),cnt=$('.gp-n',hero);
+  q.oninput=function(){var v=q.value.trim().toLowerCase(),n=0;
+    $$('.gp-r',wrap).forEach(function(r){var hit=!v||r.textContent.toLowerCase().indexOf(v)>=0;r.hidden=!hit;if(hit)n++});
+    $$('.gp-g',wrap).forEach(function(g){g.hidden=!$$('.gp-r',g).some(function(r){return !r.hidden})});
+    cnt.textContent=v?n+' of '+rows.length+' terms':rows.length+' terms'};
+}
 function losMap(){
   var app=$('#app');app.innerHTML='';
   var links={};ST.topics.forEach(function(t){if(t.soon)return;t.slides.forEach(function(s,i){losOf(s).forEach(function(c){(links[c]=links[c]||[]).push({t:t,i:i,s:s})})})});
@@ -852,7 +908,7 @@ function toggleFS(){try{if(document.fullscreenElement)document.exitFullscreen();
 var R={};
 ST.R=R;ST.route=function(){route()};
 /* concept slide */
-R.x=function(b,s){b.innerHTML=s.body||''};
+R.x=function(b,s){b.innerHTML=s.body||'';if(b.querySelector('.gl-ar'))ST.glFill(b)};
 
 /* multiple choice (single answer) */
 R.mcq=function(b,s,k){
@@ -1147,10 +1203,11 @@ function buildSteps(R0,R1,t){
 function route(){
   var h=location.hash||'#/',m;
   if(!$('#modal').hidden)closeModal();
-  $('#nHome').classList.toggle('on',h==='#/'||h==='');$('#nMap').classList.toggle('on',h==='#/map');
+  $('#nHome').classList.toggle('on',h==='#/'||h==='');document.documentElement.classList.toggle('gl-ar-on',!!ST.can('glossAr'));$('#nMap').classList.toggle('on',h==='#/map');
   if(!/^#\/t\//.test(h)){stopDwell();document.body.classList.remove('land-on');ST.inBank=false}
   if((m=h.match(/^#\/t\/([\w-]+)\/(\d+)/)))deck(m[1],+m[2]-1);
   else if(h==='#/map')losMap();
+  else if(h==='#/glossary'&&ST.can('glossPage'))glossPage();
   else if(h==='#/mistakes')mistakesPage();
   else if(h==='#/practice')setPage();
   else if((m=h.match(/^#\/bank(?:\/([\w-]+))?$/)))(m[1]?bankTopic(m[1]):setPage());

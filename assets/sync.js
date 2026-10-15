@@ -97,6 +97,13 @@ ST.translateCall=function(parts,where,mode){
   return post({op:'translate',code:s.code,parts:parts,where:where==='bank'?'bank':'lesson',mode:mode==='all'?'all':'sel'})
     .then(function(res){if(res&&!res.ok&&res.auth)lockOut(res.error);return res||{ok:false,error:'No answer from the sheet.'}});
 };
+/* key terms in Arabic (Key terms column, Glossary page, printed glossary): [English terms] → {ar: {term in lower case: Arabic}} */
+ST.glossCall=function(terms){
+  var s=ST.session();
+  if(!enabled()||!s||!s.code)return Promise.reject(new Error('offline'));
+  return post({op:'gloss',code:s.code,terms:terms})
+    .then(function(res){if(res&&!res.ok&&res.auth)lockOut(res.error);return res||{ok:false,error:'No answer from the sheet.'}});
+};
 /* "اقترح ترجمة أفضل": [{en, ar, sug}] → the Suggestions sheet (the owner approves it there) */
 ST.suggestCall=function(items,where){
   var s=ST.session();

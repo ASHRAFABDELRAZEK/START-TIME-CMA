@@ -1,4 +1,4 @@
-const C="st-cma-p1a-e31b9f859";
+const C="st-cma-p1a-e920911b3";
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(["./","./index.html","./manifest.json","./assets/style.css","./assets/core.js","./assets/ledger.js"]).catch(()=>{})))});
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",e=>{const u=new URL(e.request.url);if(e.request.method!=="GET"||u.origin!==location.origin)return;
