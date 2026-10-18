@@ -125,7 +125,8 @@ function fmtMobile(m){m=String(m||'').replace(/[\s-]/g,'');
 function printWho(){var s=ST.session&&ST.session();if(!s)return {line:'',student:false,name:''};
   var p=s.perms||{},stu=s.role==='student',has=function(k,d){return Object.prototype.hasOwnProperty.call(p,k)?!!p[k]:d};
   var parts=[has('printName',true)?s.name:'',has('printEmail',stu)?s.email:'',has('printMobile',stu)?fmtMobile(s.mobile):''].map(function(x){return String(x||'').trim()}).filter(String);
-  return {line:parts.join(' · '),student:stu,name:has('printName',true)?String(s.name||'').trim():''}}
+  return {line:parts.join(' · '),student:stu,name:has('printName',true)?String(s.name||'').trim():'',
+    parts:{name:has('printName',true)?String(s.name||'').trim():'',email:has('printEmail',stu)?String(s.email||'').trim():'',mobile:has('printMobile',stu)?fmtMobile(s.mobile):''}}}   // for the Header & Footer tab (assets/hf.js)
 /* the footer stays on one line: when name · email · mobile is too long for the page width, its font gets smaller (down to 6pt) so nothing is cut */
 function fitFeet(root){$$('.sh-foot',root).forEach(function(f){var w=$('.sh-who',f);if(!w)return;var fs=9,pc=$('.sh-pc',f);w.style.fontSize='';
   var over=function(){return w.scrollWidth>w.clientWidth+1||f.scrollWidth>f.clientWidth+1};
@@ -133,7 +134,7 @@ function fitFeet(root){$$('.sh-foot',root).forEach(function(f){var w=$('.sh-who'
   if(over()&&pc)pc.textContent='Personal copy';                                   // then the shorter label
   if(over())w.textContent=w.textContent.replace(/^(Prepared for|Printed by) /,'');  // then without the opening words
   while(over()&&fs>6){fs-=0.5;w.style.fontSize=fs+'pt'}
-  var pn=$('.pn',f);if(over()&&pn)pn.textContent=pn.textContent.replace(/^[\d\/]+ · /,'')})}                  // last: the page number without the date (the date is on the cover)
+  var pn=$('.pn',f);if(over()&&pn)pn.textContent=pn.textContent.replace(/^[\d\/: ]+ · /,'')})}                  // last: the page number without the date (the date is on the cover)
 function today(){var d=new Date();return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()}
 /* no forced paper size: the print window decides the orientation, and the matching set of pages prints (see .sheets.p / .sheets.l) */
 function setPage(o){var st=document.getElementById('pageSz');if(!st){st=document.createElement('style');st.id='pageSz';document.head.appendChild(st)}
@@ -155,7 +156,9 @@ Pager.prototype.canSplit=function(e,h){
   if(/^(P|H[1-6]|IMG|SVG|svg|PRE|TR|LI|SUMMARY|FIGURE)$/.test(e.tagName))return false;
   if(textKids(e))return false;
   var n=e.children.length;if(!n)return false;
-  if(ATOM.test(e.className||'')&&(h!=null?h:e.getBoundingClientRect().height)<this.body.clientHeight*0.45)return false;   // boxes stay whole unless very tall
+  var hh=(h!=null?h:e.getBoundingClientRect().height);
+  if(/(^|\s)pk-sol(\s|$)/.test(e.className||'')&&hh<this.body.clientHeight*0.9)return false;   // an answer and its explanation stay together unless taller than a page
+  if(ATOM.test(e.className||'')&&hh<this.body.clientHeight*0.45)return false;   // boxes stay whole unless very tall
   return n>=2||this.canSplit(e.children[0])};
 /* put b into target; if it does not all fit, put as much as fits and return what is left (null = all placed) */
 Pager.prototype.fill=function(b,target){
@@ -202,7 +205,7 @@ Pager.prototype.slide=function(head,blocks,cls){
       if(i<blocks.length-1&&lf>this.body.clientHeight*0.12&&blocks.slice(i+1).some(function(x){return !isPic(x)})){defer.push(bk);continue}}
     var rem=this.fill(bk,sb),guard=0;
     while(rem&&guard++<40){
-      if(!sb.firstElementChild&&!defer.length){                     // nothing of this slide on the page yet: its heading moves too
+      if((!sb.firstElementChild||light(sb))&&!defer.length){        // nothing of this slide on the page yet (or only a short intro line): its heading moves too
         this.body.removeChild(frag);var tk2=this.trail();this.newPage();if(tk2)this.body.appendChild(tk2);this.body.appendChild(frag);
       }else next();
       var fresh=this.body.children.length===1&&sb.children.length===0;
@@ -215,11 +218,16 @@ Pager.prototype.slide=function(head,blocks,cls){
   }
   while(defer.length){var d=defer[0];var r=this.fill(d,sb);if(!r){defer.shift();continue}next()}   // pictures still waiting: after the text, on this page if they fit, else on the next
 };
+function light(sb){var h=0;for(var i=0;i<sb.children.length;i++){var c=sb.children[i];if(c.tagName!=='P')return false;h+=c.getBoundingClientRect().height}return h<70}   // only an intro paragraph so far
 function isPic(e){return !!e&&(e.tagName==='FIGURE'||/(^|\s)(anm|scene|fig)(\s|$)/.test(e.className||''))}
 /* a topic heading left alone at the bottom of a page goes with what follows */
 Pager.prototype.trail=function(){var l=this.body&&this.body.lastElementChild;if(l&&l.classList.contains('pv-th')){this.body.removeChild(l);return l}return null};
 
-function sheetChrome(who,stu,wm){return function(sh,run){
+function sheetChrome(who,stu,wm,pw){return function(sh,run){
+  if(ST.HF&&ST.HF.on()){                                                // the owner changed the Header & Footer tab
+    sh.innerHTML=ST.HF.printHead(PART,SECT,run)+'<div class="sh-body"></div>'+ST.HF.printFoot(pw&&pw.parts||{},stu)+
+      (wm?'<div class="sh-wm" aria-hidden="true"><span>START TIME · '+esc(wm)+'</span></div>':'');
+    return $('.sh-body',sh)}
   sh.innerHTML='<header class="sh-head"><div class="sh-logo">ST</div><div class="sh-brand"><b>START TIME ACADEMY</b><span>ASHRAF FATHY · CMA '+esc(PART)+' · '+esc(SECT)+'</span></div>'+
     '<div class="sh-run">'+(run?'<small>'+esc(run.k)+'</small>'+esc(run.n):'')+'</div></header><div class="sh-body"></div>'+
     '<footer class="sh-foot"><span class="sh-who">'+esc(who)+'</span>'+(stu?'<span class="sh-pc">Personal copy — not for sharing</span>':'')+'<span class="pn" data-d="'+today()+'"></span></footer>'+
@@ -231,13 +239,28 @@ function slideBlocks(s,i,n,prac,id){
   var body=el('div','sb');
   try{
     if(prac){var tc=ST.byId[id],cz=s.case&&tc&&tc.cases&&tc.cases[s.case];body.innerHTML=(cz?'<p class="note case-ref">Uses the case: <b>'+cz.h+'</b> (printed with the case slide).</p>':'')+staticQ(s)}
-    else if(s.t==='trace')body.innerHTML=(s.intro||'')+'<p class="note">Interactive tracer — use it in the online deck: pick a transaction and follow it through the four statements.</p>';
+    else if(s.t==='trace')body.innerHTML=(s.intro||'')+(s.print||'<p class="note">This tracer is interactive. Its result: every transaction touches at least two statements, and the slides before it show each path.</p>');
     else if(s.t==='tree')body.innerHTML=(s.intro||'')+treeHTML(s.n,'start',0);
-    else if(s.t==='lab')body.innerHTML=(s.body||'')+'<p class="note">Interactive tool — use it in the online deck to change the numbers and see the effect.</p>';
+    else if(s.t==='lab')body.innerHTML=(s.body||'')+labPrint(s);
     else (ST.R[s.t]||ST.R.x)(body,s,'print#'+id+'#'+i);
-  }catch(e){body.innerHTML='<p class="note">This slide is interactive — see the online deck.</p>'}
+  }catch(e){body.innerHTML='<p class="note">This slide is interactive; its points are covered in the explanation and the Check yourself items.</p>'}
+  /* the case slide prints the full case data (tables and text) before its questions; the questions only point to it */
+  if(!prac&&s.t==='x'&&!s.lesson){var tc2=ST.byId[id],ck=s.case,sl=tc2&&tc2.slides;
+    if(!ck&&sl){var ix=sl.indexOf(s);if(ix>=0&&sl[ix+1]&&sl[ix+1].case)ck=sl[ix+1].case}   // the case slide may sit just before its first question without a case field itself
+    var cz2=ck&&tc2&&tc2.cases&&tc2.cases[ck];
+    if(cz2&&cz2.body){var plain=function(h){return String(h).replace(/<[^>]+>/g,' ').replace(/&[a-z#0-9]+;/g,' ').replace(/\s+/g,' ').trim()};
+      if(plain(body.innerHTML).indexOf(plain(cz2.body).slice(0,80))<0){var cd=el('div','case-print');cd.innerHTML='<p class="note"><b>Case data</b> — '+esc(cz2.h)+'</p>'+cz2.body;body.appendChild(cd)}}}
   tidy(body);return body}
+/* an interactive tool on paper: the author's static result (s.print) if given; otherwise the game renders its finished result (ST.fun.PRINT); otherwise one neutral line */
+function labPrint(s){
+  if(s.print)return s.print;
+  var d=el('div','lab-print');
+  if(s.run&&ST.fun){ST.fun.PRINT=true;try{s.run(d)}catch(e){d.innerHTML=''}ST.fun.PRINT=false;
+    $$('button, input, select',d).forEach(function(b){if(b.tagName==='BUTTON')b.parentNode.removeChild(b);else{var v=el('b','lab-v',b.value||'');b.parentNode.replaceChild(v,b)}});
+    if(d.textContent.trim())return d.outerHTML}
+  return '<p class="note">This exercise is interactive and is not printed. Its points are covered in the explanation and in the Check yourself items.</p>'}
 function tidy(root){
+  (function walk(n){for(var c=n.firstChild;c;c=c.nextSibling){if(c.nodeType===3){if(/Play the /.test(c.nodeValue))c.nodeValue=c.nodeValue.replace(/Play the (opening |next |first |whole )?picture/g,'Look at the $1picture').replace(/Play the (opening |next |first |whole )?animation/g,'Look at the $1picture')}else if(c.nodeType===1&&!/^(SCRIPT|STYLE|svg)$/i.test(c.tagName))walk(c)}})(root);
   $$('details',root).forEach(function(d){var w=el('div','rv'),sm=d.querySelector('summary');if(sm)w.appendChild(el('div','rv-s',sm.innerHTML));
     Array.prototype.slice.call(d.childNodes).forEach(function(n){if(n!==sm)w.appendChild(n)});d.parentNode.replaceChild(w,d)});
   $$('table',root).forEach(function(tb){if(tb.tHead)return;var hd=document.createElement('thead');
@@ -275,7 +298,7 @@ ST.printView=function(tidList){
   /* one complete set of pages for one orientation */
   function build(isLand,first){
     var host=el('div','sheets '+(isLand?'l':'p')+' building');app.appendChild(host);
-    var P=new Pager(host,isLand,sheetChrome(who,pw.student,pw.student?(pw.name||''):'')),tp={},cover=null,keys=[];
+    var P=new Pager(host,isLand,sheetChrome(who,pw.student,pw.student?(pw.name||''):'',pw)),tp={},cover=null,keys=[];
     if(multi){cover=el('div','sheet cover'+(isLand?' land':''));host.appendChild(cover);P.pages.push(cover);
       cover.innerHTML='<div class="cv-band"><div class="cv-logo">ST</div><div><b>START TIME ACADEMY</b><span>ASHRAF FATHY</span></div></div>'+
         '<div class="cv-main"><div class="cv-kick">CMA® '+esc(PART.toUpperCase())+' · '+esc(SECT.toUpperCase())+'</div><h1>'+esc(SECT_T)+'</h1>'+
@@ -295,7 +318,8 @@ ST.printView=function(tidList){
         var prac=ST.isPractice(s)&&s.t!=='trace';if(prac)n++;
         if(only&&only.indexOf(i+1)<0)return;
         if(kind==='c'&&prac||kind==='p'&&!prac)return;
-        var bk=t.nB&&i>=t.nL,head=el('div','ps-hd','<div class="s-meta"><span class="s-kind">'+(bk?'B'+(i-t.nL+1):i+1)+' · '+(prac?(bk?'QUESTION BANK ':'PRACTICE ')+n:(s.t==='x'?'CONCEPT':'INTERACTIVE'))+'</span><span class="chips">'+ST.losOf(s).map(function(c){return '<span class="chip g">LOS '+c+'</span>'}).join('')+'</span></div>'+(s.h?'<h2>'+s.h+'</h2>':''));
+        if(s.cy&&ST.qcMode&&ST.qcMode()==='below')return;   // the student prints the quick checks under their slides: the gathering slide is not needed on paper
+        var bk=t.nB&&i>=t.nL,head=el('div','ps-hd','<div class="s-meta"><span class="s-kind">'+(bk?'B'+(i-t.nL+1):i+1)+' · '+(prac?(bk?'QUESTION BANK ':'PRACTICE ')+n:(s.t==='x'?'CONCEPT':'INTERACTIVE'))+'</span><span class="chips">'+ST.losChip(s)+'</span></div>'+(s.h?'<h2>'+s.h+'</h2>':''));
         var body=slideBlocks(s,i,n,prac,id);if(ST.glFill&&body.querySelector&&body.querySelector('.gl-ar'))ST.glFill(body);
         if(first){var tabs=$$('table.t',body);if(tabs.length)groups.push({h:(multi?t.n+' — ':'')+(i+1)+' '+strip(s.h||''),tables:tabs.map(function(x){return x.cloneNode(true)})})}
         if(prac)tk.push({i:i,n:n,s:s});
@@ -304,10 +328,11 @@ ST.printView=function(tidList){
       return new Promise(function(r){setTimeout(r,0)})})});
     return chain.then(function(){
       if(ans&&keys.length){
-        tp.__key=P.topic(el('div','pv-th','<div class="kick">Answer key</div><h1>Answers and explanations</h1>'),{k:'Answer key',n:'Answers and explanations'});
-        keys.forEach(function(g){g.k.forEach(function(x,j){var sol=el('div');sol.innerHTML=solHTML(x.s);tidy(sol);
+        var kt=keys[0].t,krun=multi?{k:SECT,n:SECT_T}:{k:kt.group+' · '+(kt.sub||''),n:kt.n};   // the running header keeps the topic (or section) name; "Answer key" is printed once, in the title block
+        tp.__key=P.topic(el('div','pv-th','<div class="kick">Answer key</div><h1>Answers and explanations</h1>'),krun);
+        keys.forEach(function(g){g.k.forEach(function(x,j){var sol=el('div','pk-sol');sol.innerHTML=solHTML(x.s);tidy(sol);
           var hd=el('div','pk-hd',(multi&&j===0?'<div class="pk-t">'+esc(g.t.n)+'</div>':'')+'<h3>Practice '+x.n+' (slide '+(g.t.nB&&x.i>=g.t.nL?'B'+(x.i-g.t.nL+1):x.i+1)+')'+(x.s.h?' — '+x.s.h:'')+'</h3>');
-          P.slide(hd,kids(sol),'ps pk')})})}
+          P.slide(hd,[sol],'ps pk')})})}
       if(glP){var gr=ST.glRows(ids);
         if(gr.length){
           tp.__gl=P.topic(el('div','pv-th','<div class="kick">Glossary</div><h1>Key terms, A to Z</h1>'),{k:'Glossary',n:'Key terms, A to Z'});
@@ -318,7 +343,9 @@ ST.printView=function(tidList){
           var gb=el('div');gb.innerHTML='<table class="t gl gl-print'+(multi?' gl-m':'')+'"><thead><tr><th>Term</th><th>بالعربي</th><th>What it means</th>'+(multi?'<th>Topic</th>':'')+'</tr></thead><tbody>'+rowsH+'</tbody></table>';
           P.slide(el('div','pk-hd','<h3>'+gr.length+' key term'+(gr.length===1?'':'s')+(multi?' from '+ids.length+' topics':'')+'</h3>'),kids(gb),'ps')}}
       var N=P.pages.length;
-      P.pages.forEach(function(pg,i){var pn=$('.pn',pg);if(pn)pn.textContent=(pn.dataset.d?pn.dataset.d+' · ':'')+'Page '+(i+1)+' of '+N});
+      var hfOn=ST.HF&&ST.HF.on();
+      P.pages.forEach(function(pg,i){var pn=$('.pn',pg);if(pn)pn.textContent=hfOn?ST.HF.pageText(pn.dataset.d||'',i+1,N):(pn.dataset.d?pn.dataset.d+' · ':'')+'Page '+(i+1)+' of '+N});
+      if(hfOn){ST.HF.cover(cover);ST.HF.fillQR(host)}
       fitFeet(host);
       if(cover)$$('[data-p]',cover).forEach(function(x){x.textContent=tp[x.dataset.p]||''});
       host.classList.remove('building');host.dataset.n=N;return host})}

@@ -92,6 +92,7 @@ main{max-width:1120px;margin:0 auto;padding:16px 16px 40px;outline:none;min-heig
 .tc.soon{opacity:.6;pointer-events:none;box-shadow:none;border-style:dashed}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--soft-navy);color:var(--ink2);border:1px solid var(--line);white-space:nowrap}
 .chip.g{background:var(--soft-gold);border-color:color-mix(in srgb,var(--gold) 40%,transparent)}
+.chip.hid{background:#ececec;color:#555;border-color:#bbb}
 .chip.t{background:var(--soft-teal);border-color:color-mix(in srgb,var(--teal) 35%,transparent);color:var(--teal)}
 .chips{display:flex;gap:5px;flex-wrap:wrap}
 
@@ -536,6 +537,8 @@ ol.pq,ul.pq{line-height:1.8}
 .sh-body .pk-hd h3{font-size:10.5pt;margin:0 0 1mm;color:var(--navy)}
 .sh-body .pk-t{font-size:11.5pt;margin:2mm 0 1.5mm;color:var(--navy);font-weight:700}
 .sh-body .sol-w,.sh-body .wr{font-size:10pt}
+.sh-body .pk-sol{break-inside:avoid}
+.sh-body .lab-print table{margin-top:2mm}.sh-body .lab-print .lab-v{padding:0 3px;border-bottom:1px solid var(--line)}.sh-body .myth-print li{margin:0 0 1.5mm}.sh-body .flw-print{margin:2mm 0 0 5mm;font-size:9.5pt}
 .sh-body a{color:inherit;text-decoration:none}
 /* clean style: white pages (ink saver) — the identity stays */
 .pclean .sh-body .call,.pclean .sh-body .mini,.pclean .sh-body .big-eq,.pclean .sh-body .cmp .cc,.pclean .sh-body .rv,.pclean .sh-body .wr{background:#fff}
@@ -833,6 +836,9 @@ html.printing .xt-win{display:none!important}
 .qc-o.ok{border-color:var(--teal);background:var(--soft-teal)}.qc-o.bad{border-color:var(--red);background:var(--soft-red)}
 .qc-o:disabled{cursor:default;opacity:1}
 .qc-e{margin-top:8px;font-size:14.5px;line-height:1.6}
+.qc.cyq{break-inside:avoid;page-break-inside:avoid}.qc-no{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--teal);color:#fff;font-size:11px;margin-inline-start:2px}
+.qc-rev{display:block;font-size:13.5px;font-weight:600;color:var(--teal);text-decoration:none;margin-top:8px}.qc-rev:hover{text-decoration:underline}
+.sh-body .qc.cyq{padding:2.5mm 3mm;margin:2.5mm 0}.sh-body .qc.cyq .qc-q{margin-bottom:1.5mm}.sh-body .qc.cyq .qc-os{display:flex;flex-wrap:wrap;gap:1mm 7mm}.sh-body .qc.cyq .qc-o{display:inline-flex}.sh-body .qc.cyq .qc-e{margin-top:1.5mm;display:inline}.sh-body .qc-rev{display:inline;color:var(--teal);font-size:9.5pt;margin:0 0 0 3mm}
 .qc-v.ok{color:var(--teal);font-weight:700}.qc-v.bad{color:var(--red);font-weight:700}
 /* key terms */
 table.t.gl td:first-child{white-space:nowrap}
@@ -1616,3 +1622,55 @@ body.ui-focus main{padding-top:10px}
 .tb-pop .btn{width:100%}
 @media (max-width:520px){.st-chip .st-v{display:none}.st-chip{padding:0 8px 0 10px}}
 @media print{.s-tools,.s-menu,.st-chip,.tb-pop{display:none!important}}
+
+/* ---------- Header & Footer tab (assets/hf.js): used only when the owner changed something there ---------- */
+.top.hf-on{justify-content:flex-start}
+.top.hf-on .top-act{margin-inline-start:auto}
+.hf-slot{display:flex;align-items:center;gap:8px;min-width:0;font-size:12px;color:var(--muted)}
+.hf-slot.hf-c{flex:1;justify-content:center}
+.hf-slot.hf-e{margin-inline-start:auto}
+.hf-slot.hf-e+.top-act{margin-inline-start:6px}
+.hf-i{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+a.hf-i{color:var(--navy);text-decoration:underline}
+.hf-img{display:block;height:34px;width:auto;max-width:180px;object-fit:contain}
+.hfz-s .hf-img,.hf-img.hfz-s{height:24px}
+.hfz-l .hf-img,.hf-img.hfz-l{height:46px}
+.logo.hf-logo{background:none;border:0;width:auto;min-width:38px;border-radius:0}
+.hf-qr{display:inline-block;width:56px;height:56px;line-height:0;background:#fff}
+.hfz-s .hf-qr{width:40px;height:40px}.hfz-l .hf-qr{width:80px;height:80px}
+.hf-qr svg{width:100%;height:100%;display:block}
+.hf-bad{display:none!important}
+.ib.hfz-s{transform:scale(.85)}.ib.hfz-l{transform:scale(1.2)}
+.foot.hf-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;text-align:start}
+.foot.hf-foot .hf-fs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.foot.hf-foot .hf-fc{flex:1;justify-content:center;text-align:center}
+.foot.hf-foot .hf-fe{margin-inline-start:auto}
+.foot.hf-foot .hf-i{white-space:normal}
+.foot .hfz-s{font-size:.85em}.foot .hfz-l{font-size:1.2em}
+.foot .hf-fs:empty{display:none}
+@media (max-width:600px){.hf-slot.hf-c{display:none}.hf-slot .hf-clk{font-size:11px}.top .hf-img{height:28px;max-width:96px}}
+@media (max-width:480px){.hf-slot .hf-clk{display:none}.hf-slot{gap:4px}}
+/* printed pages */
+.hf-head .hf-ps,.hf-head .hf-pc,.hf-head .hf-pe,.hf-foot .hf-ps,.hf-foot .hf-pc,.hf-foot .hf-pe{display:flex;align-items:center;gap:3mm;min-width:0}
+.hf-head .hf-pc,.sh-foot.hf-foot .hf-pc{flex:1;justify-content:center}
+.hf-head .hf-pe,.sh-foot.hf-foot .hf-pe{margin-inline-start:auto;max-width:60%}
+.hf-head .hf-pe .sh-run{max-width:none;margin-inline-start:0}
+.sh-foot.hf-foot .hf-ps{flex:0 1 auto}
+.sh-foot.hf-foot .hf-pc,.sh-foot.hf-foot .hf-pe{flex-shrink:0}
+.sh-foot.hf-foot .hf-pc .hf-i,.sh-foot.hf-foot .hf-pe .hf-i{flex:none;overflow:visible}
+.sh-foot.hf-2{flex-direction:column;align-items:stretch;gap:1.5mm}
+.sh-foot.hf-2 .hf-r1,.sh-foot.hf-2 .hf-r2{display:flex;align-items:center;gap:4mm;min-width:0}
+.sh-foot.hf-2 .hf-r2{font-size:8.5pt}
+.sh-foot.hf-foot .hf-pe .pn{margin-inline-start:0}
+.sh-head .hf-img,.sh-foot .hf-img{height:9.5mm;max-width:45mm}
+.sh-head .hfz-s .hf-img,.sh-foot .hfz-s .hf-img,.sh-head .hf-img.hfz-s{height:7mm}
+.sh-head .hfz-l .hf-img,.sh-foot .hfz-l .hf-img{height:13mm}
+.sh-head .hf-qr,.sh-foot .hf-qr{width:12mm;height:12mm}
+.sh-head .hfz-s .hf-qr,.sh-foot .hfz-s .hf-qr{width:9mm;height:9mm}
+.sh-head .hfz-l .hf-qr,.sh-foot .hfz-l .hf-qr{width:16mm;height:16mm}
+.sh-logo.hf-logo{background:none;width:auto;height:auto;min-width:9.5mm}
+.sh-head .hfz-s,.sh-foot .hfz-s{font-size:.85em}.sh-head .hfz-l,.sh-foot .hfz-l{font-size:1.2em}
+.sh-foot a.hf-i,.sh-head a.hf-i{color:var(--navy);text-decoration:none}
+.sh-foot .hf-url{font-weight:600}
+.cv-logo.hf-logo{background:none}
+.cv-logo.hf-logo .hf-img{height:100%;max-width:60mm}

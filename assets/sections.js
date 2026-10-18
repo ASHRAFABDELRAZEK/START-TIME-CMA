@@ -4,18 +4,18 @@
    A section with no topic files yet shows as "coming soon". Loaded after config.js and los.js, before core.js. */
 (function(){
 var ST=window.ST=window.ST||{};
-ST.ENC={"p1a":"2d42de023f","p1b":"6b4d2565fc","p1c":"3a9da90bdd","p1d":"1a90dc82e2"};
+ST.ENC={"p1a":"4d02b20364","p1b":"b0744852e8","p1c":"3a9da90bdd","p1d":"d2ac5d1687"};
 ST.SECTIONS=[
  {k:'A',deck:'p1a',section:'Section A',title:'External Financial Reporting Decisions',weight:15,
   blurb:'Every LOS in Section A, explained in order: a short story about a company that fits each idea, pictures that move when movement helps, and exam-style practice.',
   groups:[['A.1','Financial statements'],['A.2','Recognition, measurement, and valuation']],
-  files:['a1-primer.js?v=3','a1-users.js?v=7','a1-comp.js?v=7','a1-limits.js?v=4','a1-effects.js?v=4','a1-links.js?v=5','a1-prep.js?v=4','a1-consolidation.js?v=10','a1-ir.js?v=9',
-   'a2-receivables.js?v=8','a2-inventory.js?v=8','a2-investments.js?v=9','a2-ppe.js?v=7','a2-liabilities.js?v=8','a2-taxes.js?v=8','a2-leases.js?v=8',
-   'a2-equity.js?v=10','a2-revenue.js?v=9','a2-income.js?v=8','a2-gaap-ifrs.js?v=8']},
+  files:['a1-primer.js?v=5','a1-users.js?v=14','a1-comp.js?v=13','a1-limits.js?v=10','a1-effects.js?v=8','a1-links.js?v=9','a1-prep.js?v=7','a1-consolidation.js?v=14','a1-ir.js?v=14',
+   'a2-receivables.js?v=9','a2-inventory.js?v=12','a2-investments.js?v=11','a2-ppe.js?v=9','a2-liabilities.js?v=12','a2-taxes.js?v=10','a2-leases.js?v=9',
+   'a2-equity.js?v=11','a2-revenue.js?v=16','a2-income.js?v=13','a2-gaap-ifrs.js?v=13']},
  {k:'B',deck:'p1b',section:'Section B',title:'Planning, Budgeting, and Forecasting',weight:20,
   blurb:'From strategy to the master budget: every LOS in Section B, with forecasts and budgets you build and change yourself.',
   groups:[['B.1','Strategic planning'],['B.2','Budgeting concepts'],['B.3','Forecasting techniques'],['B.4','Budget methodologies'],['B.5','Annual profit plan and supporting schedules'],['B.6','Top-level planning and analysis']],
-  files:['b1-plan.js?v=11','b1-env.js?v=12','b1-gen.js?v=12','b2-role.js?v=12','b2-proc.js?v=12','b2-std.js?v=11','b3-regr.js?v=11','b3-learn.js?v=11','b3-ev.js?v=11','b4-master.js?v=12','b4-abz.js?v=11','b4-flex.js?v=13','b5-sales.js?v=11','b5-mat.js?v=12','b5-oh.js?v=12','b5-cm.js?v=12','b5-cash.js?v=11','b6-pf.js?v=12','b6-fin.js?v=12']},
+  files:['b1-plan.js?v=15','b1-env.js?v=15','b1-gen.js?v=15','b2-role.js?v=15','b2-proc.js?v=12','b2-std.js?v=11','b3-regr.js?v=11','b3-learn.js?v=11','b3-ev.js?v=11','b4-master.js?v=12','b4-abz.js?v=11','b4-flex.js?v=13','b5-sales.js?v=11','b5-mat.js?v=12','b5-oh.js?v=12','b5-cm.js?v=12','b5-cash.js?v=11','b6-pf.js?v=12','b6-fin.js?v=12']},
  {k:'C',deck:'p1c',section:'Section C',title:'Performance Management',weight:20,
   blurb:'How a company measures what happened against the plan: variances, responsibility centers and performance measures.',
   groups:[['C.1','Cost and variance measures'],['C.2','Responsibility centers and reporting segments'],['C.3','Performance measures']],
@@ -23,7 +23,7 @@ ST.SECTIONS=[
  {k:'D',deck:'p1d',section:'Section D',title:'Cost Management',weight:15,
   blurb:'What a product really costs: costing systems, overhead, the supply chain and process improvement.',
   groups:[['D.1','Measurement concepts'],['D.2','Costing systems'],['D.3','Overhead costs'],['D.4','Supply chain management'],['D.5','Business process improvement']],
-  files:['d1-behav.js?v=2','d1-meas.js?v=1','d1-varabs.js?v=2','d1-joint.js?v=2','d2-job.js?v=2','d2-abc.js?v=1','d2-life.js?v=1','d3-oh.js?v=1','d3-rates.js?v=1','d3-under.js?v=1','d3-svc.js?v=1','d4-lean.js?v=2','d4-sys.js?v=2','d4-out.js?v=1','d4-cap.js?v=2','d5-value.js?v=1','d5-bpr.js?v=1','d5-quality.js?v=1']},
+  files:['d1-behav.js?v=7','d1-meas.js?v=4','d1-varabs.js?v=7','d1-joint.js?v=5','d2-job.js?v=3','d2-abc.js?v=3','d2-life.js?v=3','d3-oh.js?v=3','d3-rates.js?v=1','d3-under.js?v=1','d3-svc.js?v=1','d4-lean.js?v=2','d4-sys.js?v=2','d4-out.js?v=1','d4-cap.js?v=2','d5-value.js?v=1','d5-bpr.js?v=1','d5-quality.js?v=1']},
  {k:'E',deck:'p1e',section:'Section E',title:'Internal Controls',weight:15,
   blurb:'Governance, risk and the controls that protect a company\'s assets, records and systems.',
   groups:[['E.1','Governance, risk, and compliance'],['E.2','System controls and security measures']],

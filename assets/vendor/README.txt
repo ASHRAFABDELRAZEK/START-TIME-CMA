@@ -1,2 +1,3 @@
 lame.min.js — lamejs 1.2.1 (https://github.com/zhuker/lamejs), LGPL-3.0. Unmodified. Used to turn recordings into MP3 in the browser.
 pako_inflate.min.js — pako 2.1.0 inflate (ES5 build, https://github.com/nodeca/pako), MIT AND Zlib. Unmodified. Used only by browsers without DecompressionStream, to unpack the lessons after they are decrypted.
+qrcode.js — "QRCode for JavaScript" by Kazuhiko Arase (2009), MIT. Taken unmodified from the vendor/QRCode folder of the qrcode-terminal 0.12.0 package and only bundled into one file (the require() calls resolved). Loaded by assets/hf.js only when a QR code is shown (Header & Footer tab, image cell = QR).

@@ -4,7 +4,7 @@
    on his own device: Settings → Your screen (kept in localStorage st-ui). Focus mode hides the top bar (st-ui-focus). */
 (function(){
 var $=ST.h.$,$$=ST.h.$$,el=ST.h.el,esc=ST.h.esc,ICON=ST.ICON||{};
-var KEY='st-ui',FK='st-ui-focus';
+var KEY='st-ui',FK='st-ui-focus',LK='st-ui-los',QK='st-ui-qc';   // LK: LOS tags on slides (default hidden); QK: quick checks below each slide, or at the end (default)
 function sv(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
 var SVG=function(p){return '<svg viewBox="0 0 24 24">'+p+'</svg>'};
 var IC={
@@ -136,16 +136,22 @@ ST.uiSettings=function(){
        PLACES.map(function(p){return '<button type="button" data-t="'+x[0]+'" data-v="'+p[0]+'">'+p[1]+'</button>'}).join('')+'</span></div>'}).join('')+'</div>'
     :'<p class="note">Your academy sets which tools sit on your slides. Anything not on the slide is under ⋯.</p>')+
     '<div class="apx-r"><span class="note">Top bar</span><span class="seg sm" role="group" aria-label="Focus mode"><button type="button" data-f="0">Show</button><button type="button" data-f="1">Hide (focus mode)</button></span></div>'+
+    '<div class="apx-r"><span class="note">LOS tags on slides</span><span class="seg sm" role="group" aria-label="LOS tags on slides"><button type="button" data-l="0">Hide</button><button type="button" data-l="1">Show</button></span></div>'+
+    '<div class="apx-r"><span class="note">Quick checks</span><span class="seg sm" role="group" aria-label="Where the quick checks appear"><button type="button" data-q="below">Below each slide</button><button type="button" data-q="end">At the end of the topic</button></span></div>'+
     (can?'<div class="apx-r"><button type="button" class="btn sm ghost ui-reset">Back to the academy\'s layout</button></div>':'');
   function presetOf(){var cur={};mine.forEach(function(x){cur[x[0]]=place(x[0])});
     var hit='';PRESETS.forEach(function(p){if(mine.every(function(x){return (p[3][x[0]]||'menu')===cur[x[0]]}))hit=hit||p[0]});return hit}
   function paint(){$$('[data-t]',w).forEach(function(b){var on=place(b.dataset.t)===b.dataset.v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
     var pr=presetOf();$$('[data-p]',w).forEach(function(b){var on=b.dataset.p===pr;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
-    $$('[data-f]',w).forEach(function(b){var on=(b.dataset.f==='1')===focusOn();b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
+    $$('[data-f]',w).forEach(function(b){var on=(b.dataset.f==='1')===focusOn();b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
+    $$('[data-l]',w).forEach(function(b){var on=(b.dataset.l==='1')===(sv(LK)==='1');b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
+    $$('[data-q]',w).forEach(function(b){var on=b.dataset.q===(sv(QK)==='below'?'below':'end');b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
   function redraw(){paint();if(/^#\/t\//.test(location.hash)&&ST.route)ST.route()}
   $$('[data-t]',w).forEach(function(b){b.onclick=function(){var d=dev();d[b.dataset.t]=b.dataset.v;sv(KEY,JSON.stringify(d));redraw()}});
   $$('[data-p]',w).forEach(function(b){b.onclick=function(){var p=PRESETS.filter(function(x){return x[0]===b.dataset.p})[0],d={};mine.forEach(function(x){d[x[0]]=p[3][x[0]]||'menu'});sv(KEY,JSON.stringify(d));redraw()}});
   $$('[data-f]',w).forEach(function(b){b.onclick=function(){sv(FK,b.dataset.f==='1'?'1':null);applyFocus();paint()}});
+  $$('[data-l]',w).forEach(function(b){b.onclick=function(){sv(LK,b.dataset.l==='1'?'1':null);redraw()}});
+  $$('[data-q]',w).forEach(function(b){b.onclick=function(){sv(QK,b.dataset.q==='below'?'below':null);redraw()}});
   var rs=$('.ui-reset',w);if(rs)rs.onclick=function(){sv(KEY,null);redraw()};
   paint();return w};
 

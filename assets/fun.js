@@ -71,8 +71,13 @@ var ICN={cards:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" wi
 F.icons=ICN;
 
 /* ---------- who's asking? (users and the statement that answers them) ---------- */
+/* F.PRINT: set by the print view — each game renders its finished result as a static table instead of the interactive board */
+F.PRINT=false;
 F.who=function(h,cfg){
   var S=cfg.statements,P=cfg.people,found={},cur=0,tries={};
+  if(F.PRINT){var nm=function(k){return (S.filter(function(s){return s.k===k})[0]||{}).n||k};
+    h.insertAdjacentHTML('beforeend','<div class="tw"><table class="t fsx"><thead><tr><th>Reader</th><th>The question</th><th>Statement to open first</th></tr></thead><tbody>'+
+      P.map(function(p){return '<tr><td><b>'+esc(p.n)+'</b><br><small>'+esc(p.r||'')+'</small></td><td>'+p.q+'</td><td><b>'+esc(nm(p.a))+'</b><br>'+p.why+'</td></tr>'}).join('')+'</tbody></table></div>'+(cfg.done?'<p class="note">'+cfg.done+'</p>':''));return}
   var w=el('div','who');h.appendChild(w);
   function draw(){
     var p=P[cur],n=Object.keys(found).length;
@@ -91,6 +96,7 @@ F.who=function(h,cfg){
 
 /* ---------- myth or fact? ---------- */
 F.myth=function(h,items,o){o=o||{};
+  if(F.PRINT){h.insertAdjacentHTML('beforeend','<ul class="myth-print">'+items.map(function(m){return '<li><b>'+(m.f?'Fact':'Myth')+':</b> '+m.s+' <span class="muted">— '+m.w+'</span></li>'}).join('')+'</ul>');return}
   var L=o.keep?items.slice():shuffle(items),i=0,score=0,ans=null,miss=[];
   var w=el('div','myth');h.appendChild(w);
   function draw(){
@@ -109,6 +115,10 @@ F.myth=function(h,items,o){o=o||{};
 /* ---------- build the balance sheet (tap an account, then the place it belongs) ---------- */
 F.build=function(h,cfg){
   var S=cfg.sections,I=shuffle(cfg.items),placed={},sel=null,M=ST.money||function(v){return v};
+  if(F.PRINT){I=cfg.items.slice();var side=function(sd){return S.filter(function(x){return x.side===sd}).map(function(x){var its=I.filter(function(it){return it.k===x.k});
+      return '<tr><th colspan="2">'+esc(x.n)+'</th></tr>'+its.map(function(it){return '<tr><td>'+esc(it.n)+'</td><td class="n">'+M(it.v)+'</td></tr>'}).join('')}).join('')},
+    tot=function(sd){return I.filter(function(it){return (S.filter(function(x){return x.k===it.k})[0]||{}).side===sd}).reduce(function(a,it){return a+it.v},0)};
+    h.insertAdjacentHTML('beforeend','<div class="tw"><table class="t fsx"><tbody>'+side('A')+'<tr class="tot"><td><b>Total assets</b></td><td class="n"><b>'+M(tot('A'))+'</b></td></tr>'+side('L')+side('E')+'<tr class="tot"><td><b>Total liabilities and equity</b></td><td class="n"><b>'+M(tot('L')+tot('E'))+'</b></td></tr></tbody></table></div>'+(cfg.done?'<p class="note">'+cfg.done+'</p>':''));return}
   var w=el('div','bld');h.appendChild(w);
   function tot(side){var s=0;I.forEach(function(it,j){if(placed[j]&&S.filter(function(x){return x.k===it.k})[0].side===side)s+=it.v});return s}
   function draw(){
@@ -131,6 +141,9 @@ F.build=function(h,cfg){
 /* ---------- speed round ---------- */
 F.speed=function(h,cfg){
   var id='st-speed-'+cfg.id,best=+(store(id)||0),secs=cfg.secs||60,L,i,ok,miss,t0,timer;
+  if(F.PRINT){var cat=function(k){return (cfg.cats.filter(function(x){return x.k===k})[0]||{}).n||k};
+    h.insertAdjacentHTML('beforeend',(cfg.intro?'<p>'+cfg.intro+'</p>':'')+'<div class="tw"><table class="t fsx"><thead><tr><th>Item</th><th>Belongs to</th></tr></thead><tbody>'+
+      cfg.items.map(function(c){return '<tr><td>'+c.x+'</td><td><b>'+esc(cat(c.c))+'</b>'+(c.w?' <span class="muted">— '+c.w+'</span>':'')+'</td></tr>'}).join('')+'</tbody></table></div>');return}
   var w=el('div','spd');h.appendChild(w);
   function intro(){w.innerHTML='<div class="spd-in"><b>'+esc(cfg.title||'Speed round')+'</b><p>'+(cfg.intro||'')+'</p><p class="note">'+secs+' seconds. One tap per item. Best score on this device: <b>'+best+'</b></p><button class="btn pri" type="button">Start</button></div>';$('button',w).onclick=start}
   function start(){L=shuffle(cfg.items);i=0;ok=0;miss=[];t0=Date.now();next();clearInterval(timer);timer=setInterval(tick,200)}
@@ -158,6 +171,8 @@ F.flow=function(h,cfg){
     '<div class="flw-note" aria-live="polite">'+(cfg.intro||'Press Play to watch each number travel to the statement where it lands.')+'</div>'+
     '<div class="row flw-ctl"><button class="btn pri" type="button" data-a="play">Play all</button><button class="btn" type="button" data-a="step">Next step</button><button class="btn ghost" type="button" data-a="reset">Start over</button><span class="note flw-n"></span></div>';
   var svg=$('svg',w),gp=$('.flw-paths',w),tok=$('.flw-tok',w),note=$('.flw-note',w),cnt=$('.flw-n',w);
+  if(F.PRINT){st=cfg.steps.length-1;gp.innerHTML=cfg.steps.map(function(s){return '<path d="'+pathOf(s)+'" class="flw-p on" marker-end="url(#flwA)"/>'}).join('');
+    var ctl=$('.flw-ctl',w);if(ctl)ctl.parentNode.removeChild(ctl);note.innerHTML='<ol class="flw-print">'+cfg.steps.map(function(s){return '<li><b>'+esc(s.label)+'</b>'+(s.note?' — '+s.note:'')+'</li>'}).join('')+'</ol>';return}
   function anchor(b,to){var cx=b.x+b.w/2,cy=b.y+b.h/2,tx=to.x+to.w/2,ty=to.y+to.h/2,dx=tx-cx,dy=ty-cy;
     if(Math.abs(dx)*b.h>Math.abs(dy)*b.w)return {x:cx+(dx>0?b.w/2:-b.w/2),y:cy+dy*(b.w/2)/Math.abs(dx)*0.5};return {x:cx+dx*(b.h/2)/Math.abs(dy)*0.5,y:cy+(dy>0?b.h/2:-b.h/2)}}
   function pathOf(s){var a=K[s.from],b=K[s.to],p=anchor(a,b),q=anchor(b,a);if(s.dy){p.y+=s.dy;q.y+=s.dy}if(s.dx){p.x+=s.dx;q.x+=s.dx}var mx=(p.x+q.x)/2,my=(p.y+q.y)/2,bend=s.bend||0,nx=-(q.y-p.y),ny=q.x-p.x,L=Math.sqrt(nx*nx+ny*ny)||1;

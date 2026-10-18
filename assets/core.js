@@ -78,6 +78,15 @@ ST.gated=function(){return !!CFG.gate&&!ROLE};
 function accMap(){if(ROLE==='student'&&SESS&&SESS.access)return SESS.access;if(ROLE==='trainer'&&VIEW==='student'&&SESS&&SESS.preview)return SESS.preview.access||{};return null}
 /* a topic the sheet does not list yet follows its section (topic ids start with the section letter: a1-…, b2-…) */
 function accOf(a,id){if(Object.prototype.hasOwnProperty.call(a,id))return a[id];return a[(CFG.partKey||'P1')+'-'+String(id).charAt(0).toUpperCase()]||'closed'}
+/* Hidden (Access sheet, column F or "hidden" in a group cell): a student does not see the topic or section at all, open or closed.
+   ST.topics / ST.byId keep only what he may see; staff keep everything and see a "Hidden" mark (SESS.hid: {key: 'All' | 'Group 1, …'}). */
+var ALLT=null;
+ST.applyHidden=function(){if(!ALLT)ALLT=ST.topics.slice();var a=accMap();
+  ST.topics=a?ALLT.filter(function(t){return accOf(a,t.id)!=='hidden'}):ALLT.slice();
+  ST.byId={};ST.topics.forEach(function(t){ST.byId[t.id]=t})};
+function secKey(k){return (CFG.partKey||'P1')+'-'+k}
+ST.secHidden=function(k){var a=accMap();return !!a&&a[secKey(k)]==='hidden'};
+ST.hidMark=function(id){if(ROLE!=='trainer'||!SESS||!SESS.hid)return '';var h=SESS.hid,v=h[id]||h[secKey(String(id).charAt(0).toUpperCase())]||h[CFG.partKey||'P1']||'';return v?'Hidden from: '+v:''};
 ST.lock=function(t){var a=accMap();if(!t||!a)return null;var v=accOf(a,t.id);return v==='open'?null:{on:v&&v!=='closed'?v:''}};
 var LOCK='<svg viewBox="0 0 24 24" class="lk-i" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 function lockText(l){return l.on?'Opens on '+l.on:'Not open yet'}
@@ -157,7 +166,12 @@ ST.call=function(kind,title,html){return '<div class="call '+kind+'"><div class=
 /* quick check inside an explanation: tap an answer, see right/wrong and why. Does not count towards mastery.
    ST.qc(question, [options], index of the right one, explanation) */
 ST.qc=function(q,o,a,e){return '<div class="qc" data-a="'+a+'"><div class="qc-q"><span class="qc-t">Quick check</span>'+q+'</div><div class="qc-os">'+o.map(function(x,i){return '<button type="button" class="qc-o" data-i="'+i+'"><span class="k">'+'ABCDEFG'[i]+'</span><span>'+x+'</span></button>'}).join('')+'</div><div class="qc-e" hidden><b>Answer: '+'ABCDEFG'[a]+'.</b> '+e+'</div></div>'};
-/* key terms of a topic: [[term, meaning, watch out (optional)], …] */
+/* "Check yourself": the topic's quick checks gathered on one slide, each with a link back to the slide that teaches it.
+   ST.qcSet(topicId, [[question, [options], answerIndex, explanation, slideNumber], ...]); numbering counts the lesson slides from 1. */
+ST.qcSet=function(id,items){return items.map(function(x,n){var q=ST.qc(x[0],x[1],x[2],x[3]);
+  q=q.replace('<span class="qc-t">Quick check</span>','<span class="qc-t">Quick check <b class="qc-no">'+(n+1)+'</b></span>');
+  if(x[4])q=q.replace(/<\/div>$/,'<a class="qc-rev" href="#/t/'+id+'/'+x[4]+'">Review slide '+x[4]+' →</a></div>');
+  return q.replace('<div class="qc"','<div class="qc cyq"')}).join('')};/* key terms of a topic: [[term, meaning, watch out (optional)], …] */
 /* The rows are also kept for the Glossary page and the printed glossary. The Arabic column shows only where Roles → glossAr allows
    (html.gl-ar-on); its cells are filled from the Key terms sheet by ST.glFill. */
 ST._glp=[];
@@ -202,6 +216,10 @@ var PRACTICE={mcq:1,multi:1,num:1,sort:1,dd:1,order:1,trace:1,tree:0};
 function slideKey(t,i){return t.slides[i]._k}
 function isPractice(s){return !!PRACTICE[s.t]&&!(s.t==='trace'&&!s.predict)}
 ST.isPractice=isPractice;ST.slideKey=slideKey;ST.losOf=losOf;
+/* LOS tags on slides: off by default; Settings → Your screen turns them on for this device (st-ui-los). The topic card and the LOS map always show them. */
+function losTags(){try{return localStorage.getItem('st-ui-los')==='1'}catch(e){return false}}
+function losChip(s){var l=losOf(s);return losTags()&&l.length?'<span class="chip g">LOS '+l.join(' · ')+'</span>':''}
+ST.losTags=losTags;ST.losChip=losChip;
 function losOf(s){return s.los?(Array.isArray(s.los)?s.los:[s.los]):[]}
 /* the slide that teaches a question's idea: the last explanation (or, failing that, interactive) slide before it on the same LOS, inside the lesson — never the case or the key terms */
 function ideaOf(t,i,s,pref){var lo=losOf(s),e=null,x=null,end=Math.min(i,t.nL==null?i:t.nL);
@@ -246,8 +264,8 @@ function secBar(app){
   if(!ST.SECTIONS)return;
   var bar=el('nav','secbar');bar.setAttribute('aria-label','Part 1 sections');
   if(ST.startView){var sh=el('a','sb sb-st'+(/^#\/start/.test(location.hash)?' on':''),'<b>★</b><span>Start here</span><small>The CMA and the exam</small>');sh.href='#/start';bar.appendChild(sh)}
-  ST.SECTIONS.forEach(function(s){var on=ST.SEC&&s.k===ST.SEC.k,ready=ST.sectionOpen&&ST.sectionOpen(s.k),lk=ready?secLock(s.k):null;
-    var b=el(ready&&!on?'button':'div','sb'+(on?' on':'')+(ready?'':' soon')+(lk?' lk':''),'<b>'+s.k+'</b><span>'+esc(s.title)+'</span><small>'+(lk?LOCK+esc(lockText(lk)):on?'You are here':ready?s.weight+'% of the exam':'Coming soon')+'</small>');
+  ST.SECTIONS.forEach(function(s){if(ST.secHidden(s.k))return;var on=ST.SEC&&s.k===ST.SEC.k,ready=ST.sectionOpen&&ST.sectionOpen(s.k),lk=ready?secLock(s.k):null,hs=(ROLE==='trainer'&&SESS&&SESS.hid&&SESS.hid[secKey(s.k)])||'';
+    var b=el(ready&&!on?'button':'div','sb'+(on?' on':'')+(ready?'':' soon')+(lk?' lk':''),'<b>'+s.k+'</b><span>'+esc(s.title)+'</span><small>'+(lk?LOCK+esc(lockText(lk)):on?'You are here':ready?s.weight+'% of the exam':'Coming soon')+(hs?' · Hidden from: '+esc(hs):'')+'</small>');
     if(ready&&!on){b.type='button';b.onclick=function(){ST.goSection(s.k)}}
     if(on)b.setAttribute('aria-current','true');
     bar.appendChild(b)});
@@ -286,7 +304,7 @@ function home(){
         var w=el('div','tcw'),a=el('a','tc'+(t.soon?' soon':'')+(lk?' lk':'')+(st.mastered&&!t.soon&&!lk?' ms':''));a.href=t.soon||lk?'#/':'#/t/'+t.id+'/1';
         if(lk)a.onclick=function(e){e.preventDefault();lockMsg(t,lk)};
         a.innerHTML='<div class="n"><span>Topic '+n+'</span><span>'+(t.soon?'in preparation':st.n+' slides')+'</span></div>'+
-          '<h3>'+esc(t.n)+'</h3><div class="chips">'+t.los.map(function(c){return '<span class="chip g">'+c+'</span>'}).join('')+'</div>'+
+          '<h3>'+esc(t.n)+'</h3><div class="chips">'+(ST.hidMark(t.id)?'<span class="chip hid" title="Students in these groups do not see this topic">'+esc(ST.hidMark(t.id))+'</span>':'')+t.los.map(function(c){return '<span class="chip g">'+c+'</span>'}).join('')+'</div>'+
           (t.soon?'':lk?'<div class="tstat lk-l">'+LOCK+'<span>'+esc(lockText(lk))+'</span></div>':'<div class="tstat"><span>Read '+st.rd+'/'+st.cn+' · Correct '+st.ok+'/'+st.pr+'</span><b>'+(st.done?'✓ studied':(st.mastered?'✓ mastered':p+'%'))+'</b></div>')+
           '<div class="bar"><i style="width:'+p+'%"></i></div>';
         w.appendChild(a);
@@ -784,7 +802,7 @@ function deck(tid,idx){
   if(exq){d.classList.add('exq');$('h1',top).insertAdjacentHTML('afterend','<h1 class="mx-t">Exam set<small>The answers and explanations come at the end</small></h1>')}
   var sec=el('section','slide');sec.setAttribute('aria-live','polite');
   var kind=isPractice(s)?(inB&&si<0?'QUESTION BANK':'PRACTICE'):(s.t==='x'?'CONCEPT':'INTERACTIVE');
-  sec.innerHTML='<div class="s-meta"><span class="s-kind">'+kind+' <span id="stStat" data-k="'+esc(k)+'"></span></span><span class="chips">'+losOf(s).map(function(c){return '<span class="chip g">LOS '+c+'</span>'}).join('')+'</span></div>'+(s.h?'<h2>'+s.h+'</h2>':'');
+  sec.innerHTML='<div class="s-meta"><span class="s-kind">'+kind+' <span id="stStat" data-k="'+esc(k)+'"></span></span><span class="chips">'+losChip(s)+'</span></div>'+(s.h?'<h2>'+s.h+'</h2>':'');
   paintStat($('#stStat',sec),k,isPractice(s));
   var cs=s.case&&t.cases&&t.cases[s.case];
   if(cs){var cx=el('details','case-x');if(window.innerWidth>=760)cx.open=true;cx.innerHTML='<summary><span class="case-t">Case</span>'+esc(cs.h)+'</summary><div class="case-b">'+cs.body+'</div>';sec.appendChild(cx)}
@@ -909,7 +927,17 @@ function toggleFS(){try{if(document.fullscreenElement)document.exitFullscreen();
 var R={};
 ST.R=R;ST.route=function(){route()};
 /* concept slide */
-R.x=function(b,s){b.innerHTML=s.body||'';if(b.querySelector('.gl-ar'))ST.glFill(b)};
+/* Quick checks: a concept slide may carry cy:[[question,[options],answer,explanation,slideNo],…] — the topic's "Check yourself" set.
+   Settings → Your screen → Quick checks: "at the end of the topic" (default) shows the set on that slide with "Review slide N" links;
+   "below each slide" shows each check under the slide that teaches it instead (st-ui-qc). The data never moves, so nothing in progress changes. */
+function qcMode(){try{return localStorage.getItem('st-ui-qc')==='below'?'below':'end'}catch(e){return 'end'}}
+function qcBelow(t,i){var out=[];if(!t)return out;t.slides.forEach(function(x){(x.cy||[]).forEach(function(q){if(q[4]===i+1)out.push(q)})});return out}
+function topicOf(k){var id=String(k||'').replace(/^print#/,'').split('#')[0];return (cur.t&&cur.t.id===id)?cur.t:(ST.byId&&ST.byId[id])||cur.t}
+ST.qcMode=qcMode;
+R.x=function(b,s,k){var t=topicOf(k),i=t?t.slides.indexOf(s):-1,h=s.body||'';
+  if(s.cy){h+=qcMode()==='end'?ST.qcSet(t?t.id:'',s.cy):'<p class="note qc-note">Your quick checks are shown below each slide. You can move them here from Settings → Your screen → Quick checks.</p>'}
+  else if(qcMode()==='below'&&i>=0){qcBelow(t,i).forEach(function(q){h+=ST.qc(q[0],q[1],q[2],q[3])})}
+  b.innerHTML=h;if(b.querySelector('.gl-ar'))ST.glFill(b)};
 
 /* multiple choice (single answer) */
 R.mcq=function(b,s,k){
@@ -1327,6 +1355,7 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();INS
 window.addEventListener('appinstalled',function(){INST=null;paintInstall()});
 ST.paintInstall=paintInstall;
 ST.start=function(){
+  ST.applyHidden();if(ST.HF)ST.HF.apply();
   $('#mClose').onclick=closeModal;$('#modal').addEventListener('click',function(e){if(e.target.id==='modal')closeModal()});
   $('#nHelp').onclick=help;
   var nav=$('.top-act');if(nav&&!$('#nInst')){var ib=el('button','ib inst','<svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg><span>Install app</span>');ib.id='nInst';ib.hidden=true;ib.title='Install the app on this device';ib.setAttribute('aria-label','Install the app on this device');nav.insertBefore(ib,nav.firstChild)}
