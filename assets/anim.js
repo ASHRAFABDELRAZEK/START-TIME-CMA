@@ -18,10 +18,13 @@
 (function(){
 var ST=window.ST=window.ST||{};
 var REG={},SEEN='st-anm-seen',SPDK='st-anm-spd',NAR=560,uid=0;
-/* speed levels 1 (slowest) … 10 (fastest), 5 = normal (owner 20 Oct 02:34); the number is how long each move takes compared with normal.
-   The old three (Slow 1.5, Normal 1, Fast 0.7, saved under st-anm-spd) become 3, 5 and 7. */
-var LVK='st-anm-lv',LV=[0,2.5,2,1.6,1.25,1,.85,.7,.6,.5,.4];
-function lvGet(){var v=+store(LVK);if(v>=1&&v<=10)return Math.round(v);var o=+store(SPDK);return o>=1.4?3:o&&o<=.8?7:5}
+/* speed levels −5 (slowest) … −1, 1 … 15 (fastest): 20 speeds, 5 = normal (owner 20 Oct 02:34 and 02:47); the number is how long each move
+   takes compared with normal. The old three (Slow 1.5, Normal 1, Fast 0.7, saved under st-anm-spd) become 3, 5 and 7.
+   Repeat (owner 02:47, an option): when the drawing ends it starts again by itself; one choice for every drawing. */
+var LVK='st-anm-lv',LOOPK='st-anm-loop',LV={'-5':6,'-4':5,'-3':4,'-2':3.5,'-1':3,1:2.5,2:2,3:1.6,4:1.25,5:1,6:.85,7:.7,8:.6,9:.5,10:.4,11:.35,12:.3,13:.26,14:.23,15:.2},
+  LVS=[-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+function lvGet(){var v=store(LVK);if(v!=null&&LV[v]!==undefined)return +v;var o=+store(SPDK);return o>=1.4?3:o&&o<=.8?7:5}
+function loopOn(){return store(LOOPK)==='1'}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 function motionOK(){try{if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches&&store('st-motion')!=='on')return false}catch(e){}
@@ -294,11 +297,13 @@ function mount(fig){if(fig.dataset.on)return;var spec=REG[fig.dataset.anm];if(!s
     '<button type="button" class="anm-b anm-pp" data-a="pp"><span class="anm-ppi">'+IC.play+'</span><span class="anm-ppt">Play</span></button>'+
     '<button type="button" class="anm-b" data-a="next" aria-label="Next step">'+IC.next+'</button>'+
     '<button type="button" class="anm-b" data-a="end" title="Show the result" aria-label="Show the result">'+IC.end+'</button>'+
-    '<label class="anm-sp"><span>Speed</span><select class="anm-lv" aria-label="Speed: 1 is the slowest, 10 the fastest">'+
-      [1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option value="'+n+'">'+n+(n===1?' · slowest':n===5?' · normal':n===10?' · fastest':'')+'</option>'}).join('')+'</select></label>'+
+    '<button type="button" class="anm-b anm-loop" data-a="loop" aria-pressed="false" title="Repeat: start again when it ends">'+IC.again+'<span>Repeat</span></button>'+
+    '<label class="anm-sp"><span>Speed</span><select class="anm-lv" aria-label="Speed: −5 is the slowest, 5 normal, 15 the fastest">'+
+      LVS.map(function(n){return '<option value="'+n+'">'+(n<0?'−'+(-n):n)+(n===-5?' · slowest':n===5?' · normal':n===15?' · fastest':'')+'</option>'}).join('')+'</select></label>'+
     '<span class="anm-n"></span>';
   fig.appendChild(ctl);tx.setAttribute('aria-live','polite');
-  function paintSp(){var se=ctl.querySelector('.anm-lv');if(se)se.value=String(lvGet())}
+  function paintSp(){var se=ctl.querySelector('.anm-lv');if(se)se.value=String(lvGet());var lp=ctl.querySelector('.anm-loop');if(lp){lp.classList.toggle('on',loopOn());lp.setAttribute('aria-pressed',loopOn()?'true':'false')}}
+  document.addEventListener('anm-loop',function(){if(fig.isConnected)paintSp()});
   ctl.querySelector('.anm-lv').onchange=function(){var n=+this.value;store(LVK,String(n));st.spd=LV[n];   // every drawing on the page takes the new speed
     Array.prototype.forEach.call(document.querySelectorAll('.anm-lv'),function(x){x.value=String(n)});document.dispatchEvent(new CustomEvent('anm-speed',{detail:n}))};
   document.addEventListener('anm-speed',function(e){st.spd=LV[e.detail]||1});
@@ -316,16 +321,20 @@ function mount(fig){if(fig.dataset.on)return;var spec=REG[fig.dataset.anm];if(!s
   function hold(ms,id){var e=0,last=performance.now();return new Promise(function(r){(function f(n){if(id!==st.run)return r(false);if(st.playing)e+=n-last;last=n;
     bar.style.width=Math.min(100,e/ms*100)+'%';if(e>=ms)return r(true);requestAnimationFrame(f)})(last)})}
   function auto(){var id=++st.run;st.playing=true;ppUI();
-    (function loop(){if(id!==st.run)return;if(st.step>=N){st.playing=false;bar.style.width='0';ppUI();return}
+    (function loop(){if(id!==st.run)return;
+      if(st.step>=N){if(loopOn()&&fig.isConnected){hold(2200,id).then(function(ok){if(!ok||id!==st.run||!fig.isConnected)return;bar.style.width='0';render(0);loop()});return}   // Repeat: the result stays a moment, then again
+        st.playing=false;bar.style.width='0';ppUI();return}
       hold(readMs(st.step),id).then(function(ok){if(!ok||id!==st.run)return;bar.style.width='0';go(st.step+1).then(loop)})})()}
   function stopAuto(){st.run++;st.playing=false;bar.style.width='0';ppUI()}
   ctl.onclick=function(e){var b=e.target.closest('button');if(b&&st.asking&&/^(next|end|pp)$/.test(b.dataset.a||'')){st.asking.fin(null);return}
+    if(b&&b.dataset.a==='loop'&&st.busy){store(LOOPK,loopOn()?'0':'1');document.dispatchEvent(new CustomEvent('anm-loop'));paintSp();return}   // Repeat can change while a move is running
     if(!b||st.busy&&!b.dataset.s)return;
     var a=b.dataset.a;
     if(a==='pp'){if(st.playing){stopAuto();return}if(st.step>=N)render(0);inView(fig);auto();return}
     if(a==='next'){stopAuto();go(st.step+1);return}
     if(a==='prev'){stopAuto();render(Math.max(0,st.step-1));ppUI();return}
-    if(a==='end'){stopAuto();render(N);seen(spec.id,true);ppUI();return}};
+    if(a==='end'){stopAuto();render(N);seen(spec.id,true);ppUI();return}
+    if(a==='loop'){store(LOOPK,loopOn()?'0':'1');document.dispatchEvent(new CustomEvent('anm-loop'));paintSp();return}};
   paintSp();
   var first=!seen(spec.id)&&motionOK(),tries=0;
   /* the slide is built before it is put on the page: wait until the figure has a width, so phones get their own layout */
