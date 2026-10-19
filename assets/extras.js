@@ -57,18 +57,23 @@ function printDialog(t){
      var lk=ST.lock&&ST.lock(x);
      return '<label class="ck'+(lk?' off':'')+'"><input type="checkbox" name="pt" value="'+x.id+'"'+(x===t&&!lk?' checked':'')+(lk?' disabled':'')+'><span>'+esc(x.n)+' <span class="note">· '+(lk?esc(ST.lockText(lk)):x.slides.length)+'</span></span></label>'}).join('')+'</div>'}).join('')+'</fieldset>'+
    '<fieldset class="pd-f" id="pdSl"><legend>Slides</legend><div id="pdSlBody"></div></fieldset>'+
-   '<div class="ctl"><label>Include<select class="sel-in" id="pKind"><option value="a">Everything</option><option value="c">Explanations only</option><option value="p">Practice questions only</option>'+(stOk?'<option value="s">Scenarios and stories only</option>':'')+(ST.can('glossPrint')?'<option value="g">Glossary only</option>':'')+'</select></label>'+
-   (ST.can('glossPrint')?'<label id="pGlW">Glossary<select class="sel-in" id="pGl"><option value="0">Leave it out</option><option value="1">At the end</option></select></label>':'')+
-   '<label>Style<select class="sel-in" id="pStyle"><option value="clean">Clean — white page, saves ink</option><option value="color">Screen colours</option></select></label>'+
-   (ST.can('answerKey')?'<label>Answer key<select class="sel-in" id="pAns"><option value="1">At the end</option><option value="0">Leave it out</option></select></label>':'')+'</div>'+
+   '<fieldset class="pd-f" id="pdInc"><legend>Include — tick one or more</legend><div class="row pd-tools">'+   // owner 20 Oct: any mix (stories + questions, explanations + questions …)
+     (stOk?'<label class="ck"><input type="checkbox" name="pk" value="s"><span>Scenarios and stories</span></label>':'')+
+     '<label class="ck"><input type="checkbox" name="pk" value="c" checked><span>Explanations</span></label>'+
+     '<label class="ck"><input type="checkbox" name="pk" value="p" checked><span>Practice questions</span></label>'+
+     (ST.can('glossPrint')?'<label class="ck"><input type="checkbox" name="pk" value="g"><span>Glossary (A–Z, at the end)</span></label>':'')+
+   '</div><p class="note" id="pkNote" hidden></p></fieldset>'+
+   '<div class="ctl"><label>Style<select class="sel-in" id="pStyle"><option value="clean">Clean — white page, saves ink</option><option value="color">Screen colours</option></select></label>'+
+   (ST.can('answerKey')?'<label id="pAnsW">Answer key<select class="sel-in" id="pAns"><option value="1">At the end</option><option value="0">Leave it out</option></select></label>':'')+'</div>'+
    '<div class="row"><label>Show first<select class="sel-in" id="pOri"><option value="p">A4 portrait</option><option value="l">A4 landscape</option></select></label></div>'+
    '<p class="note">You see the exact pages before printing. Portrait and landscape are both prepared: the print window\'s orientation decides which one prints. Every page carries the academy\'s name, your details and the page number.</p>'+
    '<div class="row pd-go"><button class="btn pri" id="pGo">Open handout</button><span class="note" id="pdCount"></span></div>';
   ST.modal('Print / PDF',box);
   var picked=function(){return $$('input[name="pt"]:checked',box).map(function(i){return i.value})};
-  var kindOk=function(s){var k=$('#pKind').value,pr=ST.isPractice(s)&&s.t!=='trace';if(k==='g')return false;if(k==='s')return ST.hasStory(s);return k==='a'||(k==='p'?pr:!pr)};
+  var kinds=function(){return $$('input[name="pk"]:checked',box).map(function(i){return i.value}).join('')};   // e.g. 'sp' = stories + practice questions
+  var kindOk=function(s){var k=kinds(),pr=ST.isPractice(s)&&s.t!=='trace';if(pr)return k.indexOf('p')>=0;if(k.indexOf('c')>=0)return true;return k.indexOf('s')>=0&&ST.hasStory(s)};
   function slides(){var ids=picked(),body=$('#pdSlBody');
-    if(ids.length!==1){body.innerHTML='<p class="note">'+(ids.length?'With more than one topic, each topic is printed in full (filtered by <b>Include</b>).':'Tick at least one topic.')+'</p>';count();return}
+    if(ids.length!==1){body.innerHTML='<p class="note">'+(ids.length?'With more than one topic, each topic is printed in full (what you tick under <b>Include</b>).':'Tick at least one topic.')+'</p>';count();return}
     var tp=ST.byId[ids[0]];
     body.innerHTML='<div class="row pd-tools"><label class="ck"><input type="radio" name="psm" value="all" checked><span>All slides</span></label><label class="ck"><input type="radio" name="psm" value="pick"><span>Only the slides I tick</span></label></div>'+
       '<div class="pd-sl" hidden><div class="row pd-tools"><button type="button" class="btn sm ghost" data-sl="1">Tick all</button><button type="button" class="btn sm ghost" data-sl="0">Clear</button><button type="button" class="btn sm ghost" data-sl="p">Practice only</button></div><div class="pd-list">'+tp.slides.map(function(s,i){var pr=ST.isPractice(s)&&s.t!=='trace';
@@ -78,20 +83,23 @@ function printDialog(t){
     $$('[data-sl]',body).forEach(function(b){b.onclick=function(){$$('input[name="ps"]',body).forEach(function(c){var s=tp.slides[c.value-1];
       c.checked=b.dataset.sl==='1'||(b.dataset.sl==='p'&&ST.isPractice(s)&&s.t!=='trace')});count()}});count()}
   function count(){var ids=picked(),n=0,pick=$('input[name="psm"][value="pick"]',box);
-    if($('#pGlW'))$('#pGlW').hidden=$('#pKind').value==='g'||$('#pKind').value==='s';
-    if($('#pKind').value==='g'){n=ST.glRows(ids).length;$('#pdCount').textContent=ids.length?ids.length+' topic'+(ids.length>1?'s':'')+' · '+n+' key term'+(n===1?'':'s'):'';$('#pGo').disabled=!n;return}
+    var k=kinds(),nt=$('#pkNote');
+    if($('#pAnsW'))$('#pAnsW').hidden=k.indexOf('p')<0;                       // an answer key only with the practice questions
+    if(nt){nt.hidden=!(k.indexOf('s')>=0&&k.indexOf('c')>=0);nt.textContent='The explanations already carry the Scenario slide and the story lines.'}
+    if(!k){$('#pdCount').textContent='Tick at least one thing to include.';$('#pGo').disabled=true;return}
+    if(k==='g'){n=ST.glRows(ids).length;$('#pdCount').textContent=ids.length?ids.length+' topic'+(ids.length>1?'s':'')+' · '+n+' key term'+(n===1?'':'s'):'';$('#pGo').disabled=!n;return}
     ids.forEach(function(id){var tp=ST.byId[id];tp.slides.forEach(function(s,i){
       if(!kindOk(s))return;if(ids.length===1&&pick&&pick.checked&&!$('input[name="ps"][value="'+(i+1)+'"]',box).checked)return;n++})});
     $('#pdCount').textContent=ids.length?ids.length+' topic'+(ids.length>1?'s':'')+' · '+n+' slide'+(n===1?'':'s'):'';$('#pGo').disabled=!n}
   $$('input[name="pt"]',box).forEach(function(c){c.onchange=slides});
   $$('[data-all]',box).forEach(function(b){b.onclick=function(){$$('input[name="pt"]',box).forEach(function(c){c.checked=!c.disabled&&b.dataset.all==='1'});slides()}});
-  $('#pKind').onchange=count;slides();
+  $$('input[name="pk"]',box).forEach(function(c){c.onchange=count});slides();
   $('#pGo').onclick=function(){var ids=picked();if(!ids.length)return;
-    var st=$('#pStyle').value,an=ST.can('answerKey')?$('#pAns').value:'0',k=$('#pKind').value,sl='';
+    var st=$('#pStyle').value,an=ST.can('answerKey')?$('#pAns').value:'0',k=kinds(),sl='';if(!k)return;
     var pick=$('input[name="psm"][value="pick"]',box);
     if(ids.length===1&&pick&&pick.checked)sl=$$('input[name="ps"]:checked',box).map(function(c){return c.value}).join('.');
-    var gl=k!=='g'&&k!=='s'&&$('#pGl')&&$('#pGl').value==='1';if(k==='g'||k==='s')an='0';
-    var o=$('#pOri')?$('#pOri').value:'p';ST.closeModal();location.hash='#/print/'+ids.join(',')+'?style='+st+'&ans='+an+(k!=='a'?'&k='+k:'')+(sl?'&s='+sl:'')+(gl?'&g=1':'')+(o==='l'?'&o=l':'')};
+    var gl=k!=='g'&&k.indexOf('g')>=0,kk=k==='g'?'g':k.replace('g','');if(kk.indexOf('p')<0)an='0';
+    var o=$('#pOri')?$('#pOri').value:'p';ST.closeModal();location.hash='#/print/'+ids.join(',')+'?style='+st+'&ans='+an+(kk!=='cp'?'&k='+kk:'')+(sl?'&s='+sl:'')+(gl?'&g=1':'')+(o==='l'?'&o=l':'')};
 }
 ST.printDialog=function(t){if(ST.can('print'))printDialog(t)};
 
@@ -275,11 +283,16 @@ ST.printView=function(tidList){
   var app=$('#app'),ids=String(tidList||'').split(',').filter(function(id){var x=ST.byId[id];return x&&!x.soon&&!(ST.lock&&ST.lock(x))});   // only topics open for this student
   if(!ids.length||!ST.can('print')){location.hash='#/';return}
   var q=(location.hash.split('?')[1]||''),qp=function(k){var m=q.match(new RegExp('(?:^|&)'+k+'=([^&]*)'));return m?decodeURIComponent(m[1]):''};
-  var style=qp('style')==='color'?'color':'clean',ans=ST.can('answerKey')&&qp('ans')!=='0',kind=qp('k')||'a',land=qp('o')==='l';
-  if(kind==='s'&&!ST.can('printStory'))kind='a';
-  var glP=ST.can('glossPrint')&&(kind==='g'||(kind!=='s'&&qp('g')==='1'));if(kind==='g'&&!glP)kind='a';if(kind==='g'||kind==='s')ans=false;
-  if(kind==='s'){ids=ids.filter(function(id){return ST.byId[id].slides.some(ST.hasStory)});
-    if(!ids.length){app.innerHTML='<div class="fb"><b>No scenario or story to print in the chosen topics.</b> <a href="#/">Back</a></div>';return}}
+  var style=qp('style')==='color'?'color':'clean',ans=ST.can('answerKey')&&qp('ans')!=='0',land=qp('o')==='l';
+  /* k = what is included, any mix of s (scenarios and stories) · c (explanations) · p (practice questions); g alone = the glossary only.
+     Older links: a = everything (cp), c, p, s, g. */
+  var K=String(qp('k')||'a').replace(/[^scpga]/g,'');if(!K||K.indexOf('a')>=0)K='cp';
+  if(!ST.can('printStory'))K=K.replace('s','');if(!K)K='cp';
+  var kind=K==='g'?'g':K.replace('g','')||'cp',hasC=kind.indexOf('c')>=0,hasP=kind.indexOf('p')>=0,hasS=kind.indexOf('s')>=0;
+  var glP=ST.can('glossPrint')&&(kind==='g'||qp('g')==='1');if(kind==='g'&&!glP){kind='cp';hasC=hasP=true}if(kind==='g'||!hasP)ans=false;
+  var wants=function(s){var pr=ST.isPractice(s)&&s.t!=='trace';return pr?hasP:(hasC||(hasS&&ST.hasStory(s)))};
+  if(kind!=='g'){ids=ids.filter(function(id){return ST.byId[id].slides.some(wants)});                 // a topic with nothing of what was ticked is left out
+    if(!ids.length){app.innerHTML='<div class="fb"><b>Nothing of what you ticked is in the chosen topics.</b> <a href="#/">Back</a></div>';return}}
   var only=ids.length===1&&qp('s')?qp('s').split('.').map(Number):null;
   setPage();
   var root=document.documentElement;
@@ -287,11 +300,12 @@ ST.printView=function(tidList){
   root.classList.add('printing');root.classList.toggle('pcolor',style==='color');root.classList.toggle('pclean',style==='clean');
   root.setAttribute('data-theme','light');
   app.innerHTML='';
-  var what=(kind==='s'?'Scenarios and stories only':kind==='g'?'Glossary only':(kind==='c'?'Explanations only':kind==='p'?'Practice questions only':'Everything')+(glP?' · with the glossary':''))+(only&&kind!=='g'?' · slides '+only.join(', '):'');
+  var parts=[];if(hasS&&!hasC)parts.push('Scenarios and stories');if(hasC)parts.push('Explanations');if(hasP)parts.push('Practice questions');
+  var what=(kind==='g'?'Glossary only':(hasC&&hasP?'Everything':parts.join(' + ')+(parts.length===1?' only':''))+(glP?' · with the glossary':''))+(only&&kind!=='g'?' · slides '+only.join(', '):'');
   var bar=el('div','prt-bar');
   bar.innerHTML='<a class="btn" href="#/t/'+ids[0]+'/1">← Back to the deck</a><button class="btn pri" id="pPrint" disabled>Print / save as PDF</button>'+
     '<div class="seg" role="group" aria-label="Preview"><button type="button" data-o="p">Portrait</button><button type="button" data-o="l">Landscape</button></div>'+
-    '<button class="btn" id="pEdit">Change selection</button>'+(ST.can('excel')&&kind!=='s'?'<button class="btn" id="pXls">Excel — all tables</button>':'')+
+    '<button class="btn" id="pEdit">Change selection</button>'+(ST.can('excel')&&(hasC||hasP)?'<button class="btn" id="pXls">Excel — all tables</button>':'')+
     '<span class="note" id="pStat">Preparing the pages…</span>'+
     '<p class="note prt-tip">'+ids.length+' topic'+(ids.length>1?'s':'')+' · '+what+' · '+(style==='clean'?'clean style':'screen colours')+(ans?' · with answer key':'')+
     '. The layout chosen here (Portrait / Landscape) is the one that prints, on A4. <b>For a PDF file, choose «Save as PDF» as the destination in the print window</b> — it keeps A4 and the layout exactly. On a printer, keep the scale at <b>100%</b>; Letter paper also fits.</p>';
@@ -321,11 +335,11 @@ ST.printView=function(tidList){
       t.slides.forEach(function(s,i){
         var prac=ST.isPractice(s)&&s.t!=='trace';if(prac)n++;
         if(only&&only.indexOf(i+1)<0)return;
-        if(kind==='s'){if(!ST.hasStory(s))return;   // the Scenario slide whole; from any other slide only its story lines
+        if(!prac&&!hasC){if(!hasS||!ST.hasStory(s))return;   // stories without the explanations: the Scenario slide whole; from any other slide only its story lines
           var sc=ST.isScenario(s),sh=el('div','ps-hd','<div class="s-meta"><span class="s-kind">'+(i+1)+' · '+(sc?'SCENARIO':'STORY')+'</span><span class="chips">'+ST.losChip(s)+'</span></div>'+(s.h?'<h2>'+s.h+'</h2>':'')),sb=slideBlocks(s,i,n,false,id);
           if(!sc){var keep=el('div','sb');$$('.story',sb).forEach(function(p){if(!p.closest('.case-print'))keep.appendChild(p.cloneNode(true))});if(!keep.children.length)return;sb=keep}
           P.slide(sh,kids(sb),'ps');return}
-        if(kind==='c'&&prac||kind==='p'&&!prac)return;
+        if(prac&&!hasP)return;
         if(s.cy&&ST.qcMode&&ST.qcMode()==='below')return;   // the student prints the quick checks under their slides: the gathering slide is not needed on paper
         var bk=t.nB&&i>=t.nL,head=el('div','ps-hd','<div class="s-meta"><span class="s-kind">'+(bk?'B'+(i-t.nL+1):i+1)+' · '+(prac?(bk?'QUESTION BANK ':'PRACTICE ')+n:(s.t==='x'?'CONCEPT':'INTERACTIVE'))+'</span><span class="chips">'+ST.losChip(s)+'</span></div>'+(s.h?'<h2>'+s.h+'</h2>':''));
         var body=slideBlocks(s,i,n,prac,id);if(ST.glFill&&body.querySelector&&body.querySelector('.gl-ar'))ST.glFill(body);
