@@ -84,6 +84,7 @@
 @media (min-width:900px){.pf-xbar{display:none}}
 .pf-back{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px 6px 8px;margin:0 0 10px;border-radius:10px;color:var(--teal);font-weight:600;font-size:14px;text-decoration:none}
 .pf-back:hover{background:var(--soft-teal)}
+.pf-main>.pf-back{align-self:flex-start;margin-bottom:4px}   /* Back on a platform tab: as wide as its words */
 .pf-back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 body.pf-on .foot{padding-bottom:28px}
 @media (max-width:899px){body.pf-on .foot{padding-bottom:calc(104px + env(safe-area-inset-bottom))}}

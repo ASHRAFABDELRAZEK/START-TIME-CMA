@@ -7,7 +7,7 @@
      only), contact {wa, mail, page, shareUrl, shareMsg} (Settings rows). An older Apps Script sends none of these: the shell then shows
      the course it runs (CMA) alone, no end date, and Contact us falls back to the Header & Footer channel link.
    Who sees what: the Roles sheet rows pf.home, pf.courses, pf.certs, pf.profile, pf.contact, pf.share, pf.join (a row that does not
-   exist yet counts as ticked). core.js hands #/home, #/courses, #/certs and #/me to ST.shellRoute; the first open of a tab with no hash
+   exist yet counts as ticked). core.js hands #/home, #/courses, #/certs and #/me to ST.shellRoute; the first open of a tab with no hash (or #/)
    lands on #/home. */
 (function(){
 'use strict';
@@ -82,7 +82,15 @@ var I={
   me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>',
   chat:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
   share:'<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
-  copy:'<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>'};
+  copy:'<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  back:'<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>'};
+/* where Back goes: the page before this one on the site (a topic, the course, another tab), else My dashboard */
+var curH=location.hash||'#/',prevH='';
+function goBack(){var to=prevH&&prevH!==(location.hash||'#/')?prevH:'#/home';location.hash=to;return false}
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('#pfBack');if(!a)return;e.preventDefault();goBack()});   // one listener: some pages add to their HTML after the frame is drawn
+/* the house icon is My dashboard while the platform is on (owner 20 Oct: the dashboard is the main page) */
+function homeIcon(){var n=$('#nHome');if(!n)return;if(on()){n.setAttribute('href','#/home');n.title='My dashboard';n.setAttribute('aria-label','My dashboard')}
+  n.classList.toggle('on',on()?location.hash==='#/home':(location.hash==='#/'||!location.hash))}
 
 /* ---------- the frame: side menu (computer) / bottom bar (phone) + the page ---------- */
 function tabs(){var t=[{h:'#/home',k:'pf.home',i:'home',n:'My dashboard',s:'Dashboard'},{h:'#/courses',k:'pf.courses',i:'courses',n:'Courses',s:'Courses'},{h:'#/certs',k:'pf.certs',i:'cert',n:'Certificates',s:'Certificates'},{h:'#/me',k:'pf.profile',i:'me',n:'Profile & settings',s:'Profile'}];
@@ -95,11 +103,12 @@ function frame(cur,title,sub){
     (pf('pf.share')?'<button type="button" class="pf-t pf-x" id="pfShare">'+I.share+'<span>Share the app</span></button>':'');
   var main=el('section','pf-main');
   var xb=(pf('pf.contact')&&hasContact()?'<button type="button" class="ib" data-x="c" title="Contact us" aria-label="Contact us">'+I.chat+'</button>':'')+(pf('pf.share')?'<button type="button" class="ib" data-x="s" title="Share the app" aria-label="Share the app">'+I.share+'</button>':'');
-  main.innerHTML='<header class="pf-head"><div><h1>'+esc(title)+'</h1>'+(sub?'<p>'+sub+'</p>':'')+'</div>'+(xb?'<div class="pf-xbar">'+xb+'</div>':'')+'</header>';
+  main.innerHTML=(cur!=='#/home'?'<a class="pf-back" href="#/home" id="pfBack">'+I.back+'<span>Back</span></a>':'')+   // every tab but the dashboard: a Back button (owner 20 Oct, phone and computer)
+    '<header class="pf-head"><div><h1>'+esc(title)+'</h1>'+(sub?'<p>'+sub+'</p>':'')+'</div>'+(xb?'<div class="pf-xbar">'+xb+'</div>':'')+'</header>';
   box.appendChild(nav);box.appendChild(main);app.appendChild(box);
   var c=$('#pfContact',nav);if(c)c.onclick=contactUs;var sh=$('#pfShare',nav);if(sh)sh.onclick=share;
   $$('.pf-xbar [data-x]',main).forEach(function(b){b.onclick=b.dataset.x==='c'?contactUs:share});
-  $('#nHome').classList.remove('on');
+  homeIcon();
   return main}
 function who(){var s=ST.session()||{};return s.name?s.name.split(' ')[0]:''}
 
@@ -207,13 +216,14 @@ ST.shellRoute=function(h){
   document.body.classList.add('pf-on');window.scrollTo(0,0);return true};
 /* the course home (#/) keeps its own page and header; a slim line above it leads back to the dashboard */
 function back(){if(!on())return;var h=location.hash||'#/';if(h!=='#/'&&h!=='#')return;var app=$('#app');if(!app||$('.pf-back',app))return;
-  var b=el('a','pf-back',I.home+'<span>My dashboard</span>');b.href='#/home';app.insertBefore(b,app.firstChild)}
-window.addEventListener('hashchange',function(){if(!/^#\/(home|courses|certs|me)$/.test(location.hash))document.body.classList.remove('pf-on');setTimeout(back,0)});   // after core's route() has drawn the page
-/* the first open of a tab with no hash lands on the dashboard (a link to #/ or a topic goes where it says) */
-var route0=ST.route;if(route0)ST.route=function(){route0();back()};   // sync.js redraws the home page after a sync: the line comes back
+  var b=el('a','pf-back',I.back+'<span>My dashboard</span>');b.href='#/home';b.title='Back to My dashboard';app.insertBefore(b,app.firstChild)}
+window.addEventListener('hashchange',function(){var h=location.hash||'#/';if(h!==curH){prevH=curH;curH=h}
+  if(!/^#\/(home|courses|certs|me)$/.test(location.hash))document.body.classList.remove('pf-on');setTimeout(function(){back();homeIcon()},0)});   // after core's route() has drawn the page
+/* the first open of a tab (no hash, or the course home #/) lands on the dashboard; a link to a topic goes where it says */
+var route0=ST.route;if(route0)ST.route=function(){route0();back();homeIcon()};   // sync.js redraws the home page after a sync: the line comes back
 var start0=ST.start;
 ST.start=function(){
   if(on()){var seen=false;try{seen=sessionStorage.getItem('st-pf-in')==='1';sessionStorage.setItem('st-pf-in','1')}catch(e){}
-    if(!seen&&(location.hash===''||location.hash==='#'))location.replace('#/home')}
-  start0();back()};
+    if(!seen&&(location.hash===''||location.hash==='#'||location.hash==='#/'))location.replace('#/home')}   // also after "Complete your details" (the page reloads on #/)
+  start0();back();homeIcon()};
 })();
