@@ -12,7 +12,10 @@
 var ST=window.ST,SS=window.speechSynthesis;if(!ST||!SS||!window.SpeechSynthesisUtterance)return;
 var K={p:'st-tts-p',l:'st-tts-l',b:'st-tts-b',a:'st-tts-a',w:'st-tts-w',t:'st-tts-t',e:'st-tts-e',v:'st-tts-voice',r:'st-tts-rate2'};
 var DEF={p:'0',l:'1',b:'1',a:'0',w:'1',t:'1',e:'1'};   // Listen is on where the role allows it (its button: Settings → Your screen); hands-free stays off until turned on
-var RATES=[['0.8','Slower'],['0.95','Normal'],['1.1','Faster']];
+/* speeds as a share of the voice's own pace (owner 20 Oct 01:48 and 01:57: more steps, 70 % to 100 %, nothing faster — the students read English
+   carefully). The old three were 0.8 / 0.95 / 1.1: a saved 0.8 or 0.95 stays, a saved "Faster" (1.1) becomes 100 %. */
+var RATES=[['0.7','70%'],['0.75','75%'],['0.8','80%'],['0.85','85%'],['0.9','90%'],['0.95','95% · normal'],['1','100%']];
+function rateKey(){var v=get(K.r,'0.95');if(RATES.some(function(x){return x[0]===v}))return v;return parseFloat(v)>1?'1':'0.95'}
 var HL=!!(window.CSS&&CSS.highlights&&window.Highlight);
 var voices=[],run=null,cur=null,pendingAuto=false,fl=null,REC=null;
 function get(k,d){try{var v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}}
@@ -23,7 +26,7 @@ function hereBank(){return !!ST.inBank}
 function allowedHere(){return perm(hereBank()?'listenBank':'listen')}
 function onHere(){return opt(hereBank()?'b':'l')}
 function autoOn(){return !!(REC&&REC.scope==='lesson')||(perm('listenAuto')&&opt('a'))}
-function rate(){return parseFloat(get(K.r,'0.95'))||0.95}
+function rate(){return parseFloat(rateKey())||0.95}
 
 /* ---------- voices: the most natural English voice on the device first ---------- */
 function score(v){var n=v.name,s=0;
@@ -178,7 +181,7 @@ ST.deckSlide=function(sec,body,t,s){if(prev)prev.apply(this,arguments);
     (canRec()?'<button type="button" class="btn sm tts-rec" title="Record an MP3">⏺ Record MP3</button>':'')+
     '<span class="tts-hint">Tap any sentence to start there</span>';
   ctx.bar=bar;ctx.btn=bar.querySelector('.tts-b');ctx.stopB=bar.querySelector('.tts-s');var rs=bar.querySelector('.tts-r');
-  rs.value=RATES.some(function(x){return x[0]===get(K.r,'')})?get(K.r,''):'0.95';
+  rs.value=rateKey();
   ctx.btn.onclick=function(){toggle(ctx)};ctx.stopB.onclick=function(){if(REC)endRec();else if(run&&run.ctx===ctx)stop()};
   ctx.recB=bar.querySelector('.tts-rec');if(ctx.recB)ctx.recB.onclick=function(){if(REC)endRec();else recMenu(ctx)};paintRec();
   rs.onchange=function(){put(K.r,rs.value);if(run&&run.ctx===ctx&&run.state==='play')go(run)};
