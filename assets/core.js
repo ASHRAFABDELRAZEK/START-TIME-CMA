@@ -1303,7 +1303,13 @@ var TINTS={"light":[["#FBF4F4","#FBF7F4","#FBF9F4","#FBFAF4","#F8FBF4","#F4FBF6"
 var LEVELS={light:['Brighter','Balanced','Dimmer'],dark:['Lighter','Balanced','Darker']};
 function curTheme(){return document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light'}   // the app's own choice, light unless Dark is picked — the device's dark mode does not change it
 function bgGet(t){try{return localStorage.getItem('st-bg-'+t)||''}catch(e){return ''}}
-function applyBg(){var t=curTheme(),v=bgGet(t),r=document.documentElement;
+/* ready themes: a page colour, card colour and text colour that belong together; light or dark goes with each (the academy colours stay) */
+var RT=[['','Standard','The platform as designed','light','#F8FAFC','#112240'],['sepia','Warm paper','For long study hours','light','#F3EAD7','#3A2E22'],
+  ['night','Calm night','Less blue light at night','dark','#14110E','#ECE3D3'],['contrast','High contrast','Tired eyes, or a screen in the sun','light','#FFFFFF','#000000'],
+  ['calm','Very calm','Soft grey, nothing bright','light','#ECEEF1','#2E3846']];
+function rtGet(){try{var v=localStorage.getItem('st-rt')||'';return RT.some(function(x){return x[0]===v})?v:''}catch(e){return ''}}
+function rtSet(v){try{if(v)localStorage.setItem('st-rt',v);else localStorage.removeItem('st-rt')}catch(e){}var r=document.documentElement;if(v)r.setAttribute('data-rt',v);else r.removeAttribute('data-rt')}
+function applyBg(){var t=curTheme(),v=rtGet()?'':bgGet(t),r=document.documentElement;
   if(v)r.style.setProperty('--bg',v);else r.style.removeProperty('--bg');
   if(v&&t==='light')r.style.setProperty('--muted','#4F5C73');else r.style.removeProperty('--muted')}   // a tinted page gets slightly darker grey text
 function appearance(){
@@ -1311,17 +1317,24 @@ function appearance(){
   function sw(c,name,hint,on,rec,small){var t=curTheme(),bg=c||(t==='dark'?'#0B1324':'#F8FAFC');
     return '<button class="sw'+(small?' sm':'')+(on?' on':'')+'" data-c="'+c+'" title="'+esc(name+(hint?' — '+hint:''))+'" aria-label="'+esc(name)+'" style="background:'+bg+'">'+(small?'':'<span>'+esc(name)+'</span>')+(rec?'<i class="rec">★</i>':'')+'</button>'}
   function draw(){var t=curTheme(),cur=bgGet(t);
-    box.innerHTML='<div class="apx-r"><span class="note">Theme</span><div class="seg" id="apT"><button data-t="light"'+(t==='light'?' class="on"':'')+'>Light</button><button data-t="dark"'+(t==='dark'?' class="on"':'')+'>Dark</button></div></div>'+
+    var rt=rtGet();
+    box.innerHTML='<h4 class="apx-h" style="margin-top:0">Ready themes <span class="note">— the page and the text together; the academy colours stay</span></h4>'+
+      '<div class="apx-rt">'+RT.map(function(x){return '<button type="button" class="rt'+(x[0]===rt&&(x[0]||!bgGet(t))?' on':'')+'" data-rt="'+x[0]+'" style="background:'+x[4]+';color:'+x[5]+'" aria-pressed="'+(x[0]===rt?'true':'false')+'"><b>Aa</b><i></i><span>'+x[1]+'</span><small>'+x[2]+'</small></button>'}).join('')+'</div>'+
+      '<div class="apx-r"><span class="note">Theme</span><div class="seg" id="apT"><button data-t="light"'+(t==='light'?' class="on"':'')+'>Light</button><button data-t="dark"'+(t==='dark'?' class="on"':'')+'>Dark</button></div></div>'+
       '<p class="note apx-tip">The platform keeps its own theme: it stays the way you choose here even when the phone or computer is in dark mode.</p>'+
       '<p class="note apx-tip">'+(t==='light'?'For long study a warm, soft background is easiest on the eyes — <b>Paper</b> ★ is our pick. In a dark room, switch to <b>Dark</b>.':'At night a warm dark background is gentlest — <b>Coffee</b> ★ is our pick. In daylight, <b>Light</b> is easier to read.')+'</p>'+
       '<div class="apx-ready">'+BGS[t].map(function(x){return '<div class="apx-it">'+sw(x[1],x[0],x[2],(x[1]||'')===cur,x[3])+'<small>'+esc(x[2])+'</small></div>'}).join('')+'</div>'+
       '<h4 class="apx-h">Make your own <span class="note">— 12 colours, each in three soft levels</span></h4>'+
       '<div class="apx-grid">'+TINTS[t].map(function(row,li){return '<div class="apx-lv"><span class="note">'+LEVELS[t][li]+'</span><div class="apx-row">'+row.map(function(c,hi){return sw(c,HUES[hi]+' · '+LEVELS[t][li],'',c===cur,0,1)}).join('')+'</div></div>'}).join('')+'</div>'+
       '<div class="apx-r"><button class="btn sm ghost" id="apD">Back to default</button><span class="note">Saved on this device only. Light and dark keep their own background.</span></div>';
-    ST.h.$$('#apT button',box).forEach(function(b){b.onclick=function(){document.documentElement.setAttribute('data-theme',b.dataset.t);try{localStorage.setItem('st-p1a-theme',b.dataset.t)}catch(e){}applyBg();draw()}});
+    ST.h.$$('#apT button',box).forEach(function(b){b.onclick=function(){var r0=RT.filter(function(x){return x[0]===rtGet()})[0];if(r0&&r0[0]&&r0[3]!==b.dataset.t)rtSet('');   // a theme made for the other mode goes back to Standard
+      document.documentElement.setAttribute('data-theme',b.dataset.t);try{localStorage.setItem('st-p1a-theme',b.dataset.t)}catch(e){}applyBg();draw()}});
+    ST.h.$$('.rt',box).forEach(function(b){b.onclick=function(){var x=RT.filter(function(y){return y[0]===b.dataset.rt})[0];if(!x)return;
+      document.documentElement.setAttribute('data-theme',x[3]);try{localStorage.setItem('st-p1a-theme',x[3]);localStorage.removeItem('st-bg-'+x[3])}catch(e){}
+      rtSet(x[0]);applyBg();draw()}});
     ST.h.$$('.sw',box).forEach(function(b){b.onclick=function(){set(b.dataset.c)}});
     $('#apD',box).onclick=function(){set('')}}
-  function set(v){var t=curTheme();try{if(v)localStorage.setItem('st-bg-'+t,v);else localStorage.removeItem('st-bg-'+t)}catch(e){}applyBg();draw()}
+  function set(v){var t=curTheme();rtSet('');try{if(v)localStorage.setItem('st-bg-'+t,v);else localStorage.removeItem('st-bg-'+t)}catch(e){}applyBg();draw()}   // a background of your own leaves the ready theme
   draw();return box}
 ST.appearanceBox=appearance;
 

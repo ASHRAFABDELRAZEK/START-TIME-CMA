@@ -6,7 +6,7 @@
   --up:#0F766E;--down:#B42318;--pk:#112240;
   --r:14px;--sh:0 1px 2px rgba(17,34,64,.06),0 6px 20px rgba(17,34,64,.06);
   --f:"IBM Plex Sans","IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
-  color-scheme:light;
+  color-scheme:only light;   /* "only": a phone that darkens web pages by force leaves Light alone (owner 20 Oct 02:26) */
 }
 :root[data-theme="dark"]{
   --bg:#0B1324;--card:#121C32;--ink:#E8EDF7;--ink2:#C9D3E6;--muted:#93A2BF;--line:#22304D;--line2:#2E3E60;
@@ -24,6 +24,16 @@
     color-scheme:dark;
   }
 }
+/* ready themes (Settings → Appearance, owner 20 Oct 02:26): the page, the cards and the text change together; the academy colours
+   (--teal, --gold, --navy: logo, buttons, progress) stay. Each one goes with light or dark (data-theme) and wins over both. */
+:root[data-rt="sepia"]{--bg:#F3EAD7;--card:#FBF5E8;--ink:#3A2E22;--ink2:#4B3E31;--muted:#76664F;--line:#E4D6BC;--line2:#D3C1A0;
+  --soft-navy:#EFE4CF;--soft-teal:#E3ECE1;--soft-gold:#F3E5C2;--soft-red:#F6E2D8;--hl:#F5E09E;--sh:0 1px 2px rgba(58,46,34,.07),0 6px 20px rgba(58,46,34,.07)}
+:root[data-rt="night"]{--bg:#14110E;--card:#1D1915;--ink:#ECE3D3;--ink2:#D5C9B5;--muted:#A3967F;--line:#2D2721;--line2:#3B332B;
+  --soft-navy:#231E19;--soft-teal:#142420;--soft-gold:#2B2312;--soft-red:#2E1A15;--hl:#3A2F14;--pk:#D9C8A8;--sh:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.3)}
+:root[data-rt="contrast"]{--bg:#FFFFFF;--card:#FFFFFF;--ink:#000000;--ink2:#111111;--muted:#2F3640;--line:#8A94A6;--line2:#5F6B7E;
+  --soft-navy:#EDF0F5;--soft-teal:#DDF1EC;--soft-gold:#FBF0CF;--soft-red:#FBE3E0;--hl:#FFE680;--sh:0 0 0 1px #5F6B7E}
+:root[data-rt="calm"]{--bg:#ECEEF1;--card:#F6F7F9;--ink:#2E3846;--ink2:#3D4756;--muted:#687282;--line:#DADFE5;--line2:#C7CDD6;
+  --soft-navy:#E5E8ED;--soft-teal:#E2EBE9;--soft-gold:#F0EBDC;--soft-red:#F2E6E4;--hl:#F1E8C4;--sh:0 1px 2px rgba(46,56,70,.05),0 6px 18px rgba(46,56,70,.05)}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:16px;line-height:1.65;overflow-x:hidden}
@@ -633,6 +643,13 @@ ol.pq,ul.pq{line-height:1.8}
 #rdBar .btn{margin-left:8px}
 .apx-r{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:10px 0}
 .apx-r>.note{min-width:130px}
+.apx-rt{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin:8px 0 14px}
+.apx-rt .rt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;border:1px solid var(--line2);cursor:pointer;font:inherit;text-align:start;min-height:92px}
+.apx-rt .rt b{font-size:22px;line-height:1.1}
+.apx-rt .rt span{font-weight:700;font-size:13.5px}
+.apx-rt .rt small{font-size:11.5px;opacity:.82;line-height:1.35}
+.apx-rt .rt.on{outline:3px solid var(--teal);outline-offset:2px}
+.apx-rt .rt i{display:block;width:26px;height:4px;border-radius:9px;background:#0F766E;margin-top:4px}
 .apx-sw{display:flex;flex-wrap:wrap;gap:8px}
 .apx .sw{width:64px;height:48px;border-radius:12px;border:1px solid var(--line2);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:4px;font:500 11px var(--f);color:var(--ink2)}
 .apx .sw{position:relative}
