@@ -4,6 +4,8 @@ ST.CONFIG={
   deck:'p1a',
   /* where these topics sit on the sheet's Access tab (Part row and Section row keys) */
   part:'Part 1', partKey:'P1', section:'Section A', sectionKey:'P1-A',
+  /* the name of this part of the certificate (the platform shell shows it next to "CMA Part 1"; the Courses tab's part_names column wins when filled) */
+  partTitle:'Financial Planning, Performance, and Analytics',
 
   /* Start screen: the deck opens only with a valid code. Student and trainer codes are both checked against the instructor's Google Sheet. */
   gate:true,

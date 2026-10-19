@@ -49,6 +49,10 @@ ST.sectionOpen=function(k){return !!has(k)};
 ST.loadTopics=function(){if(ST.ENC)return;S.files.forEach(function(f){document.write('<script src="topics/'+f+'"><\/script>')})};
 ST.boot=function(go){var E=ST.ENC,dk=S.deck,s=ST.session&&ST.session();
   if(!E||!E[dk]||!s||!s.code){go();return}                          // the source, a section with no lessons yet, or not signed in: the start screen
+  if(s.enrolled===false){go();                                       // signed in to the platform, not registered for this course: no keys asked for, the dashboard still opens
+    var nr=document.createElement('div');nr.className='fb content-err';nr.setAttribute('role','status');
+    nr.innerHTML='<b>Your code is not registered for '+(C.program||'CMA')+' yet.</b> Its lessons open here once START TIME adds you to the course.';
+    var ap=document.getElementById('app');if(ap&&ap.parentNode)ap.parentNode.insertBefore(nr,ap);return}
   function b64(t){var r=atob(t),u=new Uint8Array(r.length);for(var i=0;i<r.length;i++)u[i]=r.charCodeAt(i);return u}
   function open(k){return fetch('content/'+dk+'.enc?v='+E[dk]).then(function(r){if(!r.ok)throw new Error('content '+r.status);return r.arrayBuffer()})
     .then(function(buf){var b=new Uint8Array(buf);return crypto.subtle.importKey('raw',b64(k),'AES-GCM',false,['decrypt'])

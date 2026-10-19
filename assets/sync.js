@@ -25,7 +25,7 @@ function enabled(){return !!URL}
 var ONCE={addStudent:1,setActive:1,setGroup:1,extend:1,resetDevices:1,setReadTime:1};
 function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
 function post(body,n){
-  body.deck=DECK;body.device=device();n=n||0;
+  body.deck=DECK;body.device=device();body.course=CFG.program||'CMA';n=n||0;   // one script for every certificate: the request names its course
   var retry=function(){return wait(1200*(n+1)+Math.random()*900).then(function(){return post(body,n+1)})};
   return fetch(URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),redirect:'follow'})
     .then(function(r){if(!r.ok)throw new Error('Server error '+r.status);return r.json()})
@@ -51,6 +51,7 @@ function syncNow(){
       if(res.perms&&sig(res.perms)!==sig(a.perms)){a.perms=res.perms;a.sperms=res.sperms||res.perms;ch=true}
       if(res.readSec&&res.readSec!==a.readSec){a.readSec=res.readSec;ch=true}
       if(res.ui&&uiSig(res.ui)!==uiSig(a.ui)){a.ui=res.ui;a.sui=res.sui||res.ui;ch=true}   // Slide tools rows changed on the Roles sheet: the next slide follows them
+      if(ST.shellTake&&ST.shellTake(a,res))ch=true;   // the platform shell: subscription end, devices, courses, contact (shell.js)
       if(ch)ST.setSession(a);
       if(accCh&&ST.applyHidden)ST.applyHidden();
       if(accCh&&ST.route)ST.route();                  // a topic opened or closed: redraw what the student sees
@@ -62,7 +63,7 @@ function syncNow(){
 function schedule(ms){if(!enabled()||!acct())return;clearTimeout(timer);timer=setTimeout(syncNow,ms);if(state!=='syncing'){state='pending';paint()}}
 function beacon(){var a=acct();
   if(!enabled()||!a||state!=='pending'||!navigator.sendBeacon)return;
-  try{navigator.sendBeacon(URL,new Blob([JSON.stringify({op:'sync',deck:DECK,device:device(),code:a.code,data:ST.progress.get(),summary:ST.progress.summary()})],{type:'text/plain;charset=utf-8'}));state='ok';paint()}catch(e){}
+  try{navigator.sendBeacon(URL,new Blob([JSON.stringify({op:'sync',deck:DECK,device:device(),course:CFG.program||'CMA',code:a.code,data:ST.progress.get(),summary:ST.progress.summary()})],{type:'text/plain;charset=utf-8'}));state='ok';paint()}catch(e){}
 }
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')beacon();else if(acct())schedule(1500)});
 window.addEventListener('online',function(){if(acct())schedule(1000)});
@@ -77,7 +78,7 @@ function recheck(){var s=ST.session();if(!enabled()||!s||!s.code)return;
     if(res&&res.ok){
       if(res.role==='student'){lockOut('Please sign in again.');return}
       var changed=res.role!==s.role||sig(res.perms)!==sig(s.perms)||sig(res.sperms)!==sig(s.sperms)||(res.readSec||0)!==(s.readSec||0)||uiSig(res.ui)!==uiSig(s.ui)||uiSig(res.sui)!==uiSig(s.sui);
-      s.role=res.role;s.name=res.name||s.name;s.email=res.email||'';s.mobile=res.mobile||'';s.perms=res.perms||null;s.sperms=res.sperms||null;s.readSec=res.readSec||0;s.ui=res.ui||null;s.sui=res.sui||null;var hidCh=JSON.stringify(res.hid||{})!==JSON.stringify(s.hid||{});s.hid=res.hid||{};var hfCh=JSON.stringify(res.hf||{})!==JSON.stringify(s.hf||{});s.hf=res.hf||{};if(res.keys)s.keys=res.keys;ST.setSession(s);if(hfCh&&ST.HF)ST.HF.apply();if(hidCh&&ST.route)ST.route();
+      s.role=res.role;s.name=res.name||s.name;s.email=res.email||'';s.mobile=res.mobile||'';s.perms=res.perms||null;s.sperms=res.sperms||null;s.readSec=res.readSec||0;s.ui=res.ui||null;s.sui=res.sui||null;var hidCh=JSON.stringify(res.hid||{})!==JSON.stringify(s.hid||{});s.hid=res.hid||{};var hfCh=JSON.stringify(res.hf||{})!==JSON.stringify(s.hf||{});s.hf=res.hf||{};if(res.keys)s.keys=res.keys;if(ST.shellTake)ST.shellTake(s,res);ST.setSession(s);if(hfCh&&ST.HF)ST.HF.apply();if(hidCh&&ST.route)ST.route();
       if(changed)location.reload();               // role or permissions were changed in the sheet
       catalog();
       return}
@@ -153,8 +154,9 @@ ST.accessLogin=function(code){
   if(!enabled())return Promise.reject(new Error('Sign-in is not available yet. Please try again later or contact your instructor.'));
   return post({op:'login',code:code,dname:devName()}).then(function(res){
     if(!res||!res.ok)throw new Error(res&&res.error||'Sign-in failed');
-    if(res.role!=='student'){ST.setSession({role:res.role||'assistant',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',view:'trainer',answers:false,perms:res.perms||null,sperms:res.sperms||null,ui:res.ui||null,sui:res.sui||null,readSec:res.readSec||0,keys:res.keys||null,hid:res.hid||{},hf:res.hf||{}});if(ST.HF)ST.HF.apply();return res}
-    ST.setSession({role:'student',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',need:res.need||[],confirmBy:res.confirmBy||'',access:res.access||{},group:res.group||'',perms:res.perms||null,sperms:res.perms||null,ui:res.ui||null,sui:res.ui||null,readSec:res.readSec||0,keys:res.keys||null,hid:res.hid||{},hf:res.hf||{}});if(ST.HF)ST.HF.apply();
+    var o;
+    if(res.role!=='student'){o={role:res.role||'assistant',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',view:'trainer',answers:false,perms:res.perms||null,sperms:res.sperms||null,ui:res.ui||null,sui:res.sui||null,readSec:res.readSec||0,keys:res.keys||null,hid:res.hid||{},hf:res.hf||{}};if(ST.shellTake)ST.shellTake(o,res);ST.setSession(o);if(ST.HF)ST.HF.apply();return res}
+    o={role:'student',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',need:res.need||[],confirmBy:res.confirmBy||'',access:res.access||{},group:res.group||'',perms:res.perms||null,sperms:res.perms||null,ui:res.ui||null,sui:res.ui||null,readSec:res.readSec||0,keys:res.keys||null,hid:res.hid||{},hf:res.hf||{}};if(ST.shellTake)ST.shellTake(o,res);ST.setSession(o);if(ST.HF)ST.HF.apply();
     ST.progress.replace(ST.progress.merge(ST.progress.get(),res.data));
     thanks(res);
     return res;

@@ -1245,6 +1245,7 @@ function route(){
   else if((m=h.match(/^#\/staff(?:\/(\w+))?/))&&ST.staffView)ST.staffView(m[1]||'');
   else if((m=h.match(/^#\/start(?:\/(\w+))?/))&&ST.startView)ST.startView(m[1]||'');
   else if(h==='#/details'&&ROLE==='student'&&ST.showProfile)ST.showProfile({edit:true});
+  else if(ST.shellRoute&&ST.shellRoute(h))return;   // the platform shell: #/home, #/courses, #/certs, #/me (assets/shell.js)
   else home();
 }
 function help(){
