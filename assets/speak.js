@@ -140,6 +140,17 @@ function fbBlocks(fb){var out=[],q=fb.closest('.q');var b=txtBlock(fb);if(b)out.
 /* ---------- highlights ---------- */
 function clearHL(){if(HL){CSS.highlights.delete('tts-s');CSS.highlights.delete('tts-w')}document.querySelectorAll('.tts-on').forEach(function(e){e.classList.remove('tts-on')})}
 function hl(name,r){if(!HL)return;if(r)CSS.highlights.set(name,new Highlight(r));else CSS.highlights.delete(name)}
+/* keep the words being read on screen (owner 20 Oct 02:20: on a long slide the page did not move with Listen / hands-free).
+   When the sentence (or the word) reaches the bar at the bottom, or is above the header, the page scrolls so it sits about a third
+   of the way down the free space; otherwise nothing moves, so reading along is calm. */
+function edges(){var t=document.querySelector('.top'),n=document.querySelector('.dk-nav'),top=0,bot=window.innerHeight;
+  if(t){var a=t.getBoundingClientRect();if(a.bottom>0&&a.top<=1)top=a.bottom}
+  if(n){var b=n.getBoundingClientRect();if(b.top<window.innerHeight&&b.bottom>=window.innerHeight-2)bot=b.top}
+  return {top:top,bot:bot}}
+function follow(r){try{if(!r)return;var q=r.getBoundingClientRect();if(!q||(!q.height&&!q.width))return;var e=edges();
+  if(q.top>=e.top+8&&q.bottom<=e.bot-12)return;
+  var still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({top:Math.max(0,window.scrollY+q.top-(e.top+(e.bot-e.top)*0.3)),behavior:still?'auto':'smooth'})}catch(x){}}
 
 /* ---------- the player ---------- */
 function paint(){var c=cur;if(!c||!c.bar)return;var st=run&&run.ctx===c?run.state:'idle';
@@ -157,11 +168,10 @@ function go(r){var g=++r.gen,v=pick(),word=opt('w');r.state='play';paint();SS.ca
       clearHL();setTimeout(say,Math.max(260,gapMs()));return}
     var p=b.ps[r.k];
     if(!b.el.classList.contains('tts-on')){document.querySelectorAll('.tts-on').forEach(function(e){e.classList.remove('tts-on')});b.el.classList.add('tts-on')}
-    if(r.k===0)try{b.el.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}
-    hl('tts-s',b.spanS(p.off,p.off+p.t.length));hl('tts-w',null);
+    var sr=b.spanS(p.off,p.off+p.t.length);hl('tts-s',sr);hl('tts-w',null);follow(sr);   // the page follows the sentence
     var u=new SpeechSynthesisUtterance(p.t);if(v){u.voice=v;u.lang=v.lang}else u.lang='en-US';u.rate=rate();
     if(word&&HL)u.onboundary=function(e){if(r.gen!==g||e.name&&e.name!=='word')return;var a=p.off+e.charIndex,len=e.charLength;
-      if(!len){var mm=/^\S+/.exec(b.S.slice(a));len=mm?mm[0].length:1}hl('tts-w',b.spanS(a,a+len))};
+      if(!len){var mm=/^\S+/.exec(b.S.slice(a));len=mm?mm[0].length:1}var wr=b.spanS(a,a+len);hl('tts-w',wr);follow(wr)};   // … and a long sentence follows its words
     var done=false,fin=function(){if(done||r.gen!==g)return;done=true;r.k++;var ms=gapMs();if(ms&&r.k<b.ps.length){hl('tts-w',null);setTimeout(say,ms)}else say()};   // the pause after a sentence; say() checks gen, so Pause / Stop during it holds
     u.onend=fin;u.onerror=function(e){if(e&&(e.error==='interrupted'||e.error==='canceled'))return;fin()};SS.speak(u)})()}
 /* the end of a run: a question waits for its answer; otherwise hands-free goes to the next slide */
@@ -296,8 +306,8 @@ function toMp3(blob,prog){var SR=44100;
   rows.push(['e','Read the explanation after an answer','never in an exam set']);
   var w=document.createElement('div');
   w.innerHTML='<h3 class="sett-h">Listen</h3><p class="note">Reads the slides aloud with this device\'s own voice. Each part has its own switch.</p>'+
-    rows.map(function(r){return '<p class="note tts-rl"><b>'+r[1]+'</b> — '+r[2]+'</p><div class="apx-r"><span class="seg sm" role="group" aria-label="'+r[1]+'"><button type="button" data-o="'+r[0]+'" data-v="1">On</button><button type="button" data-o="'+r[0]+'" data-v="0">Off</button></span></div>'}).join('')+
-    '<p class="note tts-rl"><b>Pause between sentences</b> — a short silence after each sentence, to take it in (or translate it in your head) before the next</p><div class="apx-r"><select class="sel-in tts-gap" aria-label="Pause between sentences">'+
+    rows.map(function(r){return '<div class="sett-row"><p class="note tts-rl"><b>'+r[1]+'</b> — '+r[2]+'</p><span class="seg sm" role="group" aria-label="'+r[1]+'"><button type="button" data-o="'+r[0]+'" data-v="1">On</button><button type="button" data-o="'+r[0]+'" data-v="0">Off</button></span></div>'}).join('')+
+    '<div class="sett-row"><p class="note tts-rl"><b>Pause between sentences</b> — a short silence after each sentence, to take it in (or translate it in your head) before the next</p><select class="sel-in tts-gap" aria-label="Pause between sentences">'+
       GAPS.map(function(x){return '<option value="'+x[0]+'">'+x[1]+'</option>'}).join('')+'</select></div>'+
     '<p class="note tts-rl"><b>Voice</b> — ★ is the most natural voice found on this device</p><div class="apx-r tts-vr"><select class="tts-v" aria-label="Voice"></select><button type="button" class="btn sm tts-test">Test</button></div>'+
     '<details class="tts-guide"><summary>Make the voice sound more natural</summary>'+

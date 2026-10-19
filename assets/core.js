@@ -1326,7 +1326,7 @@ function appearance(){
 ST.appearanceBox=appearance;
 
 /* Settings (gear in the top bar): appearance for everyone; reading time for the roles ticked on Roles → Staff panel: reading time */
-function settings(){
+function settings(at){
   var box=el('div','sett');
   if(ST.uiSettings)try{box.appendChild(ST.uiSettings())}catch(e){console.error(e)}   // Your screen: the tools on the slide (ui.js)
   box.appendChild(el('h3','sett-h','Appearance'));box.appendChild(appearance());
@@ -1361,8 +1361,35 @@ function settings(){
       .catch(function(e){go.disabled=false;msg.textContent=e.message})}
   }else rt.insertAdjacentHTML('beforeend','<p class="note">A concept slide counts as read after <b>'+readTxt()+'</b> on screen'+(ST.can('markRead')?', or when you press <b>Mark as read</b>':'')+'. A read slide can be marked unread again.</p>');
   if(!standalone()&&(INST||isIOS())){var ins=el('div');ins.innerHTML='<h3 class="sett-h">App</h3><div class="apx-r"><button class="btn sm" type="button">Install the app on this device</button></div>';ins.querySelector('button').onclick=doInstall;box.appendChild(ins)}
+  settTabs(box,typeof at==='string'?at:'');
   modal('Settings',box)}
-ST.settings=function(at){settings();if(at==='ui'){var u=document.getElementById('uiSett');if(u)setTimeout(function(){u.scrollIntoView({block:'start'})},30)}};
+ST.settings=function(at){settings(at)};
+/* Settings in tabs, not one long page (owner 20 Oct 02:10): the sections (each starts with its h3.sett-h, whichever script added it) go into
+   a few tabs; a tab with nothing for this person is not shown; the last tab used is remembered on this device. "ui" (from ⋯ → Your screen)
+   opens Screen. A section a later script adds with a new title lands in More. */
+var SETT_TABS=[['look','Appearance',['Appearance','Motion']],['screen','Screen',['Your screen','Slide view','App']],['listen','Listen',['Listen']],
+  ['lang','Translate',['Translate']],['study','Study',['Focus tools','Exam tools','Reading time']],['more','More',[]]],SETT_K='st-sett-tab';
+function settTabs(box,at){
+  var secs=[],cs=null;
+  [].slice.call(box.children).forEach(function(n){
+    var h=n.matches&&n.matches('h3.sett-h')?n:(n.firstElementChild&&n.firstElementChild.matches&&n.firstElementChild.matches('h3.sett-h')?n.firstElementChild:null);
+    if(h||!cs){cs={t:h?h.textContent.trim():'',h:h,nodes:[]};secs.push(cs)}cs.nodes.push(n)});
+  var by={};secs.forEach(function(x){var t=SETT_TABS.filter(function(g){return g[2].indexOf(x.t)>=0})[0]||SETT_TABS[SETT_TABS.length-1];(by[t[0]]=by[t[0]]||[]).push(x)});
+  var tabs=SETT_TABS.filter(function(g){return by[g[0]]});if(tabs.length<2)return;
+  box.innerHTML='';box.classList.add('sett-tabbed');
+  var bar=el('div','sett-tabs');bar.setAttribute('role','tablist');bar.setAttribute('aria-label','Settings');box.appendChild(bar);
+  tabs.forEach(function(g){var b=el('button','sett-tab',g[1]);b.type='button';b.id='stt-'+g[0];b.setAttribute('role','tab');b.dataset.tab=g[0];bar.appendChild(b);
+    var p=el('div','sett-pane');p.setAttribute('role','tabpanel');p.dataset.tab=g[0];p.setAttribute('aria-labelledby','stt-'+g[0]);
+    by[g[0]].forEach(function(x){if(x.h&&by[g[0]].length===1&&x.t===g[1])x.h.classList.add('sett-same');x.nodes.forEach(function(n){p.appendChild(n)})});box.appendChild(p)});
+  function show(k){if(!tabs.some(function(g){return g[0]===k}))k=tabs[0][0];
+    $$('.sett-tab',bar).forEach(function(b){var on=b.dataset.tab===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1});
+    $$('.sett-pane',box).forEach(function(p){p.hidden=p.dataset.tab!==k});try{localStorage.setItem(SETT_K,k)}catch(e){}
+    var mb=box.closest('.modal-box');if(mb)mb.scrollTop=0}
+  $$('.sett-tab',bar).forEach(function(b){b.onclick=function(){show(b.dataset.tab)}});
+  bar.addEventListener('keydown',function(e){if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;var bs=$$('.sett-tab',bar),i=bs.indexOf(document.activeElement);if(i<0)return;
+    var n=bs[(i+(e.key==='ArrowRight'?1:bs.length-1))%bs.length];n.focus();show(n.dataset.tab);e.preventDefault()});
+  var last='';try{last=localStorage.getItem(SETT_K)||''}catch(e){}
+  show(at==='ui'?'screen':last||'look')}
 
 /* install as an app: Chrome / Edge / Android offer it (button appears), iPhone / iPad get the Safari steps.
    Installed, it opens full screen from its own icon on the desktop, start menu or home screen. */

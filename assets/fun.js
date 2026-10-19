@@ -16,8 +16,8 @@ F.motion=function(){var v=store('st-motion');if(v==='off')return false;if(v==='o
 F.apply=function(){document.documentElement.classList.toggle('nomotion',!F.motion())};
 F.apply();
 F.settingsRow=function(){
-  var w=el('div','','<h3 class="sett-h">Motion</h3><p class="note">Animated diagrams, slide transitions and small celebrations. Turn them off if you prefer a still screen.</p>'+
-    '<div class="apx-r"><span class="seg sm" role="group" aria-label="Motion"><button type="button" data-m="on">On</button><button type="button" data-m="off">Off</button></span></div>');
+  var w=el('div','','<h3 class="sett-h">Motion</h3><div class="sett-row"><p class="note">Animated diagrams, slide transitions and small celebrations. Turn them off if you prefer a still screen.</p>'+
+    '<span class="seg sm" role="group" aria-label="Motion"><button type="button" data-m="on">On</button><button type="button" data-m="off">Off</button></span></div>');
   var paint=function(){$$('[data-m]',w).forEach(function(b){var on=(b.dataset.m==='on')===F.motion();b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})};
   $$('[data-m]',w).forEach(function(b){b.onclick=function(){store('st-motion',b.dataset.m);F.apply();paint()}});paint();return w};
 
