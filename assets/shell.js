@@ -89,7 +89,7 @@ function tabs(){var t=[{h:'#/home',k:'pf.home',i:'home',n:'My dashboard',s:'Dash
   return t.filter(function(x){return pf(x.k)})}
 function frame(cur,title,sub){
   var app=$('#app');app.innerHTML='';
-  var box=el('div','pf'),nav=el('nav','pf-nav');nav.setAttribute('aria-label','Platform');
+  var box=el('div','pf-shell'),nav=el('nav','pf-nav');nav.setAttribute('aria-label','Platform');
   nav.innerHTML=tabs().map(function(t){return '<a class="pf-t'+(t.h===cur?' on':'')+'" href="'+t.h+'"'+(t.h===cur?' aria-current="page"':'')+'>'+I[t.i]+'<span class="pf-l">'+t.n+'</span><span class="pf-s">'+t.s+'</span></a>'}).join('')+
     '<span class="pf-sp"></span>'+(pf('pf.contact')&&hasContact()?'<button type="button" class="pf-t pf-x" id="pfContact">'+I.chat+'<span>Contact us</span></button>':'')+
     (pf('pf.share')?'<button type="button" class="pf-t pf-x" id="pfShare">'+I.share+'<span>Share the app</span></button>':'');
