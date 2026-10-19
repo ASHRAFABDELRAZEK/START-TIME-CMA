@@ -2,7 +2,7 @@
    Permissions (Roles sheet), each separate:  listen = the lessons · listenBank = the question bank (its part of a topic,
    sets, mistakes, review) · listenAuto = hands-free: the whole lesson, slide after slide.
    Settings → Listen, each separate on/off: Lessons, Question bank, Hands-free, Follow each word, Read tables,
-   Read the explanation after an answer; plus the voice and a tip for a more natural voice.
+   Read the explanation after an answer; a pause between sentences (none / 1 / 2 / 3 / 5 s); plus the voice and a tip for a more natural voice.
    On a slide: Listen / Pause / Resume (carries on from the same sentence), Stop, speed. Tap any sentence to start there
    (while reading it jumps straight there). K = listen / pause, Shift+K = stop.
    The block being read is tinted; where the browser can (CSS Custom Highlight API + word events) the sentence and the
@@ -10,11 +10,15 @@
    way people say them; in an exam set the explanations are never read. */
 (function(){
 var ST=window.ST,SS=window.speechSynthesis;if(!ST||!SS||!window.SpeechSynthesisUtterance)return;
-var K={p:'st-tts-p',l:'st-tts-l',b:'st-tts-b',a:'st-tts-a',w:'st-tts-w',t:'st-tts-t',e:'st-tts-e',v:'st-tts-voice',r:'st-tts-rate2'};
+var K={p:'st-tts-p',l:'st-tts-l',b:'st-tts-b',a:'st-tts-a',w:'st-tts-w',t:'st-tts-t',e:'st-tts-e',v:'st-tts-voice',r:'st-tts-rate2',g:'st-tts-gap'};
 var DEF={p:'0',l:'1',b:'1',a:'0',w:'1',t:'1',e:'1'};   // Listen is on where the role allows it (its button: Settings → Your screen); hands-free stays off until turned on
 /* speeds as a share of the voice's own pace (owner 20 Oct 01:48 and 01:57: more steps, 70 % to 100 %, nothing faster — the students read English
    carefully). The old three were 0.8 / 0.95 / 1.1: a saved 0.8 or 0.95 stays, a saved "Faster" (1.1) becomes 100 %. */
 var RATES=[['0.7','70%'],['0.75','75%'],['0.8','80%'],['0.85','85%'],['0.9','90%'],['0.95','95% · normal'],['1','100%']];
+/* a silence after each sentence (owner 20 Oct 02:05: time to translate the sentence in his head before the next one); not in a recorded MP3 */
+var GAPS=[['0','None'],['1','1 s'],['2','2 s'],['3','3 s'],['5','5 s']];
+function gapKey(){var v=get(K.g,'0');return GAPS.some(function(x){return x[0]===v})?v:'0'}
+function gapMs(){return REC?0:(+gapKey())*1000}
 function rateKey(){var v=get(K.r,'0.95');if(RATES.some(function(x){return x[0]===v}))return v;return parseFloat(v)>1?'1':'0.95'}
 var HL=!!(window.CSS&&CSS.highlights&&window.Highlight);
 var voices=[],run=null,cur=null,pendingAuto=false,fl=null,REC=null;
@@ -150,7 +154,7 @@ function go(r){var g=++r.gen,v=pick(),word=opt('w');r.state='play';paint();SS.ca
     if(r.i>=r.blocks.length){finish(r);return}
     var b=r.blocks[r.i];if(r.k>=b.ps.length){r.i++;r.k=0;
       if(opt('p')&&!REC&&r.i<r.blocks.length&&!r.after){r.gen++;r.state='pause';hl('tts-s',null);hl('tts-w',null);paint();return}   // presenter: stop after each paragraph (it stays tinted); Resume reads the next
-      clearHL();setTimeout(say,260);return}
+      clearHL();setTimeout(say,Math.max(260,gapMs()));return}
     var p=b.ps[r.k];
     if(!b.el.classList.contains('tts-on')){document.querySelectorAll('.tts-on').forEach(function(e){e.classList.remove('tts-on')});b.el.classList.add('tts-on')}
     if(r.k===0)try{b.el.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}
@@ -158,7 +162,7 @@ function go(r){var g=++r.gen,v=pick(),word=opt('w');r.state='play';paint();SS.ca
     var u=new SpeechSynthesisUtterance(p.t);if(v){u.voice=v;u.lang=v.lang}else u.lang='en-US';u.rate=rate();
     if(word&&HL)u.onboundary=function(e){if(r.gen!==g||e.name&&e.name!=='word')return;var a=p.off+e.charIndex,len=e.charLength;
       if(!len){var mm=/^\S+/.exec(b.S.slice(a));len=mm?mm[0].length:1}hl('tts-w',b.spanS(a,a+len))};
-    var done=false,fin=function(){if(done||r.gen!==g)return;done=true;r.k++;say()};
+    var done=false,fin=function(){if(done||r.gen!==g)return;done=true;r.k++;var ms=gapMs();if(ms&&r.k<b.ps.length){hl('tts-w',null);setTimeout(say,ms)}else say()};   // the pause after a sentence; say() checks gen, so Pause / Stop during it holds
     u.onend=fin;u.onerror=function(e){if(e&&(e.error==='interrupted'||e.error==='canceled'))return;fin()};SS.speak(u)})()}
 /* the end of a run: a question waits for its answer; otherwise hands-free goes to the next slide */
 function finish(r){var c=r.ctx;if(run===r){run.gen++;run=null}clearHL();paint();
@@ -293,6 +297,8 @@ function toMp3(blob,prog){var SR=44100;
   var w=document.createElement('div');
   w.innerHTML='<h3 class="sett-h">Listen</h3><p class="note">Reads the slides aloud with this device\'s own voice. Each part has its own switch.</p>'+
     rows.map(function(r){return '<p class="note tts-rl"><b>'+r[1]+'</b> — '+r[2]+'</p><div class="apx-r"><span class="seg sm" role="group" aria-label="'+r[1]+'"><button type="button" data-o="'+r[0]+'" data-v="1">On</button><button type="button" data-o="'+r[0]+'" data-v="0">Off</button></span></div>'}).join('')+
+    '<p class="note tts-rl"><b>Pause between sentences</b> — a short silence after each sentence, to take it in (or translate it in your head) before the next</p><div class="apx-r"><span class="seg sm" role="group" aria-label="Pause between sentences">'+
+      GAPS.map(function(x){return '<button type="button" data-gap="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</span></div>'+
     '<p class="note tts-rl"><b>Voice</b> — ★ is the most natural voice found on this device</p><div class="apx-r tts-vr"><select class="tts-v" aria-label="Voice"></select><button type="button" class="btn sm tts-test">Test</button></div>'+
     '<details class="tts-guide"><summary>Make the voice sound more natural</summary>'+
     '<p class="note">The voice comes from this device, so it can be improved on the device itself:</p>'+
@@ -304,12 +310,15 @@ function toMp3(blob,prog){var SR=44100;
      '<li>Come back here, pick it under <b>Voice</b> and press <b>Test</b>.</li></ol>'+
     '<p class="note"><b>iPhone / iPad</b>: Settings → Accessibility → Spoken Content → Voices → English → download an <b>Enhanced</b> or <b>Premium</b> voice (for example Ava or Zoe), then open the platform again.</p>'+
     '<p class="note"><b>Computer</b>: open the platform in <b>Microsoft Edge</b> and pick a voice with <b>Natural</b> in its name.</p></details>';
-  function paintS(){w.querySelectorAll('[data-o]').forEach(function(b){var on=(b.dataset.v==='1')===opt(b.dataset.o);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
+  function paintS(){w.querySelectorAll('[data-o]').forEach(function(b){var on=(b.dataset.v==='1')===opt(b.dataset.o);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
+    w.querySelectorAll('[data-gap]').forEach(function(b){var on=b.dataset.gap===gapKey();b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
+  w.querySelectorAll('[data-gap]').forEach(function(b){b.onclick=function(){put(K.g,b.dataset.gap);paintS()}});
   w.querySelectorAll('[data-o]').forEach(function(b){b.onclick=function(){var was=opt(b.dataset.o);put(K[b.dataset.o],b.dataset.v);paintS();
     if(!was&&b.dataset.v==='1'&&(b.dataset.o==='l'||b.dataset.o==='b')){var g=w.querySelector('.tts-guide');g.open=true;try{g.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}}   // turning it on opens the voice guide
     if(cur&&cur.bar&&(b.dataset.o==='l'||b.dataset.o==='b')){if(!onHere()){stop();cur.bar.hidden=true}else cur.bar.hidden=false}}});
   var vs=w.querySelector('.tts-v');fillVoices(vs);vs.onchange=function(){var x=voices[+vs.value];if(x)put(K.v,x.name);if(run&&run.state==='play')go(run)};
-  w.querySelector('.tts-test').onclick=function(){stop();var u=new SpeechSynthesisUtterance('This is how the lessons will sound. Revenue minus the cost of goods sold gives the gross profit.');var v=pick();if(v){u.voice=v;u.lang=v.lang}u.rate=rate();SS.speak(u)};
+  w.querySelector('.tts-test').onclick=function(){stop();var v=pick(),one=function(t){var u=new SpeechSynthesisUtterance(t);if(v){u.voice=v;u.lang=v.lang}u.rate=rate();return u};   // two sentences, with the chosen pause between them
+    var a=one('This is how the lessons will sound.'),b=one('Revenue minus the cost of goods sold gives the gross profit.');a.onend=function(){setTimeout(function(){SS.speak(b)},gapMs())};SS.speak(a)};
   paintS();return w});
 
 ST.tts={blocks:function(){return cur?slideBlocks(cur):[]},speakable:speakable,pieces:pieces,toMp3:toMp3,rec:function(){return REC}};   // for checks
