@@ -2,7 +2,7 @@
    Permissions (Roles sheet), each separate:  listen = the lessons · listenBank = the question bank (its part of a topic,
    sets, mistakes, review) · listenAuto = hands-free: the whole lesson, slide after slide.
    Settings → Listen, each separate on/off: Lessons, Question bank, Hands-free, Follow each word, Read tables,
-   Read the explanation after an answer; a pause between sentences (none / 1 / 2 / 3 / 5 s); plus the voice and a tip for a more natural voice.
+   Read the explanation after an answer; a pause between sentences (none, or 1 to 10 s); plus the voice and a tip for a more natural voice.
    On a slide: Listen / Pause / Resume (carries on from the same sentence), Stop, speed. Tap any sentence to start there
    (while reading it jumps straight there). K = listen / pause, Shift+K = stop.
    The block being read is tinted; where the browser can (CSS Custom Highlight API + word events) the sentence and the
@@ -12,11 +12,11 @@
 var ST=window.ST,SS=window.speechSynthesis;if(!ST||!SS||!window.SpeechSynthesisUtterance)return;
 var K={p:'st-tts-p',l:'st-tts-l',b:'st-tts-b',a:'st-tts-a',w:'st-tts-w',t:'st-tts-t',e:'st-tts-e',v:'st-tts-voice',r:'st-tts-rate2',g:'st-tts-gap'};
 var DEF={p:'0',l:'1',b:'1',a:'0',w:'1',t:'1',e:'1'};   // Listen is on where the role allows it (its button: Settings → Your screen); hands-free stays off until turned on
-/* speeds as a share of the voice's own pace (owner 20 Oct 01:48 and 01:57: more steps, 70 % to 100 %, nothing faster — the students read English
+/* speeds as a share of the voice's own pace (owner 20 Oct 01:48, 01:57, 02:10: more steps, 60 % to 100 %, nothing faster — the students read English
    carefully). The old three were 0.8 / 0.95 / 1.1: a saved 0.8 or 0.95 stays, a saved "Faster" (1.1) becomes 100 %. */
-var RATES=[['0.7','70%'],['0.75','75%'],['0.8','80%'],['0.85','85%'],['0.9','90%'],['0.95','95% · normal'],['1','100%']];
+var RATES=[['0.6','60%'],['0.65','65%'],['0.7','70%'],['0.75','75%'],['0.8','80%'],['0.85','85%'],['0.9','90%'],['0.95','95% · normal'],['1','100%']];
 /* a silence after each sentence (owner 20 Oct 02:05: time to translate the sentence in his head before the next one); not in a recorded MP3 */
-var GAPS=[['0','None'],['1','1 s'],['2','2 s'],['3','3 s'],['5','5 s']];
+var GAPS=[['0','None']];for(var gi=1;gi<=10;gi++)GAPS.push([String(gi),gi+' s']);   // none, then 1 to 10 seconds (owner 02:10)
 function gapKey(){var v=get(K.g,'0');return GAPS.some(function(x){return x[0]===v})?v:'0'}
 function gapMs(){return REC?0:(+gapKey())*1000}
 function rateKey(){var v=get(K.r,'0.95');if(RATES.some(function(x){return x[0]===v}))return v;return parseFloat(v)>1?'1':'0.95'}
@@ -297,8 +297,8 @@ function toMp3(blob,prog){var SR=44100;
   var w=document.createElement('div');
   w.innerHTML='<h3 class="sett-h">Listen</h3><p class="note">Reads the slides aloud with this device\'s own voice. Each part has its own switch.</p>'+
     rows.map(function(r){return '<p class="note tts-rl"><b>'+r[1]+'</b> — '+r[2]+'</p><div class="apx-r"><span class="seg sm" role="group" aria-label="'+r[1]+'"><button type="button" data-o="'+r[0]+'" data-v="1">On</button><button type="button" data-o="'+r[0]+'" data-v="0">Off</button></span></div>'}).join('')+
-    '<p class="note tts-rl"><b>Pause between sentences</b> — a short silence after each sentence, to take it in (or translate it in your head) before the next</p><div class="apx-r"><span class="seg sm" role="group" aria-label="Pause between sentences">'+
-      GAPS.map(function(x){return '<button type="button" data-gap="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</span></div>'+
+    '<p class="note tts-rl"><b>Pause between sentences</b> — a short silence after each sentence, to take it in (or translate it in your head) before the next</p><div class="apx-r"><select class="sel-in tts-gap" aria-label="Pause between sentences">'+
+      GAPS.map(function(x){return '<option value="'+x[0]+'">'+x[1]+'</option>'}).join('')+'</select></div>'+
     '<p class="note tts-rl"><b>Voice</b> — ★ is the most natural voice found on this device</p><div class="apx-r tts-vr"><select class="tts-v" aria-label="Voice"></select><button type="button" class="btn sm tts-test">Test</button></div>'+
     '<details class="tts-guide"><summary>Make the voice sound more natural</summary>'+
     '<p class="note">The voice comes from this device, so it can be improved on the device itself:</p>'+
@@ -310,9 +310,8 @@ function toMp3(blob,prog){var SR=44100;
      '<li>Come back here, pick it under <b>Voice</b> and press <b>Test</b>.</li></ol>'+
     '<p class="note"><b>iPhone / iPad</b>: Settings → Accessibility → Spoken Content → Voices → English → download an <b>Enhanced</b> or <b>Premium</b> voice (for example Ava or Zoe), then open the platform again.</p>'+
     '<p class="note"><b>Computer</b>: open the platform in <b>Microsoft Edge</b> and pick a voice with <b>Natural</b> in its name.</p></details>';
-  function paintS(){w.querySelectorAll('[data-o]').forEach(function(b){var on=(b.dataset.v==='1')===opt(b.dataset.o);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
-    w.querySelectorAll('[data-gap]').forEach(function(b){var on=b.dataset.gap===gapKey();b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
-  w.querySelectorAll('[data-gap]').forEach(function(b){b.onclick=function(){put(K.g,b.dataset.gap);paintS()}});
+  function paintS(){w.querySelectorAll('[data-o]').forEach(function(b){var on=(b.dataset.v==='1')===opt(b.dataset.o);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
+  var gs=w.querySelector('.tts-gap');gs.value=gapKey();gs.onchange=function(){put(K.g,gs.value)};
   w.querySelectorAll('[data-o]').forEach(function(b){b.onclick=function(){var was=opt(b.dataset.o);put(K[b.dataset.o],b.dataset.v);paintS();
     if(!was&&b.dataset.v==='1'&&(b.dataset.o==='l'||b.dataset.o==='b')){var g=w.querySelector('.tts-guide');g.open=true;try{g.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}}   // turning it on opens the voice guide
     if(cur&&cur.bar&&(b.dataset.o==='l'||b.dataset.o==='b')){if(!onHere()){stop();cur.bar.hidden=true}else cur.bar.hidden=false}}});
