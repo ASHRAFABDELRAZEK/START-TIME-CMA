@@ -115,7 +115,7 @@ ST.roleInit=function(){
       gs.innerHTML='<option value="">Every topic open</option>'+(r.groups||[]).map(function(g){return '<option'+(s.preview&&s.preview.group===g?' selected':'')+'>'+esc(g)+'</option>'}).join('')}).catch(function(){});
     gs.onchange=function(){var o=ST.session(),g=gs.value;if(!g){delete o.preview;ST.setSession(o);location.reload();return}
       gs.disabled=true;ST.adminCall('preview',{group:g}).then(function(r){if(!r||!r.ok){gs.disabled=false;gs.title=(r&&r.error)||'';return}
-        o.preview={group:r.group,access:r.access||{}};ST.setSession(o);location.reload()}).catch(function(){gs.disabled=false})}}
+        o.preview={group:r.group,access:r.access||{},ns:r.ns||[]};ST.setSession(o);location.reload()}).catch(function(){gs.disabled=false})}}
   ST.h.$$('#tbAns button',bar).forEach(function(b){b.onclick=function(){var o=ST.session();o.answers=b.dataset.a==='1';ST.setSession(o);location.reload()}});
   $('#tbOut',bar).onclick=function(){ST.setSession(null);location.reload()};
 };

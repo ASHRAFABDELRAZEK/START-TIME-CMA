@@ -20,7 +20,29 @@ ST.topic=function(t){t.slides=t.slides||[];var used={};t.gl=ST._glp||[];ST._glp=
     t.slides.forEach(function(s){if(s.lesson)E.push(s);else if(BQ[s.t]||s.case||s.bank)Bk.push(s);else L.push(s)});
     t.slides=L.concat(E,Bk);t.nL=L.length+E.length;t.nB=Bk.length})();
   t.slides.forEach(function(s,i){var b=h36(s.t+'|'+(s.h||'')+'|'+String(s.q||s.s||s.intro||s.body||'').slice(0,240)),k=b,j=2;while(used[k])k=b+'-'+(j++);used[k]=1;s._k=t.id+'#'+k});
+  if(storyOff(t.id))dropStory(t);   // after the keys: progress keys never change when the story is hidden or shown again
   ST.topics.push(t);ST.byId[t.id]=t};
+/* ---------- the story (Access → Hide story) ----------
+   A topic's story is its "Scenario: …" slide (or a slide marked story:1) and the story lines (<p class="story">) at the top of its explanation slides.
+   For a student (or the group a staff member previews) whose story is hidden, the topic loads without them: nothing to see, nothing to print.
+   Staff always keep the stories. Cases and questions keep their own text. */
+var STORY_RE=/<p class="story[^"]*"[^>]*>[\s\S]*?<\/p>/g;
+ST.isScenario=function(s){return !!s&&(s.story===1||s.story===true||(s.t==='x'&&!s.case&&/^Scenario\s*:/i.test(String(s.h||''))))};
+ST.hasStory=function(s){return ST.isScenario(s)||(!!s&&s.t==='x'&&!s.case&&typeof s.body==='string'&&/<p class="story/.test(s.body))};
+function storyKeys(){var S=ST.session&&ST.session(),r=S&&S.code?(S.role==='student'?'student':'trainer'):'';
+  if(r==='student')return S.ns||[];
+  if(r==='trainer'&&S.view==='student'&&S.preview)return S.preview.ns||[];
+  return []}
+function storyOff(id){var ks=storyKeys();if(!ks.length)return false;var pk=(ST.CONFIG&&ST.CONFIG.partKey)||'P1';
+  return ks.indexOf(id)>=0||ks.indexOf(pk+'-'+String(id).charAt(0).toUpperCase())>=0||ks.indexOf(pk)>=0}
+ST.storyOff=storyOff;
+function dropStory(t){var gone=[],nL=t.nL||t.slides.length;
+  t.slides=t.slides.filter(function(s,i){if(ST.isScenario(s)){gone.push(i);return false}return true});
+  var renum=function(n){var o=n-1;if(gone.indexOf(o)>=0)return 0;return n-gone.filter(function(g){return g<o}).length};   // quick checks point at slide numbers
+  t.slides.forEach(function(s){(s.cy||[]).forEach(function(q){if(q[4])q[4]=renum(q[4])});
+    if(s.t==='x'&&!s.case&&typeof s.body==='string')s.body=s.body.replace(STORY_RE,'')});
+  if(t.nL)t.nL=nL-gone.filter(function(g){return g<nL}).length;
+  t.storyOff=true}
 
 /* LOS register of the open section: set by assets/sections.js from assets/los.js */
 ST.LOS=ST.LOS||[];
@@ -86,6 +108,7 @@ ST.applyHidden=function(){if(!ALLT)ALLT=ST.topics.slice();var a=accMap();
   ST.byId={};ST.topics.forEach(function(t){ST.byId[t.id]=t})};
 function secKey(k){return (CFG.partKey||'P1')+'-'+k}
 ST.secHidden=function(k){var a=accMap();return !!a&&a[secKey(k)]==='hidden'};
+ST.storyMark=function(id){if(ROLE!=='trainer'||!SESS||!SESS.shid)return '';var h=SESS.shid,v=h[id]||h[secKey(String(id).charAt(0).toUpperCase())]||h[CFG.partKey||'P1']||'';return v?'Story hidden from: '+v:''};
 ST.hidMark=function(id){if(ROLE!=='trainer'||!SESS||!SESS.hid)return '';var h=SESS.hid,v=h[id]||h[secKey(String(id).charAt(0).toUpperCase())]||h[CFG.partKey||'P1']||'';return v?'Hidden from: '+v:''};
 ST.lock=function(t){var a=accMap();if(!t||!a)return null;var v=accOf(a,t.id);return v==='open'?null:{on:v&&v!=='closed'?v:''}};
 var LOCK='<svg viewBox="0 0 24 24" class="lk-i" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
@@ -304,7 +327,7 @@ function home(){
         var w=el('div','tcw'),a=el('a','tc'+(t.soon?' soon':'')+(lk?' lk':'')+(st.mastered&&!t.soon&&!lk?' ms':''));a.href=t.soon||lk?'#/':'#/t/'+t.id+'/1';
         if(lk)a.onclick=function(e){e.preventDefault();lockMsg(t,lk)};
         a.innerHTML='<div class="n"><span>Topic '+n+'</span><span>'+(t.soon?'in preparation':st.n+' slides')+'</span></div>'+
-          '<h3>'+esc(t.n)+'</h3><div class="chips">'+(ST.hidMark(t.id)?'<span class="chip hid" title="Students in these groups do not see this topic">'+esc(ST.hidMark(t.id))+'</span>':'')+t.los.map(function(c){return '<span class="chip g">'+c+'</span>'}).join('')+'</div>'+
+          '<h3>'+esc(t.n)+'</h3><div class="chips">'+(ST.hidMark(t.id)?'<span class="chip hid" title="Students in these groups do not see this topic">'+esc(ST.hidMark(t.id))+'</span>':'')+(ST.storyMark(t.id)?'<span class="chip hid" title="Students in these groups see this topic without its Scenario slide and story lines (Access → Hide story)">'+esc(ST.storyMark(t.id))+'</span>':'')+t.los.map(function(c){return '<span class="chip g">'+c+'</span>'}).join('')+'</div>'+
           (t.soon?'':lk?'<div class="tstat lk-l">'+LOCK+'<span>'+esc(lockText(lk))+'</span></div>':'<div class="tstat"><span>Read '+st.rd+'/'+st.cn+' · Correct '+st.ok+'/'+st.pr+'</span><b>'+(st.done?'✓ studied':(st.mastered?'✓ mastered':p+'%'))+'</b></div>')+
           '<div class="bar"><i style="width:'+p+'%"></i></div>';
         w.appendChild(a);

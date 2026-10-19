@@ -48,6 +48,7 @@ function syncNow(){
       var ch=false;if(res.name&&res.name!==a.name){a.name=res.name;ch=true}
       ['email','mobile','confirmBy'].forEach(function(k){if(res[k]!==undefined&&res[k]!==(a[k]||'')){a[k]=res[k];ch=true}});
       var accCh=false;if(res.access&&accSig(res.access)!==accSig(a.access)){a.access=res.access;a.group=res.group||'';ch=true;accCh=true}
+      var nsCh=false;if(res.ns!==undefined&&JSON.stringify(res.ns||[])!==JSON.stringify(a.ns||[])){a.ns=res.ns||[];ch=true;nsCh=true}   // Access → Hide story changed
       if(res.perms&&sig(res.perms)!==sig(a.perms)){a.perms=res.perms;a.sperms=res.sperms||res.perms;ch=true}
       if(res.readSec&&res.readSec!==a.readSec){a.readSec=res.readSec;ch=true}
       if(res.ui&&uiSig(res.ui)!==uiSig(a.ui)){a.ui=res.ui;a.sui=res.sui||res.ui;ch=true}   // Slide tools rows changed on the Roles sheet: the next slide follows them
@@ -55,6 +56,7 @@ function syncNow(){
       if(ch)ST.setSession(a);
       if(accCh&&ST.applyHidden)ST.applyHidden();
       if(accCh&&ST.route)ST.route();                  // a topic opened or closed: redraw what the student sees
+      if(nsCh&&!/^#\/(t|bank|print)\//.test(location.hash))location.reload();   // the stories load with the topics: outside a lesson, reload now; inside one, on the next open
       lastOk=Date.now();state='ok';lastErr='';thanks(res);
     })
     .catch(function(e){state='err';lastErr=(e&&e.message)||'No connection';if(e&&e.auth)lockOut(lastErr)})
@@ -138,7 +140,7 @@ ST.saveProfile=function(d){
   var s=ST.session();if(!s||!s.code)return Promise.reject(new Error('Sign in first.'));
   return post({op:'profile',code:s.code,name:d.name||'',mobile:d.mobile||'',email:d.email||''}).then(function(res){
     if(!res||!res.ok){if(res&&res.auth)lockOut(res.error);throw new Error(res&&res.error||'Could not save your details.')}
-    s.name=res.name||s.name;s.email=res.email||'';s.mobile=res.mobile||'';s.need=res.need||[];s.confirmBy=res.confirmBy||'';s.access=res.access||{};s.group=res.group||'';ST.setSession(s);
+    s.name=res.name||s.name;s.email=res.email||'';s.mobile=res.mobile||'';s.need=res.need||[];s.confirmBy=res.confirmBy||'';s.access=res.access||{};s.group=res.group||'';if(res.ns!==undefined)s.ns=res.ns||[];ST.setSession(s);
     ST.progress.replace(ST.progress.merge(ST.progress.get(),res.data));return res});
 };
 
@@ -156,7 +158,7 @@ ST.accessLogin=function(code){
     if(!res||!res.ok)throw new Error(res&&res.error||'Sign-in failed');
     var o;
     if(res.role!=='student'){o={role:res.role||'assistant',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',view:'trainer',answers:false,perms:res.perms||null,sperms:res.sperms||null,ui:res.ui||null,sui:res.sui||null,readSec:res.readSec||0,keys:res.keys||null,hid:res.hid||{},hf:res.hf||{}};if(ST.shellTake)ST.shellTake(o,res);ST.setSession(o);if(ST.HF)ST.HF.apply();return res}
-    o={role:'student',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',need:res.need||[],confirmBy:res.confirmBy||'',access:res.access||{},group:res.group||'',perms:res.perms||null,sperms:res.perms||null,ui:res.ui||null,sui:res.ui||null,readSec:res.readSec||0,keys:res.keys||null,hid:res.hid||{},hf:res.hf||{}};if(ST.shellTake)ST.shellTake(o,res);ST.setSession(o);if(ST.HF)ST.HF.apply();
+    o={role:'student',code:code,name:res.name||'',email:res.email||'',mobile:res.mobile||'',need:res.need||[],confirmBy:res.confirmBy||'',access:res.access||{},group:res.group||'',ns:res.ns||[],perms:res.perms||null,sperms:res.perms||null,ui:res.ui||null,sui:res.ui||null,readSec:res.readSec||0,keys:res.keys||null,hid:res.hid||{},hf:res.hf||{}};if(ST.shellTake)ST.shellTake(o,res);ST.setSession(o);if(ST.HF)ST.HF.apply();
     ST.progress.replace(ST.progress.merge(ST.progress.get(),res.data));
     thanks(res);
     return res;

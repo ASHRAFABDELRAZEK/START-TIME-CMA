@@ -24,6 +24,7 @@ ST.CONFIG={
     language:  ['trainer'],            /* English / Arabic switch (when Arabic content is available) */
     notes:     ['trainer'],            /* instructor notes on slides */
     print:     ['trainer','student'],  /* Print / PDF handouts */
+    printStory:['trainer'],            /* Print / PDF: scenarios and stories only */
     excel:     ['trainer','student'],  /* Excel export of tables */
     studentView:['trainer'],           /* staff: switch to Student view */
     markRead:  ['trainer','student'],  /* "Mark as read" button under concept slides */
