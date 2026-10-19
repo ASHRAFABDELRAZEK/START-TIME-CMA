@@ -186,7 +186,7 @@ details.rv[open]{background:var(--card)}
 @media screen and (min-width:2800px){:root{--wz:1.7}}
 @media screen and (min-width:1440px) and (max-height:720px){:root{--wz:1.1}}   /* a short window keeps room for the slide */
 html:not(.printing):not(:fullscreen) body:not(.land-on) main:not(:has(.sheets)),
-html:not(.printing):not(:fullscreen) body:not(.land-on) .foot{zoom:var(--wz,1)}
+html:not(.printing):not(:fullscreen) body:not(.land-on) .foot{zoom:var(--wz,1);--zf:var(--wz,1)}   /* --zf: the zoom really applied (vh inside is multiplied by it) */
 
 /* ---------- tables ---------- */
 .tw{overflow-x:auto;margin:10px 0;border-radius:12px;border:1px solid var(--line)}
@@ -1366,13 +1366,16 @@ figure.anm{margin:16px 0;background:var(--card);border:1px solid var(--line);bor
 .anm-cap{margin:0 0 8px}
 .anm-tx{margin:0;font-size:16px;line-height:1.55;min-height:3.1em;color:var(--ink);transition:opacity .22s}
 .anm-pb{height:3px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:6px}.anm-pb i{display:block;height:3px;width:0;background:var(--gold)}
-.anm-stage svg{width:100%;height:auto;display:block;max-height:76vh}
+/* the whole figure (its line of text, the drawing, the buttons) fits between the top bar and the Previous / Next bar (owner 20 Oct 02:33:
+   on a wide screen the drawing went under the bar). vh inside the zoomed page is multiplied by the zoom, hence / --zf. */
+.anm-stage svg{width:100%;height:auto;display:block;max-height:max(200px,calc((100vh - 160px) / var(--zf,1) - 175px))}
+.deck.land .anm-stage svg{max-height:76vh}
 .anm-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
 .anm-b{min-height:38px;min-width:40px;padding:4px 10px;border-radius:10px;border:1px solid var(--line2);background:var(--card);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font:inherit;font-size:14px;font-weight:600}
 .anm-b svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.anm-b svg .fl{fill:currentColor;stroke:none}
 .anm-pp{background:var(--teal);border-color:var(--teal);color:#fff;min-width:104px}
-.anm-sp{display:inline-flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin-left:auto}
-.anm-sp button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;padding:7px 10px;cursor:pointer}.anm-sp button.on{background:var(--soft-navy);color:var(--ink);font-weight:600}
+.anm-sp{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-size:13px;color:var(--muted)}
+.anm-sp select{font:inherit;font-size:13.5px;min-height:36px;padding:4px 8px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--ink)}
 .anm-n{font-size:13px;color:var(--muted);min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
 .anm-svg text{font-family:var(--f)}
 .anm-svg .an-t{font-size:16px;fill:var(--ink2)}.anm-svg .an-h{font-size:16px;font-weight:600;fill:var(--ink)}.anm-svg .an-s{font-size:13.5px;fill:var(--muted)}
