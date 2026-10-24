@@ -4,7 +4,7 @@
    A section with no topic files yet shows as "coming soon". Loaded after config.js and los.js, before core.js. */
 (function(){
 var ST=window.ST=window.ST||{};
-ST.ENC={"p1a":"41d06ff7d2","p1b":"ecb1bc491c","p1c":"0b1e8e8807","p1d":"2bd4ee19cb","p1e":"6966659098","p1f":"aed2315ec7"};
+ST.ENC={"p1a":"19876907f2","p1b":"3345dc4323","p1c":"ab4f96d19a","p1d":"12f10e9365","p1e":"6966659098","p1f":"baf2cdb791"};
 ST.SECTIONS=[
  {k:'A',deck:'p1a',section:'Section A',title:'External Financial Reporting Decisions',weight:15,
   blurb:'Every LOS in Section A, explained in order: a short story about a company that fits each idea, pictures that move when movement helps, and exam-style practice.',
@@ -23,7 +23,7 @@ ST.SECTIONS=[
  {k:'D',deck:'p1d',section:'Section D',title:'Cost Management',weight:15,
   blurb:'What a product really costs: costing systems, overhead, the supply chain and process improvement.',
   groups:[['D.1','Measurement concepts'],['D.2','Costing systems'],['D.3','Overhead costs'],['D.4','Supply chain management'],['D.5','Business process improvement']],
-  files:['d1-behav.js?v=9','d1-meas.js?v=7','d1-varabs.js?v=9','d1-joint.js?v=7','d2-job.js?v=3','d2-abc.js?v=3','d2-life.js?v=3','d3-oh.js?v=3','d3-rates.js?v=1','d3-under.js?v=1','d3-svc.js?v=1','d4-lean.js?v=2','d4-sys.js?v=2','d4-out.js?v=1','d4-cap.js?v=2','d5-value.js?v=1','d5-bpr.js?v=1','d5-quality.js?v=1']},
+  files:['d1-behav.js?v=9','d1-meas.js?v=7','d1-varabs.js?v=10','d1-joint.js?v=9','d2-job.js?v=7','d2-abc.js?v=8','d2-life.js?v=7','d3-oh.js?v=6','d3-rates.js?v=5','d3-under.js?v=6','d3-svc.js?v=6','d4-lean.js?v=6','d4-sys.js?v=7','d4-out.js?v=5','d4-cap.js?v=6','d5-value.js?v=5','d5-bpr.js?v=6','d5-quality.js?v=4']},
  {k:'E',deck:'p1e',section:'Section E',title:'Internal Controls',weight:15,
   blurb:'Governance, risk and the controls that protect a company\'s assets, records and systems.',
   groups:[['E.1','Governance, risk, and compliance'],['E.2','System controls and security measures']],
@@ -31,7 +31,7 @@ ST.SECTIONS=[
  {k:'F',deck:'p1f',section:'Section F',title:'Technology and Analytics',weight:15,
   blurb:'Information systems, data governance, finance transformation and data analytics.',
   groups:[['F.1','Information systems'],['F.2','Data governance'],['F.3','Technology-enabled finance transformation'],['F.4','Data analytics']],
-  files:['f1-ais.js?v=3','f1-db.js?v=2','f2-data.js?v=2','f3-sdlc.js?v=2','f3-tech.js?v=3','f4-bi.js?v=2','f4-mine.js?v=1','f4-regr.js?v=1','f4-tools.js?v=1','f4-viz.js?v=1']}
+  files:['f1-ais.js?v=4','f1-db.js?v=2','f2-data.js?v=2','f3-sdlc.js?v=2','f3-tech.js?v=3','f4-bi.js?v=2','f4-mine.js?v=1','f4-regr.js?v=1','f4-tools.js?v=1','f4-viz.js?v=1']}
 ];
 var has=function(k){return ST.SECTIONS.filter(function(s){return s.k===k&&s.files.length})[0]};
 var saved=null;try{saved=localStorage.getItem('st-sec')}catch(e){}

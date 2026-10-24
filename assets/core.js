@@ -202,7 +202,7 @@ function glText(t){var d=document.createElement('div');d.innerHTML=String(t==nul
 function glK(t){return glText(t).toLowerCase()}
 ST.glKey=glK;
 ST.gloss=function(rows){ST._glp=ST._glp.concat(rows);
-  return '<div class="tw"><table class="t gl"><tr><th>Term</th><th class="gl-ar">بالعربي</th><th>What it means</th><th>Watch out</th></tr>'+rows.map(function(r){
+  return '<div class="tw gl-w"><table class="t gl"><tr><th>Term</th><th class="gl-ar">بالعربي</th><th>What it means</th><th>Watch out</th></tr>'+rows.map(function(r){
     return '<tr><td><b>'+r[0]+'</b></td><td class="gl-ar" dir="rtl" lang="ar" data-k="'+esc(glK(r[0]))+'"></td><td>'+r[1]+'</td><td>'+(r[2]||'')+'</td></tr>'}).join('')+'</table></div>'};
 /* Arabic of the key terms: this device's copy at once, then fresh from the sheet once per visit (yours first, else Google's) */
 var GLM=null,GLP=null;

@@ -888,6 +888,20 @@ html.printing .xt-win{display:none!important}
 table.t.gl td:first-child{white-space:nowrap}
 table.t.gl td:last-child{color:var(--ink2);font-size:.93em}
 @media (max-width:620px){table.t.gl td:first-child{white-space:normal}}
+/* key terms on a phone: each term is a card (term and Arabic on top, then the meaning, then Watch out), so nothing hides off the right edge.
+   Screen only: the printed glossary (gl-print) and printed slides keep the table. */
+@media screen and (max-width:620px){
+ .tw.gl-w{overflow:visible;border:0;border-radius:0}
+ .tw.gl-w table.t.gl,.tw.gl-w table.t.gl tbody{display:block;width:auto;border:0}
+ .tw.gl-w table.t.gl tr:first-child{display:none}
+ .tw.gl-w table.t.gl tr{display:grid;grid-template-columns:1fr auto;gap:4px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 10px}
+ .tw.gl-w table.t.gl td{display:block;padding:0;border:0;background:none}
+ .tw.gl-w table.t.gl td:first-child{white-space:normal;font-size:1.02em}
+ .tw.gl-w table.t.gl td:nth-child(3),.tw.gl-w table.t.gl td:nth-child(4){grid-column:1/-1}
+ .tw.gl-w table.t.gl td:nth-child(4):not(:empty){margin-top:4px;padding-top:6px;border-top:1px dashed var(--line)}
+ .tw.gl-w table.t.gl td:nth-child(4):not(:empty)::before{content:"Watch out: ";font-weight:700;color:var(--ink)}
+ html:not(.gl-ar-on) .tw.gl-w table.t.gl td.gl-ar{display:none}
+}
 /* case exhibit above case questions */
 .case-x{border:1px solid color-mix(in srgb,var(--navy) 22%,transparent);background:var(--soft-navy);border-radius:12px;padding:8px 12px;margin:0 0 12px}
 .case-x summary{cursor:pointer;font-weight:700;font-size:14.5px;list-style-position:inside}
