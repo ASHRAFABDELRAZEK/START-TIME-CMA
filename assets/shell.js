@@ -142,7 +142,12 @@ function dash(){
     cc.innerHTML='<h2>My certificates</h2><div class="pf-cert"><span class="pf-ci">'+I.cert+'</span><div><b>START TIME completion — '+esc(PROGRAM+' '+PART)+'</b><div class="pf-dim">'+(h.sum.mastery>=100?'ready':'in progress · '+h.sum.mastery+'% mastery')+'</div></div></div>'+
       '<p class="pf-dim">Completion certificates are coming soon. Your progress is already counted.</p>';grid.appendChild(cc)}
   m.appendChild(grid);
+  if(!installed()){var ic=el('section','pf-card pf-install');ic.setAttribute('aria-label','Install the app');
+    ic.innerHTML='<div class="pf-row pf-sb"><div><h2>Install the app</h2><div class="pf-dim">Open START TIME from your home screen, full screen, without the link.</div></div><a class="btn" href="install.html">Install</a></div>';
+    m.appendChild(ic)}
 }
+/* running as the installed app (home screen / desktop app window) */
+function installed(){try{return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true}catch(e){return false}}
 
 /* ---------- Courses ---------- */
 function coursesPage(){
@@ -186,7 +191,8 @@ function me(){
   else rows.push(['Role',esc(String(ST.staffRole||s.role||'staff'))]);
   var card=el('section','pf-card');card.innerHTML='<h2>'+esc(s.name||'My profile')+'</h2><dl class="pf-kv">'+rows.map(function(r){return '<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'}).join('')+'</dl>'+
     '<div class="pf-row pf-acts">'+(st?'<a class="btn" href="#/details">Change my details</a>':'')+'<button type="button" class="btn" id="pfSett">Settings</button><button type="button" class="btn ghost" id="pfOut">Sign out</button></div>'+
-    (st?'<p class="pf-dim">Your code, group and subscription are set by START TIME. Your name, mobile and email are yours to change.</p>':'');
+    (st?'<p class="pf-dim">Your code, group and subscription are set by START TIME. Your name, mobile and email are yours to change.</p>':'')+
+    (installed()?'':'<p class="pf-dim pf-inst">Use START TIME as an app on this device: <a href="install.html">Install the app</a>.</p>');
   m.appendChild(card);
   var cd=$('#pfCode',card),sh=$('#pfShow',card);sh.onclick=function(){var on=cd.textContent===masked;cd.textContent=on?code:masked;sh.textContent=on?'Hide':'Show'};
   $('#pfCopy',card).onclick=function(){var b=this;try{navigator.clipboard.writeText(code).then(function(){b.textContent='Copied'},function(){b.textContent='Copy failed'})}catch(e){b.textContent='Copy failed'}setTimeout(function(){b.innerHTML=I.copy+' Copy'},1500)};
