@@ -4,12 +4,12 @@
    A section with no topic files yet shows as "coming soon". Loaded after config.js and los.js, before core.js. */
 (function(){
 var ST=window.ST=window.ST||{};
-ST.ENC={"p1a":"19876907f2","p1b":"3345dc4323","p1c":"ab4f96d19a","p1d":"12f10e9365","p1e":"6966659098","p1f":"baf2cdb791"};
+ST.ENC={"p1a":"7350bfa843","p1b":"3345dc4323","p1c":"afa00173ac","p1d":"bf8c977415","p1e":"6966659098","p1f":"baf2cdb791"};
 ST.SECTIONS=[
  {k:'A',deck:'p1a',section:'Section A',title:'External Financial Reporting Decisions',weight:15,
   blurb:'Every LOS in Section A, explained in order: a short story about a company that fits each idea, pictures that move when movement helps, and exam-style practice.',
   groups:[['A.1','Financial statements'],['A.2','Recognition, measurement, and valuation']],
-  files:['a1-primer.js?v=5','a1-users.js?v=15','a1-comp.js?v=13','a1-limits.js?v=10','a1-effects.js?v=8','a1-links.js?v=9','a1-prep.js?v=7','a1-consolidation.js?v=14','a1-ir.js?v=14',
+  files:['a1-primer.js?v=6','a1-users.js?v=15','a1-comp.js?v=13','a1-limits.js?v=10','a1-effects.js?v=8','a1-links.js?v=9','a1-prep.js?v=7','a1-consolidation.js?v=14','a1-ir.js?v=14',
    'a2-receivables.js?v=9','a2-inventory.js?v=12','a2-investments.js?v=11','a2-ppe.js?v=9','a2-liabilities.js?v=12','a2-taxes.js?v=10','a2-leases.js?v=9',
    'a2-equity.js?v=11','a2-revenue.js?v=16','a2-income.js?v=13','a2-gaap-ifrs.js?v=13']},
  {k:'B',deck:'p1b',section:'Section B',title:'Planning, Budgeting, and Forecasting',weight:20,
@@ -19,11 +19,11 @@ ST.SECTIONS=[
  {k:'C',deck:'p1c',section:'Section C',title:'Performance Management',weight:20,
   blurb:'How a company measures what happened against the plan: variances, responsibility centers and performance measures.',
   groups:[['C.1','Cost and variance measures'],['C.2','Responsibility centers and reporting segments'],['C.3','Performance measures']],
-  files:['c1-master.js?v=5','c1-flex.js?v=4','c1-std.js?v=2','c1-oh.js?v=3','c1-mix.js?v=3','c1-act.js?v=2','c2-resp.js?v=3','c2-seg.js?v=2','c2-tp.js?v=3','c2-mnc.js?v=2','c3-goals.js?v=2','c3-prof.js?v=2','c3-roi.js?v=2','c3-comp.js?v=2','c3-bsc.js?v=2']},
+  files:['c1-master.js?v=6','c1-flex.js?v=5','c1-std.js?v=3','c1-oh.js?v=4','c1-mix.js?v=4','c1-act.js?v=3','c2-resp.js?v=4','c2-seg.js?v=3','c2-tp.js?v=4','c2-mnc.js?v=3','c3-goals.js?v=3','c3-prof.js?v=3','c3-roi.js?v=3','c3-comp.js?v=3','c3-bsc.js?v=3']},
  {k:'D',deck:'p1d',section:'Section D',title:'Cost Management',weight:15,
   blurb:'What a product really costs: costing systems, overhead, the supply chain and process improvement.',
   groups:[['D.1','Measurement concepts'],['D.2','Costing systems'],['D.3','Overhead costs'],['D.4','Supply chain management'],['D.5','Business process improvement']],
-  files:['d1-behav.js?v=9','d1-meas.js?v=7','d1-varabs.js?v=10','d1-joint.js?v=9','d2-job.js?v=7','d2-abc.js?v=8','d2-life.js?v=7','d3-oh.js?v=6','d3-rates.js?v=5','d3-under.js?v=6','d3-svc.js?v=6','d4-lean.js?v=6','d4-sys.js?v=7','d4-out.js?v=5','d4-cap.js?v=6','d5-value.js?v=5','d5-bpr.js?v=6','d5-quality.js?v=4']},
+  files:['d1-behav.js?v=10','d1-meas.js?v=8','d1-varabs.js?v=11','d1-joint.js?v=10','d2-job.js?v=8','d2-abc.js?v=9','d2-life.js?v=8','d3-oh.js?v=7','d3-rates.js?v=6','d3-under.js?v=7','d3-svc.js?v=7','d4-lean.js?v=7','d4-sys.js?v=8','d4-out.js?v=6','d4-cap.js?v=7','d5-value.js?v=6','d5-bpr.js?v=7','d5-quality.js?v=5']},
  {k:'E',deck:'p1e',section:'Section E',title:'Internal Controls',weight:15,
   blurb:'Governance, risk and the controls that protect a company\'s assets, records and systems.',
   groups:[['E.1','Governance, risk, and compliance'],['E.2','System controls and security measures']],
