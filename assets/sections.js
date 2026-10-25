@@ -4,14 +4,14 @@
    A section with no topic files yet shows as "coming soon". Loaded after config.js and los.js, before core.js. */
 (function(){
 var ST=window.ST=window.ST||{};
-ST.ENC={"p1a":"7350bfa843","p1b":"3345dc4323","p1c":"afa00173ac","p1d":"bf8c977415","p1e":"6966659098","p1f":"baf2cdb791"};
+ST.ENC={"p1a":"6b9520e39e","p1b":"3345dc4323","p1c":"dd3e7fc789","p1d":"c3d5559a1d","p1e":"0c6a699c5a","p1f":"5069e1e3e3"};
 ST.SECTIONS=[
  {k:'A',deck:'p1a',section:'Section A',title:'External Financial Reporting Decisions',weight:15,
   blurb:'Every LOS in Section A, explained in order: a short story about a company that fits each idea, pictures that move when movement helps, and exam-style practice.',
   groups:[['A.1','Financial statements'],['A.2','Recognition, measurement, and valuation']],
-  files:['a1-primer.js?v=6','a1-users.js?v=15','a1-comp.js?v=13','a1-limits.js?v=10','a1-effects.js?v=8','a1-links.js?v=9','a1-prep.js?v=7','a1-consolidation.js?v=14','a1-ir.js?v=14',
-   'a2-receivables.js?v=9','a2-inventory.js?v=12','a2-investments.js?v=11','a2-ppe.js?v=9','a2-liabilities.js?v=12','a2-taxes.js?v=10','a2-leases.js?v=9',
-   'a2-equity.js?v=11','a2-revenue.js?v=16','a2-income.js?v=13','a2-gaap-ifrs.js?v=13']},
+  files:['a1-primer.js?v=7','a1-users.js?v=17','a1-comp.js?v=15','a1-limits.js?v=12','a1-effects.js?v=10','a1-links.js?v=11','a1-prep.js?v=8','a1-consolidation.js?v=15','a1-ir.js?v=16',
+   'a2-receivables.js?v=11','a2-inventory.js?v=13','a2-investments.js?v=13','a2-ppe.js?v=10','a2-liabilities.js?v=13','a2-taxes.js?v=11','a2-leases.js?v=10',
+   'a2-equity.js?v=12','a2-revenue.js?v=17','a2-income.js?v=14','a2-gaap-ifrs.js?v=14']},
  {k:'B',deck:'p1b',section:'Section B',title:'Planning, Budgeting, and Forecasting',weight:20,
   blurb:'From strategy to the master budget: every LOS in Section B, with forecasts and budgets you build and change yourself.',
   groups:[['B.1','Strategic planning'],['B.2','Budgeting concepts'],['B.3','Forecasting techniques'],['B.4','Budget methodologies'],['B.5','Annual profit plan and supporting schedules'],['B.6','Top-level planning and analysis']],
