@@ -228,7 +228,7 @@ Pager.prototype.slide=function(head,blocks,cls){
   while(defer.length){var d=defer[0];var r=this.fill(d,sb);if(!r){defer.shift();continue}next()}   // pictures still waiting: after the text, on this page if they fit, else on the next
 };
 function light(sb){var h=0;for(var i=0;i<sb.children.length;i++){var c=sb.children[i];if(c.tagName!=='P')return false;h+=c.getBoundingClientRect().height}return h<70}   // only an intro paragraph so far
-function isPic(e){return !!e&&(e.tagName==='FIGURE'||/(^|\s)(anm|scene|fig)(\s|$)/.test(e.className||''))}
+function isPic(e){return !!e&&(e.tagName==='FIGURE'||/(^|\s)(anm|scene|fig|quad|months)(\s|$)/.test(e.className||''))}   // a grid figure (quad) prints whole on one page (owner 26 Oct 02:33)
 /* a topic heading left alone at the bottom of a page goes with what follows */
 Pager.prototype.trail=function(){var l=this.body&&this.body.lastElementChild;if(l&&l.classList.contains('pv-th')){this.body.removeChild(l);return l}return null};
 
