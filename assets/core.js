@@ -1252,6 +1252,8 @@ function buildSteps(R0,R1,t){
 /* =========================================================
    ROUTER & START
    ========================================================= */
+ST.zoom=function(){var v=100;try{v=parseInt(localStorage.getItem('st-zoom')||'100',10)}catch(e){}return [80,90,100,110,125,150].indexOf(v)>=0?v:100};
+ST.applyZoom=function(){var v=ST.zoom();var st=document.documentElement.style;if('zoom' in st){st.zoom=v===100?'':String(v/100);st.fontSize=''}else st.fontSize=v===100?'':(v+'%')};   // zoom scales the whole layout; font-size is the fallback where zoom is not supported
 function route(){
   var h=location.hash||'#/',m;
   if(!$('#modal').hidden)closeModal();
@@ -1343,6 +1345,10 @@ function settings(at){
   var box=el('div','sett');
   if(ST.uiSettings)try{box.appendChild(ST.uiSettings())}catch(e){console.error(e)}   // Your screen: the tools on the slide (ui.js)
   box.appendChild(el('h3','sett-h','Appearance'));box.appendChild(appearance());
+  /* Text size (owner 26 Oct 02:46): 80 % to 150 %, kept on this device; applied to the whole page */
+  (function(){var ZK='st-zoom',Z=[80,90,100,110,125,150],z=el('div','','<h3 class="sett-h">Text size</h3><p class="note">Makes the text and the slides bigger or smaller on this device.</p><div class="seg sm" role="group" aria-label="Text size">'+Z.map(function(x){return '<button type="button" data-z="'+x+'">'+x+'%</button>'}).join('')+'</div>');
+    var paintZ=function(){var v=ST.zoom();$$('[data-z]',z).forEach(function(b){var on=+b.dataset.z===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})};
+    $$('[data-z]',z).forEach(function(b){b.onclick=function(){try{localStorage.setItem(ZK,b.dataset.z)}catch(e){}ST.applyZoom();paintZ()}});paintZ();box.appendChild(z)})();
   var vs=landStyles();if(vs.length){var vw=el('div','');var curV=function(){return orientPref()==='l'?landMode():'p'};
     vw.innerHTML='<h3 class="sett-h">Slide view</h3><p class="note">Portrait is for reading. The other views are for presenting on a wide screen (a computer or a projector); phones always show portrait. The L key, or the screen icon at the top of a slide, switches between portrait and the view you pick here.</p>'+
       '<div class="apx-r"><span class="seg sm vw-seg" role="group" aria-label="Slide view"><button type="button" data-v="p">Portrait</button>'+LSTY.filter(function(x){return vs.indexOf(x[0])>=0}).map(function(x){return '<button type="button" data-v="'+x[0]+'">'+x[2]+'</button>'}).join('')+'</span></div>'+
@@ -1380,7 +1386,7 @@ ST.settings=function(at){settings(at)};
 /* Settings in tabs, not one long page (owner 20 Oct 02:10): the sections (each starts with its h3.sett-h, whichever script added it) go into
    a few tabs; a tab with nothing for this person is not shown; the last tab used is remembered on this device. "ui" (from ⋯ → Your screen)
    opens Screen. A section a later script adds with a new title lands in More. */
-var SETT_TABS=[['look','Appearance',['Appearance','Motion']],['screen','Screen',['Your screen','Slide view','App']],['listen','Listen',['Listen']],
+var SETT_TABS=[['look','Appearance',['Appearance','Text size','Motion']],['screen','Screen',['Your screen','Slide view','App']],['listen','Listen',['Listen']],
   ['lang','Translate',['Translate']],['study','Study',['Focus tools','Exam tools','Reading time']],['more','More',[]]],SETT_K='st-sett-tab';
 function settTabs(box,at){
   var secs=[],cs=null;
@@ -1449,6 +1455,6 @@ ST.start=function(){
   if(ST.syncInit)ST.syncInit();
   if(ST.roleInit)ST.roleInit();
   if(ST.introFirst)ST.introFirst();
-  window.addEventListener('hashchange',route);route();
+  ST.applyZoom();window.addEventListener('hashchange',route);route();
 };
 })();

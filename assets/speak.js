@@ -10,7 +10,7 @@
    way people say them; in an exam set the explanations are never read. */
 (function(){
 var ST=window.ST,SS=window.speechSynthesis;if(!ST||!SS||!window.SpeechSynthesisUtterance)return;
-var K={p:'st-tts-p',l:'st-tts-l',b:'st-tts-b',a:'st-tts-a',w:'st-tts-w',t:'st-tts-t',e:'st-tts-e',v:'st-tts-voice',r:'st-tts-rate2',g:'st-tts-gap'};
+var K={vol:'st-tts-vol',p:'st-tts-p',l:'st-tts-l',b:'st-tts-b',a:'st-tts-a',w:'st-tts-w',t:'st-tts-t',e:'st-tts-e',v:'st-tts-voice',r:'st-tts-rate2',g:'st-tts-gap'};
 var DEF={p:'0',l:'1',b:'1',a:'0',w:'1',t:'1',e:'1'};   // Listen is on where the role allows it (its button: Settings → Your screen); hands-free stays off until turned on
 /* speeds as a share of the voice's own pace (owner 20 Oct 01:48, 01:57, 02:10: more steps, 60 % to 100 %, nothing faster — the students read English
    carefully). The old three were 0.8 / 0.95 / 1.1: a saved 0.8 or 0.95 stays, a saved "Faster" (1.1) becomes 100 %. */
@@ -31,6 +31,8 @@ function allowedHere(){return perm(hereBank()?'listenBank':'listen')}
 function onHere(){return opt(hereBank()?'b':'l')}
 function autoOn(){return !!(REC&&REC.scope==='lesson')||(perm('listenAuto')&&opt('a'))}
 function rate(){return parseFloat(rateKey())||0.95}
+function vol(){var v=parseInt(get(K.vol,'100'),10);return (isNaN(v)?100:Math.max(10,Math.min(100,v)))/100}   // the player's own volume (owner 26 Oct 02:45), on top of the device volume
+function setVol(n){n=Math.max(10,Math.min(100,Math.round(n/10)*10));put(K.vol,String(n));var o=document.querySelector('.tts-vol');if(o)o.value=String(n);return n}
 
 /* ---------- voices: the most natural English voice on the device first ---------- */
 function score(v){var n=v.name,s=0;
@@ -147,7 +149,8 @@ function edges(){var t=document.querySelector('.top'),n=document.querySelector('
   if(t){var a=t.getBoundingClientRect();if(a.bottom>0&&a.top<=1)top=a.bottom}
   if(n){var b=n.getBoundingClientRect();if(b.top<window.innerHeight&&b.bottom>=window.innerHeight-2)bot=b.top}
   return {top:top,bot:bot}}
-function follow(r){try{if(!r)return;var q=r.getBoundingClientRect();if(!q||(!q.height&&!q.width))return;var e=edges();
+var holdUntil=0;['wheel','touchmove'].forEach(function(ev){window.addEventListener(ev,function(){holdUntil=Date.now()+6000},{passive:true})});   // the reader scrolled by hand: the page stays put for 6 s (owner 26 Oct 02:45)
+function follow(r){try{if(!r)return;if(Date.now()<holdUntil)return;var q=r.getBoundingClientRect();if(!q||(!q.height&&!q.width))return;var e=edges();
   if(q.top>=e.top+8&&q.bottom<=e.bot-12)return;
   var still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.scrollTo({top:Math.max(0,window.scrollY+q.top-(e.top+(e.bot-e.top)*0.3)),behavior:still?'auto':'smooth'})}catch(x){}}
@@ -169,7 +172,7 @@ function go(r){var g=++r.gen,v=pick(),word=opt('w');r.state='play';paint();SS.ca
     var p=b.ps[r.k];
     if(!b.el.classList.contains('tts-on')){document.querySelectorAll('.tts-on').forEach(function(e){e.classList.remove('tts-on')});b.el.classList.add('tts-on')}
     var sr=b.spanS(p.off,p.off+p.t.length);hl('tts-s',sr);hl('tts-w',null);follow(sr);   // the page follows the sentence
-    var u=new SpeechSynthesisUtterance(p.t);if(v){u.voice=v;u.lang=v.lang}else u.lang='en-US';u.rate=rate();
+    var u=new SpeechSynthesisUtterance(p.t);if(v){u.voice=v;u.lang=v.lang}else u.lang='en-US';u.rate=rate();u.volume=vol();
     if(word&&HL)u.onboundary=function(e){if(r.gen!==g||e.name&&e.name!=='word')return;var a=p.off+e.charIndex,len=e.charLength;
       if(!len){var mm=/^\S+/.exec(b.S.slice(a));len=mm?mm[0].length:1}var wr=b.spanS(a,a+len);hl('tts-w',wr);follow(wr)};   // … and a long sentence follows its words
     var done=false,fin=function(){if(done||r.gen!==g)return;done=true;r.k++;var ms=gapMs();if(ms&&r.k<b.ps.length){hl('tts-w',null);setTimeout(say,ms)}else say()};   // the pause after a sentence; say() checks gen, so Pause / Stop during it holds
@@ -234,9 +237,20 @@ document.addEventListener('click',function(e){
   fl.style.left=(Math.max(8,Math.min(vw-w-8,e.clientX-w/2))+window.scrollX)+'px';fl.style.top=(e.clientY+14+window.scrollY)+'px'});
 
 /* ---------- keys, leaving the page ---------- */
-document.addEventListener('keydown',function(e){if(e.key!=='k'&&e.key!=='K')return;if(e.ctrlKey||e.metaKey||e.altKey)return;
-  var tg=e.target&&e.target.tagName;if(/INPUT|SELECT|TEXTAREA/.test(tg||''))return;var m=document.getElementById('modal');if(m&&!m.hidden)return;
-  if(!cur||!cur.sec.isConnected)return;e.preventDefault();if(e.shiftKey){if(REC)endRec();else if(run&&run.ctx===cur)stop()}else toggle(cur)});
+/* keys (owner 26 Oct 02:45): Space = play / pause · K = the same · Shift+K = stop · Shift+← / Shift+→ = previous / next sentence ·
+   − / + = the player's volume · ↑ / ↓ scroll as usual, and the page then stays where you put it for 6 s */
+function stepSentence(d){if(!run||run.ctx!==cur)return;var r=run,b=r.blocks[r.i];if(!b)return;
+  r.k+=d;while(r.k<0&&r.i>0){r.i--;r.k+=r.blocks[r.i].ps.length}if(r.k<0)r.k=0;
+  while(r.k>=r.blocks[r.i].ps.length&&r.i<r.blocks.length-1){r.k-=r.blocks[r.i].ps.length;r.i++}if(r.k>=r.blocks[r.i].ps.length)r.k=r.blocks[r.i].ps.length-1;
+  holdUntil=0;go(r)}
+document.addEventListener('keydown',function(e){if(e.ctrlKey||e.metaKey||e.altKey)return;
+  var tg=e.target&&e.target.tagName;if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(tg||'')&&e.key!==' ')return;if(/INPUT|SELECT|TEXTAREA/.test(tg||''))return;var m=document.getElementById('modal');if(m&&!m.hidden)return;
+  if(!cur||!cur.sec.isConnected)return;var k=e.key;
+  if(k==='k'||k==='K'){e.preventDefault();if(e.shiftKey){if(REC)endRec();else if(run&&run.ctx===cur)stop()}else toggle(cur);return}
+  if(k===' '){if(!run||run.ctx!==cur){if(!onHere())return}e.preventDefault();toggle(cur);return}
+  if(e.shiftKey&&(k==='ArrowLeft'||k==='ArrowRight')){if(!run||run.ctx!==cur)return;e.preventDefault();e.stopImmediatePropagation();stepSentence(k==='ArrowRight'?1:-1);return}
+  if(k==='ArrowUp'||k==='ArrowDown'||k==='PageUp'||k==='PageDown'||k==='Home'||k==='End'){holdUntil=Date.now()+6000;return}
+  if(k==='-'||k==='_'||k==='+'||k==='='){if(!run||run.ctx!==cur)return;e.preventDefault();var n=setVol(Math.round(vol()*100)+((k==='-'||k==='_')?-10:10));if(run.state==='play')go(run);var t=document.querySelector('.tts-bar .tts-b');if(t)t.title='Listen (K) · volume '+n+'%'}},true);
 window.addEventListener('hashchange',function(){hideFl();if(run&&run.state==='play'&&autoOn())pendingAuto=true;stop();cur=null});   // runs before the deck draws the next slide
 window.addEventListener('pagehide',stop);
 document.addEventListener('visibilitychange',function(){if(document.hidden&&!REC)pause()});
@@ -309,6 +323,8 @@ function toMp3(blob,prog){var SR=44100;
     rows.map(function(r){return '<div class="sett-row"><p class="note tts-rl"><b>'+r[1]+'</b> — '+r[2]+'</p><span class="seg sm" role="group" aria-label="'+r[1]+'"><button type="button" data-o="'+r[0]+'" data-v="1">On</button><button type="button" data-o="'+r[0]+'" data-v="0">Off</button></span></div>'}).join('')+
     '<div class="sett-row"><p class="note tts-rl"><b>Pause between sentences</b> — a short silence after each sentence, to take it in (or translate it in your head) before the next</p><select class="sel-in tts-gap" aria-label="Pause between sentences">'+
       GAPS.map(function(x){return '<option value="'+x[0]+'">'+x[1]+'</option>'}).join('')+'</select></div>'+
+    '<div class="sett-row"><p class="note tts-rl"><b>Volume</b> — the player\'s own level, on top of the device volume (keys − and +)</p><select class="sel-in tts-vol" aria-label="Volume">'+[100,90,80,70,60,50,40,30,20,10].map(function(x){return '<option value="'+x+'">'+x+'%</option>'}).join('')+'</select></div>'+
+    '<p class="note"><b>Keys</b>: Space or K = play / pause · Shift+K = stop · Shift+← / Shift+→ = previous / next sentence · ↑ ↓ scroll (the page then stays for 6 s) · − + = volume</p>'+
     '<p class="note tts-rl"><b>Voice</b> — ★ is the most natural voice found on this device</p><div class="apx-r tts-vr"><select class="tts-v" aria-label="Voice"></select><button type="button" class="btn sm tts-test">Test</button></div>'+
     '<details class="tts-guide"><summary>Make the voice sound more natural</summary>'+
     '<p class="note">The voice comes from this device, so it can be improved on the device itself:</p>'+
@@ -322,11 +338,12 @@ function toMp3(blob,prog){var SR=44100;
     '<p class="note"><b>Computer</b>: open the platform in <b>Microsoft Edge</b> and pick a voice with <b>Natural</b> in its name.</p></details>';
   function paintS(){w.querySelectorAll('[data-o]').forEach(function(b){var on=(b.dataset.v==='1')===opt(b.dataset.o);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
   var gs=w.querySelector('.tts-gap');gs.value=gapKey();gs.onchange=function(){put(K.g,gs.value)};
+  var vo=w.querySelector('.tts-vol');vo.value=String(Math.round(vol()*100));vo.onchange=function(){setVol(+vo.value);if(run&&run.state==='play')go(run)};
   w.querySelectorAll('[data-o]').forEach(function(b){b.onclick=function(){var was=opt(b.dataset.o);put(K[b.dataset.o],b.dataset.v);paintS();
     if(!was&&b.dataset.v==='1'&&(b.dataset.o==='l'||b.dataset.o==='b')){var g=w.querySelector('.tts-guide');g.open=true;try{g.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}}   // turning it on opens the voice guide
     if(cur&&cur.bar&&(b.dataset.o==='l'||b.dataset.o==='b')){if(!onHere()){stop();cur.bar.hidden=true}else cur.bar.hidden=false}}});
   var vs=w.querySelector('.tts-v');fillVoices(vs);vs.onchange=function(){var x=voices[+vs.value];if(x)put(K.v,x.name);if(run&&run.state==='play')go(run)};
-  w.querySelector('.tts-test').onclick=function(){stop();var v=pick(),one=function(t){var u=new SpeechSynthesisUtterance(t);if(v){u.voice=v;u.lang=v.lang}u.rate=rate();return u};   // two sentences, with the chosen pause between them
+  w.querySelector('.tts-test').onclick=function(){stop();var v=pick(),one=function(t){var u=new SpeechSynthesisUtterance(t);if(v){u.voice=v;u.lang=v.lang}u.rate=rate();u.volume=vol();return u};   // two sentences, with the chosen pause between them
     var a=one('This is how the lessons will sound.'),b=one('Revenue minus the cost of goods sold gives the gross profit.');a.onend=function(){setTimeout(function(){SS.speak(b)},gapMs())};SS.speak(a)};
   paintS();return w});
 
