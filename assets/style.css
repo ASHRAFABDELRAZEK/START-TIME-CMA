@@ -1336,8 +1336,6 @@ table.t.gl td:last-child{color:var(--ink2);font-size:.93em}
 .trs-t-on .trs-rb{ruby-position:under}
 .trs-t-on .trs-rb>rt{display:ruby-text;font:600 .62em/1.2 'IBM Plex Sans Arabic',var(--f);color:var(--teal);padding-top:2px}
 .trs-t-on .trs-rb{background:var(--soft-teal);border-radius:4px}
-.trs-ln{display:none;margin:3px 0 0;font:500 .9em/1.6 'IBM Plex Sans Arabic',var(--f);color:var(--teal);text-align:right}
-.trs-l-on .trs-ln{display:block}
 .trs-note{margin:0 0 8px;font-size:.9em;color:var(--muted,#667)}
 .ui-t{font:700 19px/1 var(--f)}
 body.trs-off .trs-sl{display:none}

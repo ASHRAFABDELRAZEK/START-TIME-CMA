@@ -22,7 +22,7 @@ var IC={
 /* [id, label, hint, icon]. 'translate' shows a T (owner 26 Oct 2026); what it does is chosen in Settings → Translate. */
 var TOOLS=[
  ['listen','Listen','Reads the slide aloud. The play controls show only while it reads (K)',IC.listen],
- ['translate','Translate (T)','Whole slide, line by line or key terms only: choose in Settings',null],
+ ['translate','Translate (T)','Whole slide or key terms only: choose in Settings',null],
  ['calc','Calculator','Only on slides with numbers',IC.calc],
  ['tables','PV / FV tables','Only on present / future value slides',IC.tables],
  ['outline','Slide list','Go to any slide (G)',ICON.list],
@@ -53,7 +53,7 @@ function perm(k){return (ST.canStaff&&ST.canStaff(k))||(ST.can&&ST.can(k))}
 /* the tools this person has at all (for the settings list) */
 function avail(id){switch(id){
   case 'listen':return perm('listen')||perm('listenBank');
-  case 'translate':return perm('langSlide')||perm('langQ')||perm('langLines')||perm('langTerms');
+  case 'translate':return perm('langSlide')||perm('langQ')||perm('langTerms');
   case 'excel':return ST.can('excel');case 'print':return ST.can('print');
   case 'answer':return ST.can('answers');case 'record':return perm('listenRecord')&&!/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
   case 'view':return window.innerWidth>=700;case 'timer':return !!ST.focus;

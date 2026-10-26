@@ -13,10 +13,10 @@ function perm(k){try{return !!(ST.canStaff&&ST.canStaff(k))||!!(ST.can&&ST.can(k
 function inBank(){var h=location.hash||'';if(/^#\/(bank|practice|mistakes|set-result)(\/|$)/.test(h))return true;return /^#\/t\//.test(h)&&!!ST.inBank}
 function allowedSel(){return perm(inBank()?'langBank':'language')}       // selected text, here on this page or slide
 function allowedAll(){return perm(inBank()?'langQ':'langSlide')}          // the whole slide / question
-/* the T button's three choices, each its own permission on the Roles sheet */
-function okMode(m){return m==='all'?allowedAll():m==='lines'?perm('langLines'):m==='terms'?perm('langTerms'):false}
-function allowedT(){return okMode('all')||okMode('lines')||okMode('terms')}
-function allowedAny(){return perm('language')||perm('langBank')||perm('langSlide')||perm('langQ')||perm('langLines')||perm('langTerms')}
+/* the T button's two choices, each its own permission on the Roles sheet */
+function okMode(m){return m==='all'?allowedAll():m==='terms'?perm('langTerms'):false}
+function allowedT(){return okMode('all')||okMode('terms')}
+function allowedAny(){return perm('language')||perm('langBank')||perm('langSlide')||perm('langQ')||perm('langTerms')}
 function isOnK(k){var v='1';try{v=localStorage.getItem(k)||'1'}catch(e){}return v==='1'}   // on where the role allows it, until the person turns it off
 function isOn(){return isOnK(inBank()?KEYB:KEY)}                        // the switch for where the person is now: lessons or question bank
 function setOnK(k,v){try{localStorage.setItem(k,v?'1':'0')}catch(e){}boot();if(!v){hideFl();hidePop()}}
@@ -118,7 +118,7 @@ var WAIT='<p class="trs-wait">جاري الترجمة<span>.</span><span>.</span
 
 /* on / off in Settings — shown only to roles with the permission; on until turned off */
 (ST.settingsExtra=ST.settingsExtra||[]).push(function(){if(!allowedAny())return null;
-  var rows=[];if(perm('language')||perm('langSlide')||perm('langLines')||perm('langTerms'))rows.push([KEY,'Lessons','the explanation slides']);if(perm('langBank')||perm('langQ')||perm('langLines')||perm('langTerms'))rows.push([KEYB,'Question bank','the questions in the bank, sets and mistakes']);
+  var rows=[];if(perm('language')||perm('langSlide')||perm('langTerms'))rows.push([KEY,'Lessons','the explanation slides']);if(perm('langBank')||perm('langQ')||perm('langTerms'))rows.push([KEYB,'Question bank','the questions in the bank, sets and mistakes']);
   var w=document.createElement('div');w.innerHTML='<h3 class="sett-h">Translate</h3><p class="note">Select any English text and press ترجم, or press the T button on a slide (what it does is chosen below): the Arabic shows right there, with a link to Google Translate. Each part has its own switch.</p>'+
     ((function(){var ms=MODES.filter(function(m){return m[0]==='all'?(perm('langSlide')||perm('langQ')):okMode(m[0])});return ms.length>1})()?'<div class="sett-row"><p class="note"><b>The T button</b> — what it does on each slide (English stays the base)</p><select class="sel-in trs-mode" aria-label="What the T button does">'+MODES.filter(function(m){return m[0]==='all'?(perm('langSlide')||perm('langQ')):okMode(m[0])}).map(function(m){return '<option value="'+m[0]+'"'+(mode()===m[0]?' selected':'')+'>'+m[1]+' — '+m[2]+'</option>'}).join('')+'</select></div>':'')+
     rows.map(function(r,i){return '<div class="sett-row"><p class="note"><b>'+r[1]+'</b> — '+r[2]+'</p><span class="seg sm" role="group" aria-label="Translate: '+r[1]+'"><button type="button" data-k="'+i+'" data-tr="1">On</button><button type="button" data-k="'+i+'" data-tr="0">Off</button></span></div>'}).join('');
@@ -130,10 +130,9 @@ window.addEventListener('hashchange',function(){if(document.body)boot()});
 if(document.body)boot();else document.addEventListener('DOMContentLoaded',boot);
 
 /* the T button on each slide. What it does is chosen in Settings (owner 26 Oct 2026):
-   "all" = the whole slide in Arabic under the title (the default); "lines" = the Arabic under each paragraph, line or table cell;
-   "terms" = only the key terms: each glossary term in the slide gets its Arabic right under it. English stays the base in all three. */
-var KEYM='st-trs-mode',MODES=[['all','Whole slide','the Arabic of the whole slide, under the title'],['lines','Line by line','the Arabic under each paragraph and line'],['terms','Key terms only','the Arabic under each key term in the text']];
-function mode(){var v='all';try{v=localStorage.getItem(KEYM)||'all'}catch(e){}if(okMode(v))return v;return ['all','lines','terms'].filter(okMode)[0]||'all'}   // a choice the role no longer has falls to the first one it has
+   "all" = the whole slide in Arabic under the title (the default); "terms" = only the key terms: each glossary term in the slide gets its Arabic right under it. English stays the base in all three. */
+var KEYM='st-trs-mode',MODES=[['all','Whole slide','the Arabic of the whole slide, under the title'],['terms','Key terms only','the Arabic under each key term in the text']];
+function mode(){var v='all';try{v=localStorage.getItem(KEYM)||'all'}catch(e){}if(okMode(v))return v;return ['all','terms'].filter(okMode)[0]||'all'}   // a choice the role no longer has falls to the first one it has
 function setMode(v){try{localStorage.setItem(KEYM,v)}catch(e){}}
 /* key terms: every glossary term of the open topics with its Arabic, longest first, in one pattern */
 var TR=null;
@@ -154,11 +153,6 @@ function wrapTerms(root,t){var w=document.createTreeWalker(root,NodeFilter.SHOW_
       var rt=document.createElement('rt');rt.lang='ar';rt.dir='rtl';rt.textContent=a;rb.appendChild(rt);f.appendChild(rb);i=m.index+m[0].length;c++}
     if(f){if(i<v.length)f.appendChild(document.createTextNode(v.slice(i)));n.parentNode.replaceChild(f,n)}});
   return c}
-/* line by line: the blocks of a slide that hold words of their own (a paragraph, a list item, a table cell, a heading) */
-var BLK='p,li,td,th,h3,h4,dt,dd,figcaption,.q,.qc-o,.why';
-function blocks(root){return Array.prototype.filter.call(root.querySelectorAll(BLK),function(e){
-  if(e.closest(TSKIP.replace(',ruby','').replace(',h2','')))return false;if(e.querySelector(BLK))return false;
-  var t=(e.innerText||'').replace(/\s+/g,' ').trim();return t.length>2&&/[a-z]{2}/i.test(t)})}
 var prevSlide=ST.deckSlide;
 ST.deckSlide=function(sec,body0,t,s){if(prevSlide)prevSlide.apply(this,arguments);if(!allowedT())return;
   var pr=ST.isPractice&&ST.isPractice(s)&&s.t!=='trace';
@@ -178,22 +172,10 @@ ST.deckSlide=function(sec,body0,t,s){if(prevSlide)prevSlide.apply(this,arguments
     var go=function(){if(!sec.__trT){var tr=termRe();if(!tr){note('ترجمة المصطلحات مش جاهزة دلوقتي. جرّب تاني بعد شوية.');return}sec.__trT=wrapTerms(sb(),tr)+1}
       if(sec.__trT===1)note('مفيش مصطلحات من الجلوسري في الشريحة دي.');sec.classList.add('trs-t-on');open1(true)};
     if(ST.glLoad&&!sec.__trT){b.disabled=true;Promise.resolve(ST.glLoad()).then(function(){b.disabled=false;go()},function(){b.disabled=false;go()})}else go()};
-  var doLines=function(){if(sec.classList.contains('trs-l-on')){sec.classList.remove('trs-l-on');open1(false);return}
-    sec.classList.add('trs-l-on');open1(true);if(sec.__trL)return;sec.__trL=1;
-    var bs=blocks(sb()),txt=bs.map(function(e){return (e.innerText||'').replace(/\s+/g,' ').trim().slice(0,PART)});
-    if(!bs.length){note('مفيش كلام إنجليزي في الشريحة دي.');return}
-    if(!canCall()){open(txt.join('\n'));return}
-    var outs=bs.map(function(e){var d=document.createElement(/^(TD|TH|LI)$/.test(e.tagName)?'span':'div');d.className='trs-ln';d.dir='rtl';d.lang='ar';d.innerHTML='<span class="trs-wait">…</span>';e.appendChild(d);return d});
-    var chunk=function(i){if(i>=bs.length)return;var ps=txt.slice(i,i+PARTS);
-      translate(ps,where,'lines').then(function(r){ps.forEach(function(_,j){var a=r&&r.ok&&r.ar&&r.ar[j];var o=outs[i+j];
-          if(a)o.innerHTML=arHtml(a);else if(o.parentNode)o.parentNode.removeChild(o)});
-        if(!(r&&r.ok)){note(failText(r));return}chunk(i+PARTS)},
-        function(){outs.slice(i).forEach(function(o){if(o.parentNode)o.parentNode.removeChild(o)});note(failText(null))})};
-    chunk(0)};
   b.onclick=function(){var m=mode();
     if(m!=='all'&&panel&&!panel.hidden){panel.hidden=true}
-    if(m!=='terms')sec.classList.remove('trs-t-on');if(m!=='lines')sec.classList.remove('trs-l-on');
-    (m==='terms'?doTerms:m==='lines'?doLines:doAll)()};
+    if(m!=='terms')sec.classList.remove('trs-t-on');
+    (m==='terms'?doTerms:doAll)()};
   var h2=sec.querySelector('h2');if(h2&&h2.parentNode===sec)h2.insertAdjacentElement('afterend',b);else sec.insertBefore(b,body0)};
 
 /* the box under selected text */
