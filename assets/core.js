@@ -1253,7 +1253,11 @@ function buildSteps(R0,R1,t){
    ROUTER & START
    ========================================================= */
 ST.zoom=function(){var v=100;try{v=parseInt(localStorage.getItem('st-zoom')||'100',10)}catch(e){}return [80,90,100,110,125,150].indexOf(v)>=0?v:100};
-ST.applyZoom=function(){var v=ST.zoom();var st=document.documentElement.style;if('zoom' in st){st.zoom=v===100?'':String(v/100);st.fontSize=''}else st.fontSize=v===100?'':(v+'%')};   // zoom scales the whole layout; font-size is the fallback where zoom is not supported
+/* zoom goes on the page parts (header, content, footer), not on <html>: menus and pop-ups hang from <body> and are placed by
+   on-screen coordinates, so they stay inside the window at any size (owner 26 Oct 2026: the ⋯ menu ran off the page at 150%) */
+ST.applyZoom=function(){var v=ST.zoom(),de=document.documentElement.style;de.zoom='';
+  if('zoom' in de){de.fontSize='';['top','app','foot'].forEach(function(id){var e=document.getElementById(id),z=id==='top'&&window.innerWidth<600&&v>100?100:v;if(e)e.style.zoom=z===100?'':String(z/100)})}   // a phone's header has no room to grow
+  else de.fontSize=v===100?'':(v+'%')};   // font-size is the fallback where zoom is not supported
 function route(){
   var h=location.hash||'#/',m;
   if(!$('#modal').hidden)closeModal();

@@ -1332,6 +1332,14 @@ table.t.gl td:last-child{color:var(--ink2);font-size:.93em}
 .trs-fl{position:absolute;z-index:80;background:var(--navy);color:#fff;border:0;border-radius:999px;padding:7px 16px;font:inherit;font-size:14px;line-height:1.2;cursor:pointer;box-shadow:0 4px 14px rgba(17,34,64,.25)}
 .trs-fl[hidden]{display:none}
 .trs-sl{margin:2px 0 10px}
+.trs-rb>rt{display:none}
+.trs-t-on .trs-rb{ruby-position:under}
+.trs-t-on .trs-rb>rt{display:ruby-text;font:600 .62em/1.2 'IBM Plex Sans Arabic',var(--f);color:var(--teal);padding-top:2px}
+.trs-t-on .trs-rb{background:var(--soft-teal);border-radius:4px}
+.trs-ln{display:none;margin:3px 0 0;font:500 .9em/1.6 'IBM Plex Sans Arabic',var(--f);color:var(--teal);text-align:right}
+.trs-l-on .trs-ln{display:block}
+.trs-note{margin:0 0 8px;font-size:.9em;color:var(--muted,#667)}
+.ui-t{font:700 19px/1 var(--f)}
 body.trs-off .trs-sl{display:none}
 /* translation inside the page: the box under selected text, and the panel under a slide title */
 .trs-pop{position:absolute;z-index:81;box-sizing:border-box;max-width:calc(100vw - 16px);background:var(--card);color:var(--ink);border:1px solid var(--line2);border-radius:14px;
@@ -1368,7 +1376,7 @@ body.trs-off .trs-sl{display:none}
 .trs-terms span{display:flex;justify-content:space-between;align-items:baseline;gap:4px 14px;flex-wrap:wrap;padding:2px 0}
 .trs-terms bdi[dir="ltr"]{font-weight:600;color:var(--ink2);text-align:left;margin-right:auto}
 .trs-g{display:inline-block;margin-top:4px;font-size:13px;color:var(--muted)}
-@media print{.trs-fl,.trs-sl,.trs-pop,.trs-panel{display:none!important}}
+@media print{.trs-fl,.trs-sl,.trs-pop,.trs-panel,.trs-ln,.trs-note,.trs-rb>rt{display:none!important}}
 /* animation player (assets/anim.js): colour = meaning, the same on every slide */
 :root{--an-ico:#1B2B4B;--an-asset:#0F766E;--an-asset-bg:#E1F2EE;--an-liab:#C2410C;--an-liab-bg:#FCEBE1;--an-eq:#4338CA;--an-eq-bg:#ECEDFC;--an-inc:#15803D;--an-inc-bg:#E4F3E8;
   --an-exp:#B42318;--an-exp-bg:#FCE8E6;--an-cash:#0369A1;--an-cash-bg:#E0EFF8;--an-key:#A16207;--an-key-bg:#FBF0CF;--an-neu:#475569;--an-neu-bg:#EEF2F7}

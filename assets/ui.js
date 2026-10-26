@@ -19,10 +19,10 @@ var IC={
  screen:SVG('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
  focus:SVG('<path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.5"/>')
 };
-/* [id, label, hint, icon]. 'translate' shows the Arabic letter. */
+/* [id, label, hint, icon]. 'translate' shows a T (owner 26 Oct 2026); what it does is chosen in Settings → Translate. */
 var TOOLS=[
  ['listen','Listen','Reads the slide aloud. The play controls show only while it reads (K)',IC.listen],
- ['translate','Translate the slide','The Arabic opens under the title',null],
+ ['translate','Translate (T)','Whole slide, line by line or key terms only: choose in Settings',null],
  ['calc','Calculator','Only on slides with numbers',IC.calc],
  ['tables','PV / FV tables','Only on present / future value slides',IC.tables],
  ['outline','Slide list','Go to any slide (G)',ICON.list],
@@ -53,7 +53,7 @@ function perm(k){return (ST.canStaff&&ST.canStaff(k))||(ST.can&&ST.can(k))}
 /* the tools this person has at all (for the settings list) */
 function avail(id){switch(id){
   case 'listen':return perm('listen')||perm('listenBank');
-  case 'translate':return perm('langSlide')||perm('langQ');
+  case 'translate':return perm('langSlide')||perm('langQ')||perm('langLines')||perm('langTerms');
   case 'excel':return ST.can('excel');case 'print':return ST.can('print');
   case 'answer':return ST.can('answers');case 'record':return perm('listenRecord')&&!/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
   case 'view':return window.innerWidth>=700;case 'timer':return !!ST.focus;
@@ -70,7 +70,7 @@ function ctrls(d){var top=$('.dk-top',d),sec=$('section.slide',d);if(!top||!sec)
     excel:$('.dk-xl',top),print:$('.dk-pr',top),full:$('.dk-fs',top),view:$('.dk-or',top),answer:$('.sol-b',sec),record:$('.tts-rec',sec),
     timer:ST.focus?{click:function(){ST.focus.panel()},virtual:1}:null}}}
 var MOVE={calc:1,tables:1,outline:1,excel:1,print:1,full:1,view:1};   // header buttons: moved into the row as they are
-function proxy(id,orig){var x=LABEL[id],b=el('button','ib ui-px ui-'+id,x[3]||'<span class="ui-ar" lang="ar">ع</span>');b.type='button';
+function proxy(id,orig){var x=LABEL[id],b=el('button','ib ui-px ui-'+id,x[3]||'<span class="ui-ar ui-t">T</span>');b.type='button';
   var t=id==='translate'?(orig.textContent||'ترجم'):x[1];b.title=t;b.setAttribute('aria-label',t);
   b.onclick=function(){closeMenu();orig.click();paintPx(b,id,orig)};paintPx(b,id,orig);return b}
 function paintPx(b,id,orig){var on=false;
@@ -102,7 +102,7 @@ function build(d){
 }
 function openMenu(btn,items,d){closeMenu();menuFor=btn;btn.setAttribute('aria-expanded','true');btn.classList.add('on');
   var m=el('div','s-menu');m.setAttribute('role','menu');m.setAttribute('aria-label','More tools');
-  var add=function(icon,label,hint,fn,cls){var b=el('button','s-mi'+(cls?' '+cls:''),'<span class="s-mi-i">'+(icon||'<span class="ui-ar" lang="ar">ع</span>')+'</span><span><b>'+esc(label)+'</b>'+(hint?'<small>'+esc(hint)+'</small>':'')+'</span>');
+  var add=function(icon,label,hint,fn,cls){var b=el('button','s-mi'+(cls?' '+cls:''),'<span class="s-mi-i">'+(icon||'<span class="ui-ar ui-t">T</span>')+'</span><span><b>'+esc(label)+'</b>'+(hint?'<small>'+esc(hint)+'</small>':'')+'</span>');
     b.type='button';b.setAttribute('role','menuitem');b.onclick=function(e){e.stopPropagation();closeMenu();fn()};m.appendChild(b);return b};
   items.forEach(function(it){var x=LABEL[it[0]],o=it[1],lab=x[1],hint=x[2];
     if(it[0]==='listen'){var tb=o.closest('.tts-bar');var st=tb&&tb.classList.contains('playing')?'Pause':tb&&tb.classList.contains('paused')?'Resume':'';if(st)lab=st+' reading'}

@@ -100,7 +100,7 @@ function catalog(){var key='st-cat2-'+DECK,list=ST.topics.filter(function(t){ret
 ST.translateCall=function(parts,where,mode){
   var s=ST.session();
   if(!enabled()||!s||!s.code)return Promise.reject(new Error('offline'));
-  return post({op:'translate',code:s.code,parts:parts,where:where==='bank'?'bank':'lesson',mode:mode==='all'?'all':'sel'})
+  return post({op:'translate',code:s.code,parts:parts,where:where==='bank'?'bank':'lesson',mode:mode==='all'||mode==='lines'?mode:'sel'})
     .then(function(res){if(res&&!res.ok&&res.auth)lockOut(res.error);return res||{ok:false,error:'No answer from the sheet.'}});
 };
 /* key terms in Arabic (Key terms column, Glossary page, printed glossary): [English terms] → {ar: {term in lower case: Arabic}} */

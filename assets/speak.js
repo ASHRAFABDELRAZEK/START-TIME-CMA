@@ -80,7 +80,7 @@ function pieces(S){var out=[],st=0,rx=/[.!?]+["')\]]*(?=\s|$)/g,m;
   while((m=rx.exec(S))){var e=m.index+m[0].length;push(st,e);st=e}if(st<S.length)push(st,S.length);return out}
 
 /* ---------- reading blocks built from the page's own text nodes (so a word can be highlighted where it is) ---------- */
-var SKIP='svg,.anim,.diagw,.tts-bar,.rd-bar,.trs-sl,script,style';
+var SKIP='svg,.anim,.diagw,.tts-bar,.rd-bar,.trs-sl,.trs-panel,.trs-ln,rt,script,style';
 function isBlockEl(e){var d=getComputedStyle(e).display;return d!=='inline'&&d!=='inline-block'&&d!=='contents'}
 function Block(el,table){this.el=el;this.table=!!table;this.R='';this.parts=[]}
 Block.prototype.stop=function(){var t=this.R.replace(/\s+$/,'');return this.lit(!t?'':/[.!?:;,]$/.test(t)?' ':'. ')};
