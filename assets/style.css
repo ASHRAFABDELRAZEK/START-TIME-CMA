@@ -186,7 +186,10 @@ details.rv[open]{background:var(--card)}
 @media screen and (min-width:2800px){:root{--wz:1.7}}
 @media screen and (min-width:1440px) and (max-height:720px){:root{--wz:1.1}}   /* a short window keeps room for the slide */
 html:not(.printing):not(:fullscreen) body:not(.land-on) main:not(:has(.sheets)),
-html:not(.printing):not(:fullscreen) body:not(.land-on) .foot{zoom:var(--wz,1);--zf:var(--wz,1)}   /* --zf: the zoom really applied (vh inside is multiplied by it) */
+html:not(.printing):not(:fullscreen) body:not(.land-on) .foot{zoom:calc(var(--wz,1) * var(--uz,1));--zf:calc(var(--wz,1) * var(--uz,1))}
+/* --uz: the person's own Text size (Settings), on top of the wide-screen zoom, so 110% is always bigger than 100% (owner 26 Oct 2026) */
+html:not(.printing) main,html:not(.printing) .foot{zoom:var(--uz,1);--zf:var(--uz,1)}
+html:not(.printing) #top{zoom:var(--uzt,1)}   /* --zf: the zoom really applied (vh inside is multiplied by it) */
 
 /* ---------- tables ---------- */
 .tw{overflow-x:auto;margin:10px 0;border-radius:12px;border:1px solid var(--line)}
