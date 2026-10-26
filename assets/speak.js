@@ -233,8 +233,8 @@ document.addEventListener('click',function(e){
   if(mine&&(run.state==='play'||run.state==='pause')){run.i=at.i;run.k=at.k;go(run);return}
   if(!fl){fl=document.createElement('button');fl.type='button';fl.className='tts-fl';fl.textContent='▶ Read from here';fl.hidden=true;document.body.appendChild(fl)}
   fl.onclick=function(){hideFl();if(cur===c)startCtx(c,blocks,at.i,at.k)};
-  fl.hidden=false;var w=fl.offsetWidth||140,vw=document.documentElement.clientWidth;
-  fl.style.left=(Math.max(8,Math.min(vw-w-8,e.clientX-w/2))+window.scrollX)+'px';fl.style.top=(e.clientY+14+window.scrollY)+'px'});
+  fl.hidden=false;var z=ST.pz?ST.pz():1,w=fl.getBoundingClientRect().width||140*z,vw=document.documentElement.clientWidth;   // the button has the page's zoom
+  fl.style.left=((Math.max(8,Math.min(vw-w-8,e.clientX-w/2))+window.scrollX)/z)+'px';fl.style.top=((e.clientY+14+window.scrollY)/z)+'px'});
 
 /* ---------- keys, leaving the page ---------- */
 /* keys (owner 26 Oct 02:45): Space = play / pause · K = the same · Shift+K = stop · Shift+← / Shift+→ = previous / next sentence ·

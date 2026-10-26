@@ -188,12 +188,12 @@ function showPop(info){var text=info.text;
   var ps=parts(text),where=inBank()?'bank':'lesson';
   pop.innerHTML='<button type="button" class="trs-x" aria-label="إغلاق">✕</button><div class="trs-in">'+WAIT+'</div>';pop.hidden=false;
   pop.querySelector('.trs-x').onclick=hidePop;
-  var vw=document.documentElement.clientWidth,w=Math.min(440,vw-16);pop.style.width=w+'px';
+  var z=ST.pz?ST.pz():1,vw=document.documentElement.clientWidth,w=Math.min(440*z,vw-16);pop.style.width=(w/z)+'px';   // the box has the page's zoom
   var x=Math.max(8,Math.min(vw-w-8,info.rect.left+info.rect.width/2-w/2)),y=info.rect.bottom+8;
-  pop.style.left=(x+window.scrollX)+'px';pop.style.top=(y+window.scrollY)+'px';
+  pop.style.left=((x+window.scrollX)/z)+'px';pop.style.top=((y+window.scrollY)/z)+'px';
   var seq=pop.dataset.seq=String(Date.now());
   var fill=function(d){if(pop.dataset.seq!==seq||pop.hidden)return;var inn=pop.querySelector('.trs-in');if(inn){if(d)render(inn,d);else inn.innerHTML=WAIT}
-    var r=pop.getBoundingClientRect();if(r.bottom>window.innerHeight-8&&info.rect.top>r.height+16)pop.style.top=(info.rect.top-r.height-8+window.scrollY)+'px'};
+    var r=pop.getBoundingClientRect();if(r.bottom>window.innerHeight-8&&info.rect.top>r.height+16)pop.style.top=((info.rect.top-r.height-8+window.scrollY)/z)+'px'};
   fill(null);
   translate(ps,where,'sel').then(function(r){fill({r:r,ps:ps,text:text,where:where})},function(){fill({r:null,ps:ps,text:text,where:where})})}
 document.addEventListener('mousedown',function(e){if(pop&&!pop.hidden&&!pop.contains(e.target)&&e.target!==fl)hidePop()});
@@ -211,10 +211,10 @@ function place(){if(!allowedSel()||!isOn()){hideFl();return}var i=selInfo();if(!
   if(!fl){fl=document.createElement('button');fl.type='button';fl.className='trs-fl';fl.textContent='ترجم';fl.hidden=true;
     fl.addEventListener('mousedown',function(e){e.preventDefault()});
     fl.onclick=function(){var j=selInfo();hideFl();if(j)showPop(j)};document.body.appendChild(fl)}
-  fl.hidden=false;var w=fl.offsetWidth||80,vw=document.documentElement.clientWidth;
+  fl.hidden=false;var z=ST.pz?ST.pz():1,w=fl.getBoundingClientRect().width||80*z,vw=document.documentElement.clientWidth;
   var x=Math.max(8,Math.min(vw-w-8,i.rect.left+i.rect.width/2-w/2)),y=i.rect.bottom+10;
-  if(y+44>window.innerHeight)y=Math.max(8,i.rect.top-44);
-  fl.style.left=(x+window.scrollX)+'px';fl.style.top=(y+window.scrollY)+'px'}
+  if(y+44*z>window.innerHeight)y=Math.max(8,i.rect.top-44*z);
+  fl.style.left=((x+window.scrollX)/z)+'px';fl.style.top=((y+window.scrollY)/z)+'px'}
 document.addEventListener('selectionchange',function(){clearTimeout(tmr);tmr=setTimeout(place,280)});
 window.addEventListener('resize',function(){hideFl();hidePop()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){hideFl();hidePop()}});

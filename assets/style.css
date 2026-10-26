@@ -189,7 +189,10 @@ html:not(.printing):not(:fullscreen) body:not(.land-on) main:not(:has(.sheets)),
 html:not(.printing):not(:fullscreen) body:not(.land-on) .foot{zoom:calc(var(--wz,1) * var(--uz,1));--zf:calc(var(--wz,1) * var(--uz,1))}
 /* --uz: the person's own Text size (Settings), on top of the wide-screen zoom, so 110% is always bigger than 100% (owner 26 Oct 2026) */
 html:not(.printing) main,html:not(.printing) .foot{zoom:var(--uz,1);--zf:var(--uz,1)}
-html:not(.printing) #top{zoom:var(--uzt,1)}   /* --zf: the zoom really applied (vh inside is multiplied by it) */
+html:not(.printing) #top{zoom:var(--uzt,1)}
+html:not(.printing) .modal-box,html:not(.printing) .s-menu,html:not(.printing) .trs-pop,html:not(.printing) .trs-fl,html:not(.printing) .tts-fl{zoom:var(--pz,1)}
+html:not(.printing) .modal-box{max-height:calc(86vh / var(--pz,1));max-width:min(640px,calc((100vw - 32px) / var(--pz,1)))}
+html:not(.printing) .s-menu{max-width:calc((100vw - 16px) / var(--pz,1))}   /* --zf: the zoom really applied (vh inside is multiplied by it) */
 
 /* ---------- tables ---------- */
 .tw{overflow-x:auto;margin:10px 0;border-radius:12px;border:1px solid var(--line)}

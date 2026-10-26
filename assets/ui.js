@@ -37,7 +37,7 @@ var TOOLS=[
 var LABEL={};TOOLS.forEach(function(x){LABEL[x[0]]=x});
 var CLEAN={listen:'bar',translate:'bar',calc:'menu',tables:'menu',outline:'menu',excel:'menu',print:'menu',full:'menu',view:'menu',timer:'menu',answer:'bar',record:'menu'};
 function all(v){var o={};TOOLS.forEach(function(x){o[x[0]]=v});return o}
-var PRESETS=[['clean','Clean','Listen and ع on the slide; everything else under ⋯',CLEAN],['bare','Nothing on the slide','Every tool under ⋯',all('menu')],['all','Everything','Every tool on the slide',all('bar')]];
+var PRESETS=[['clean','Clean','Listen and T on the slide; everything else under ⋯',CLEAN],['bare','Nothing on the slide','Every tool under ⋯',all('menu')],['all','Everything','Every tool on the slide',all('bar')]];
 var PLACES=[['bar','On the slide'],['menu','Under ⋯'],['off','Hidden']];
 
 /* ---------- where each tool goes ---------- */
@@ -114,9 +114,9 @@ function openMenu(btn,items,d){closeMenu();menuFor=btn;btn.setAttribute('aria-ex
   add(IC.focus,focusOn()?'Show the top bar':'Focus mode',focusOn()?'Bring back the header':'Hide the top bar; only the slide stays',function(){sv(FK,focusOn()?null:'1');applyFocus()});
   if(ST.settings)add(IC.screen,'Your screen…',custom()?'Choose which tools sit on the slide':'Appearance and settings',function(){ST.settings('ui')});
   document.body.appendChild(m);menu=m;
-  var r=btn.getBoundingClientRect(),w=m.offsetWidth,vw=document.documentElement.clientWidth,vh=window.innerHeight;
-  var left=Math.max(8,Math.min(vw-w-8,r.right-w)),top=r.bottom+6;if(top+m.offsetHeight>vh-8)top=Math.max(8,r.top-m.offsetHeight-6);
-  m.style.left=left+'px';m.style.top=top+'px';var f=m.querySelector('.s-mi');if(f)f.focus()}
+  var z=ST.pz?ST.pz():1,r=btn.getBoundingClientRect(),mr=m.getBoundingClientRect(),w=mr.width,mh=mr.height,vw=document.documentElement.clientWidth,vh=window.innerHeight;
+  var left=Math.max(8,Math.min(vw-w-8,r.right-w)),top=r.bottom+6;if(top+mh>vh-8)top=Math.max(8,r.top-mh-6);
+  m.style.left=(left/z)+'px';m.style.top=(top/z)+'px';/* the menu has the page's zoom (ST.pz) */var f=m.querySelector('.s-mi');if(f)f.focus()}
 document.addEventListener('click',function(e){if(menu&&!menu.contains(e.target))closeMenu()});
 document.addEventListener('keydown',function(e){if(!menu)return;if(e.key==='Escape'){var b=menuFor;closeMenu();if(b)b.focus();return}
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();var it=$$('.s-mi',menu),i=it.indexOf(document.activeElement);i=(i+(e.key==='ArrowDown'?1:-1)+it.length)%it.length;it[i].focus()}});

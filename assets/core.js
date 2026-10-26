@@ -1255,8 +1255,12 @@ function buildSteps(R0,R1,t){
 ST.zoom=function(){var v=100;try{v=parseInt(localStorage.getItem('st-zoom')||'100',10)}catch(e){}return [80,90,100,110,125,150].indexOf(v)>=0?v:100};
 /* zoom goes on the page parts (header, content, footer), not on <html>: menus and pop-ups hang from <body> and are placed by
    on-screen coordinates, so they stay inside the window at any size (owner 26 Oct 2026: the ⋯ menu ran off the page at 150%) */
+/* the zoom the page text really has (wide-screen zoom × Text size): pop-ups, menus and the settings box take the same size
+   (owner 26 Oct 2026: "I enlarge the page, the boxes must not shrink"); pop-up code divides its on-screen positions by it */
+ST.pz=function(){var cs=getComputedStyle(document.documentElement);return (parseFloat(cs.getPropertyValue('--wz'))||1)*(parseFloat(cs.getPropertyValue('--uz'))||1)};
+window.addEventListener('resize',function(){if(ST.applyZoom)ST.applyZoom()});
 ST.applyZoom=function(){var v=ST.zoom(),de=document.documentElement.style;de.zoom='';['top','app','foot'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.zoom=''});
-  if('zoom' in de){de.fontSize='';de.setProperty('--uz',String(v/100));de.setProperty('--uzt',String(window.innerWidth<600&&v>100?1:v/100))}   // a phone's header has no room to grow
+  if('zoom' in de){de.fontSize='';de.setProperty('--uz',String(v/100));de.setProperty('--uzt',String(window.innerWidth<600&&v>100?1:v/100));de.setProperty('--pz',String(ST.pz()))}   // a phone's header has no room to grow
   else de.fontSize=v===100?'':(v+'%')};   // font-size is the fallback where zoom is not supported
 function route(){
   var h=location.hash||'#/',m;
