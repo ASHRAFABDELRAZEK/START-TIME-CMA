@@ -19,6 +19,34 @@
 <script>try{var t=localStorage.getItem('st-p1a-theme')||'light',r=document.documentElement;r.setAttribute('data-theme',t);var rt=localStorage.getItem('st-rt')||'';if(rt)r.setAttribute('data-rt',rt);var dk=t==='dark',bg=rt?'':localStorage.getItem('st-bg-'+(dk?'dark':'light'));if(bg){r.style.setProperty('--bg',bg);if(!dk)r.style.setProperty('--muted','#4F5C73')}}catch(e){}</script>
 </head>
 <body>
+<div id="stSplash" aria-hidden="true" hidden><svg viewBox="-20 -20 240 240"><defs><clipPath id="ssClip"><circle cx="100" cy="100" r="100"/></clipPath></defs><g class="ss-ring"><circle cx="100" cy="100" r="114"/></g><circle class="ss-rim" cx="100" cy="100" r="106"/><g clip-path="url(#ssClip)"><circle class="ss-glass" cx="100" cy="100" r="100"/><g class="ss-mark"><rect x="62" y="62" width="76" height="76" rx="18"/><text x="100" y="114" text-anchor="middle">ST</text></g><g transform="rotate(0 100 100)"><polygon class="ss-bl ss-a" points="100,-4 204,52 112,118 58,96"/></g><g transform="rotate(60 100 100)"><polygon class="ss-bl ss-b" points="100,-4 204,52 112,118 58,96"/></g><g transform="rotate(120 100 100)"><polygon class="ss-bl ss-a" points="100,-4 204,52 112,118 58,96"/></g><g transform="rotate(180 100 100)"><polygon class="ss-bl ss-b" points="100,-4 204,52 112,118 58,96"/></g><g transform="rotate(240 100 100)"><polygon class="ss-bl ss-a" points="100,-4 204,52 112,118 58,96"/></g><g transform="rotate(300 100 100)"><polygon class="ss-bl ss-b" points="100,-4 204,52 112,118 58,96"/></g></g></svg><div class="ss-kick">START TIME — ASHRAF FATHY</div></div>
+<style>
+#stSplash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(circle at 50% 42%,#1c2f5a 0%,#0b1630 66%);transition:opacity .45s ease}
+#stSplash[hidden]{display:none}#stSplash.ss-out{opacity:0;pointer-events:none}
+#stSplash svg{width:min(240px,56vw);height:auto;overflow:visible}
+#stSplash .ss-ring circle{fill:none;stroke:#C9A227;stroke-width:1.5;stroke-dasharray:2 6;opacity:.7}
+#stSplash .ss-rim{fill:#0f1a33;stroke:#C9A227;stroke-width:2}#stSplash .ss-glass{fill:#16284f}
+#stSplash .ss-mark rect{fill:#112240;stroke:#C9A227;stroke-width:1.5}#stSplash .ss-mark text{fill:#C9A227;font:800 38px "IBM Plex Sans",system-ui,sans-serif}
+#stSplash .ss-bl{stroke:#C9A227;stroke-opacity:.35;stroke-width:.8}#stSplash .ss-a{fill:#252e42}#stSplash .ss-b{fill:#323c53}
+#stSplash .ss-kick{font:700 12px "IBM Plex Sans",system-ui,sans-serif;letter-spacing:.26em;color:#C9A227}
+#stSplash .ss-bl,#stSplash .ss-ring,#stSplash .ss-mark{transform-box:view-box}
+#stSplash .ss-bl{transform-origin:100px 0;animation:ssOpen 1.2s .25s cubic-bezier(.65,0,.25,1) both}
+#stSplash .ss-ring{transform-origin:100px 100px;animation:ssSpin 1.2s .25s cubic-bezier(.65,0,.25,1) both}
+#stSplash .ss-mark{transform-origin:100px 100px;animation:ssMark .6s .9s ease-out both}
+@keyframes ssOpen{from{transform:rotate(62deg)}to{transform:rotate(132deg)}}
+@keyframes ssSpin{from{transform:rotate(-40deg)}to{transform:rotate(0)}}
+@keyframes ssMark{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+</style>
+<script>/* opening splash: the shutter opens onto the ST mark once each time the platform is opened (signed-in visitors; the sign-in screen has its own) */
+(function(){var s=document.getElementById('stSplash');try{
+  if(sessionStorage.getItem('st-splash'))return;
+  var signed=false;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^st-.*-session$/.test(k)&&/"code"/.test(localStorage.getItem(k)||'')){signed=true;break}}
+  if(!signed||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))return;
+  sessionStorage.setItem('st-splash','1');
+}catch(e){return}
+s.hidden=false;
+setTimeout(function(){s.classList.add('ss-out');setTimeout(function(){s.remove()},500)},1900);
+})();</script>
 <header class="top" id="top">
   <a class="brand" href="#/" aria-label="Home">
     <span class="logo" aria-hidden="true">ST</span>
