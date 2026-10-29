@@ -30,9 +30,9 @@
 #stSplash .ss-bl{stroke:#C9A227;stroke-opacity:.35;stroke-width:.8}#stSplash .ss-a{fill:#252e42}#stSplash .ss-b{fill:#323c53}
 #stSplash .ss-kick{font:700 12px "IBM Plex Sans",system-ui,sans-serif;letter-spacing:.26em;color:#C9A227}
 #stSplash .ss-bl,#stSplash .ss-ring,#stSplash .ss-mark{transform-box:view-box}
-#stSplash .ss-bl{transform-origin:100px 0;animation:ssOpen .9s .1s cubic-bezier(.65,0,.25,1) both}
-#stSplash .ss-ring{transform-origin:100px 100px;animation:ssSpin .9s .1s cubic-bezier(.65,0,.25,1) both}
-#stSplash .ss-mark{transform-origin:100px 100px;animation:ssMark .4s .7s ease-out both}
+#stSplash .ss-bl{transform-origin:100px 0;animation:ssOpen 1.2s .25s cubic-bezier(.65,0,.25,1) both}
+#stSplash .ss-ring{transform-origin:100px 100px;animation:ssSpin 1.2s .25s cubic-bezier(.65,0,.25,1) both}
+#stSplash .ss-mark{transform-origin:100px 100px;animation:ssMark .6s .9s ease-out both}
 @keyframes ssOpen{from{transform:rotate(62deg)}to{transform:rotate(132deg)}}
 @keyframes ssSpin{from{transform:rotate(-40deg)}to{transform:rotate(0)}}
 @keyframes ssMark{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
@@ -45,7 +45,7 @@
   sessionStorage.setItem('st-splash','1');
 }catch(e){return}
 s.hidden=false;
-setTimeout(function(){s.classList.add('ss-out');setTimeout(function(){s.remove()},450)},1250);
+setTimeout(function(){s.classList.add('ss-out');setTimeout(function(){s.remove()},500)},1900);
 })();</script>
 <header class="top" id="top">
   <a class="brand" href="#/" aria-label="Home">
