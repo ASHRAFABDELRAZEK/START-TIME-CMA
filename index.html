@@ -64,6 +64,6 @@
 <script src="assets/ui.js?v=3"></script>
 <script src="assets/shell.js?v=8"></script>
 <script>ST.loadTopics()</script>
-<script>ST.boot(function(){ST.start()});if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(function(){})</script>
+<script>ST.boot(function(){ST.start()});if('serviceWorker'in navigator&&location.protocol==='https:'){var swHad=!!navigator.serviceWorker.controller,swDone=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(swHad&&!swDone){swDone=true;location.reload()}});navigator.serviceWorker.register('sw.js').then(function(r){r.update();document.addEventListener('visibilitychange',function(){if(!document.hidden)r.update()})}).catch(function(){})}</script>
 </body>
 </html>
