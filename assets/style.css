@@ -1757,7 +1757,7 @@ a.hf-i{color:var(--navy);text-decoration:underline}
 .gw-rim{fill:#0f1a33;stroke:var(--gold);stroke-width:2}
 .gw-glass{fill:#16284f}
 .gw-mark rect{fill:var(--navy);stroke:var(--gold);stroke-width:1.5}
-.gw-mark text{fill:var(--gold);font:800 38px var(--f)}
+.gw-mark text{fill:var(--gold);font:800 64px var(--f)}
 .gw-bl{stroke:var(--gold);stroke-opacity:.35;stroke-width:.8}
 .gw-b0 .gw-bl{fill:#252e42}.gw-b1 .gw-bl{fill:#323c53}
 .gw-kick{font-size:12px;font-weight:700;letter-spacing:.26em;color:var(--gold)}

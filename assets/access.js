@@ -14,7 +14,7 @@ ST.showGate=function(){
   for(var bi=0;bi<6;bi++)blades+='<g transform="rotate('+(bi*60)+' 100 100)" class="gw-b'+(bi%2)+'">'+blade+'</g>';
   hero.innerHTML='<svg class="gw-lens" viewBox="-20 -20 240 240" aria-hidden="true"><defs><clipPath id="gwClip"><circle cx="100" cy="100" r="100"/></clipPath></defs>'+
     '<g class="gw-ring"><circle cx="100" cy="100" r="114"/></g><circle class="gw-rim" cx="100" cy="100" r="106"/>'+
-    '<g clip-path="url(#gwClip)"><circle class="gw-glass" cx="100" cy="100" r="100"/><g class="gw-mark"><rect x="62" y="62" width="76" height="76" rx="18"/><text x="100" y="114" text-anchor="middle">ST</text></g>'+blades+'</g></svg>'+
+    '<g clip-path="url(#gwClip)"><circle class="gw-glass" cx="100" cy="100" r="100"/><g class="gw-mark"><text x="100" y="100" text-anchor="middle" dominant-baseline="central">ST</text></g>'+blades+'</g></svg>'+
     '<div class="gw-kick">START TIME — ASHRAF FATHY</div><div class="gw-sub">Study platform</div>';
   wrap.appendChild(hero);wrap.appendChild(card);
   card.innerHTML='<div class="gate-logo">ST</div><div class="kick">START TIME — ASHRAF FATHY</div><h1>Welcome</h1>'+
