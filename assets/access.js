@@ -31,7 +31,7 @@ ST.showGate=function(){
   var dots=$('#gDots');function paintDots(){dots.textContent=inp.classList.contains('mask')?new Array(inp.value.length+1).join('•'):''}
   inp.addEventListener('input',paintDots);
   eye.onclick=function(){var on=inp.classList.toggle('mask');inp.type=on?'password':'text';eye.textContent=on?'Show':'Hide';eye.setAttribute('aria-pressed',on?'false':'true');eye.setAttribute('aria-label',on?'Show the code':'Hide the code');paintDots();inp.focus()};
-  setTimeout(function(){inp.focus()},50);
+  if(!window.matchMedia||matchMedia('(pointer:fine)').matches)setTimeout(function(){inp.focus({preventScroll:true})},50);   /* on a phone: no keyboard jumping up over the shutter */
   $('#gForm').onsubmit=function(e){
     e.preventDefault();var code=inp.value.toUpperCase().replace(/[\s-]+/g,'');if(!code){out.innerHTML='<div class="fb bad">Enter your code.</div>';return}
     if(!/^[A-Z0-9]{6,24}$/.test(code)){out.innerHTML='<div class="fb bad">Codes have 2 letters and 8 digits, e.g. KX48213907. Check the code and try again.</div>';return}
