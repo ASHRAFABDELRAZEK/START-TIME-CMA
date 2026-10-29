@@ -70,5 +70,5 @@ ST.boot=function(go){var E=ST.ENC,dk=S.deck,s=ST.session&&ST.session();
       n.innerHTML='<b>The lessons could not be opened.</b> Check the internet connection and open the platform again.';
       var app=document.getElementById('app');if(app&&app.parentNode)app.parentNode.insertBefore(n,app)})};
 ST.goSection=function(k){if(k===S.k){location.hash='#/';return}location.href=location.pathname+'?s='+k+'#/'};
-var sm=document.querySelector('.brand-t small');if(sm)sm.textContent='ASHRAF FATHY · '+(C.part||'Part 1')+' · '+S.section;
+var sm=document.querySelector('.brand-t small');if(sm)sm.textContent='CMA · '+(C.part||'Part 1')+' · '+S.section;
 })();

@@ -7,7 +7,7 @@ var ST=window.ST,CFG=ST.CONFIG||{},el=ST.h.el,$=ST.h.$,esc=ST.h.esc;
 ST.showGate=function(){
   var app=$('#app'),nav=$('.top-act');if(nav)$$hide(nav);
   var msg='';try{msg=sessionStorage.getItem('st-gate-msg')||'';sessionStorage.removeItem('st-gate-msg')}catch(e){}
-  app.innerHTML='';
+  app.innerHTML='';var smg=document.querySelector('.brand-t small');if(smg)smg.textContent='ASHRAF FATHY';   // no course named before sign-in
   /* the sign-in screen: a navy panel where a camera shutter opens onto the ST mark, and the code card beside it (under it on a phone) */
   var wrap=el('div','gw'+(msg?' gw-still':'')),hero=el('div','gw-hero'),card=el('section','gate gw-card');
   var blade='<polygon class="gw-bl" points="100,-4 204,52 112,118 58,96"/>',blades='';

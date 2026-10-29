@@ -50,7 +50,7 @@ svg{display:block}
   padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));
   background:var(--card);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);min-width:0}
-.logo{width:38px;height:38px;border-radius:11px;background:var(--navy);color:var(--gold);display:grid;place-items:center;font-weight:800;font-size:16px;letter-spacing:.02em;flex:none;border:1px solid rgba(201,162,39,.5)}
+.logo{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 50% 42%,#1c2f5a 0%,#0b1630 72%);overflow:hidden;color:var(--gold);display:grid;place-items:center;font-weight:800;font-size:16px;letter-spacing:.02em;flex:none;border:1.5px solid var(--gold);box-shadow:0 0 0 2px var(--card),0 0 0 3px rgba(201,162,39,.45)}
 .brand-t{display:flex;flex-direction:column;line-height:1.25;min-width:0}
 .brand-t b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand-t small{font-size:10.5px;letter-spacing:.06em;color:var(--muted)}
@@ -623,7 +623,7 @@ ol.pq,ul.pq{line-height:1.8}
 .traps ul{margin:4px 0 0;padding-inline-start:20px}
 /* start screen */
 .gate{max-width:440px;margin:6vh auto 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:26px 22px;box-shadow:var(--sh);text-align:center}
-.gate .gate-logo{width:56px;height:56px;border-radius:16px;margin:0 auto 12px;display:grid;place-items:center;background:var(--navy);color:var(--gold);font-weight:800;font-size:22px;letter-spacing:.02em}
+.gate .gate-logo{width:56px;height:56px;border-radius:50%;border:1.5px solid var(--gold);margin:0 auto 12px;display:grid;place-items:center;background:var(--navy);color:var(--gold);font-weight:800;font-size:22px;letter-spacing:.02em}
 .ib.inst{width:auto;padding:0 10px;gap:6px;display:inline-flex;align-items:center;font:600 13.5px var(--f);color:var(--teal);border:1px solid color-mix(in srgb,var(--teal) 35%,transparent);border-radius:10px}
 .ib.inst[hidden]{display:none}.ib.inst svg{width:18px;height:18px}
 @media (max-width:520px){.ib.inst span{display:none}.ib.inst{padding:0 6px}}
