@@ -36,8 +36,8 @@ ST.showGate=function(){
   $('#gForm').onsubmit=function(e){
     e.preventDefault();var code=inp.value.toUpperCase().replace(/[\s-]+/g,'');if(!code){out.innerHTML='<div class="fb bad">Enter your code.</div>';return}
     if(!/^[A-Z0-9]{6,24}$/.test(code)){out.innerHTML='<div class="fb bad">Codes have 2 letters and 8 digits, e.g. KX48213907. Check the code and try again.</div>';return}
-    go.disabled=true;go.textContent='Checking…';out.innerHTML='';
-    ST.accessLogin(code).then(function(){location.reload()}).catch(function(err){go.disabled=false;go.textContent='Open the deck';out.innerHTML='<div class="fb bad">'+esc((err&&err.message)||'No connection — check the internet and try again.')+'</div>'});
+    go.disabled=true;go.textContent='Checking…';out.innerHTML='';wrap.classList.add('gw-busy');
+    ST.accessLogin(code).then(function(){try{sessionStorage.removeItem('st-splash')}catch(e){}location.reload()}).catch(function(err){wrap.classList.remove('gw-busy');go.disabled=false;go.textContent='Open the deck';out.innerHTML='<div class="fb bad">'+esc((err&&err.message)||'No connection — check the internet and try again.')+'</div>'});
   };
 };
 function $$hide(n){n.style.visibility='hidden'}

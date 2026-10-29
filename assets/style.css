@@ -1784,3 +1784,9 @@ a.hf-i{color:var(--navy);text-decoration:underline}
   .gw-sub{font-size:20px}
   .gw .gw-card{padding:22px 18px}
 }
+
+/* checking the code: the shutter closes and the ring turns until the answer comes */
+.gw.gw-busy .gw-bl{animation:gwClose .6s cubic-bezier(.65,0,.25,1) both}
+.gw.gw-busy .gw-ring{animation:gwLoop 2.4s linear infinite}
+@keyframes gwClose{from{transform:rotate(132deg)}to{transform:rotate(62deg)}}
+@keyframes gwLoop{from{transform:rotate(0)}to{transform:rotate(360deg)}}
