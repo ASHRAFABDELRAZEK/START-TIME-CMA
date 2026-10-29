@@ -8,15 +8,23 @@ ST.showGate=function(){
   var app=$('#app'),nav=$('.top-act');if(nav)$$hide(nav);
   var msg='';try{msg=sessionStorage.getItem('st-gate-msg')||'';sessionStorage.removeItem('st-gate-msg')}catch(e){}
   app.innerHTML='';
-  var card=el('section','gate');
-  card.innerHTML='<div class="gate-logo">ST</div><div class="kick">START TIME — ASHRAF FATHY</div><h1>CMA study platform</h1>'+
+  /* the sign-in screen: a navy panel where a camera shutter opens onto the ST mark, and the code card beside it (under it on a phone) */
+  var wrap=el('div','gw'+(msg?' gw-still':'')),hero=el('div','gw-hero'),card=el('section','gate gw-card');
+  var blade='<polygon class="gw-bl" points="100,-4 204,52 112,118 58,96"/>',blades='';
+  for(var bi=0;bi<6;bi++)blades+='<g transform="rotate('+(bi*60)+' 100 100)" class="gw-b'+(bi%2)+'">'+blade+'</g>';
+  hero.innerHTML='<svg class="gw-lens" viewBox="-20 -20 240 240" aria-hidden="true"><defs><clipPath id="gwClip"><circle cx="100" cy="100" r="100"/></clipPath></defs>'+
+    '<g class="gw-ring"><circle cx="100" cy="100" r="114"/></g><circle class="gw-rim" cx="100" cy="100" r="106"/>'+
+    '<g clip-path="url(#gwClip)"><circle class="gw-glass" cx="100" cy="100" r="100"/><g class="gw-mark"><rect x="62" y="62" width="76" height="76" rx="18"/><text x="100" y="114" text-anchor="middle">ST</text></g>'+blades+'</g></svg>'+
+    '<div class="gw-kick">START TIME — ASHRAF FATHY</div><div class="gw-sub">Study platform</div>';
+  wrap.appendChild(hero);wrap.appendChild(card);
+  card.innerHTML='<div class="gate-logo">ST</div><div class="kick">START TIME — ASHRAF FATHY</div><h1>Welcome</h1>'+
     '<p class="g-now"><span class="chip g">Now open</span> '+((ST.SECTIONS||[]).filter(function(s){return ST.sectionOpen&&ST.sectionOpen(s.k)}).map(function(s){return 'Part 1 · '+esc(s.section)+' — '+esc(s.title)}).join('<br>')||'Part 1 · Section A — External Financial Reporting Decisions')+'</p>'+
     '<p>Enter the access code you received from <b>START TIME — ASHRAF FATHY</b>.</p>'+
     '<form id="gForm" autocomplete="off"><label for="gCode">Access code</label><div class="g-in"><input class="inp mask" id="gCode" type="password" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="30" placeholder="e.g. KX48213907" aria-describedby="gMsg"><span class="g-dots" id="gDots" aria-hidden="true"></span><button type="button" class="g-eye" id="gEye" aria-pressed="false" aria-label="Show the code">Show</button></div>'+
     '<button class="btn pri" id="gGo" type="submit">Open the deck</button></form><div id="gMsg" role="alert">'+(msg?'<div class="fb bad">'+esc(msg)+'</div>':'')+'</div>'+
     '<p class="note">Your code works on a set number of devices. Your progress is saved under your code, so it follows you to each of them.</p>'+
     '<button class="btn ghost sm g-inst" id="gInst" type="button" hidden>Install the app on this device</button>';
-  app.appendChild(card);if(ST.paintInstall)ST.paintInstall();
+  app.appendChild(wrap);if(ST.paintInstall)ST.paintInstall();
   var inp=$('#gCode'),go=$('#gGo'),out=$('#gMsg'),eye=$('#gEye');
   /* the code never shows on screen while typing (safe on a live stream or a shared screen): the real field is a password
      field (no keyboard suggestions) drawn in transparent ink, and our own dots stand in for it — even the phone's
