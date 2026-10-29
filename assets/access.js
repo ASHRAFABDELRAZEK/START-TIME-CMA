@@ -18,7 +18,6 @@ ST.showGate=function(){
     '<div class="gw-kick">START TIME — ASHRAF FATHY</div><div class="gw-sub">Study platform</div>';
   wrap.appendChild(hero);wrap.appendChild(card);
   card.innerHTML='<div class="gate-logo">ST</div><div class="kick">START TIME — ASHRAF FATHY</div><h1>Welcome</h1>'+
-    '<p class="g-now"><span class="chip g">Now open</span> '+((ST.SECTIONS||[]).filter(function(s){return ST.sectionOpen&&ST.sectionOpen(s.k)}).map(function(s){return 'Part 1 · '+esc(s.section)+' — '+esc(s.title)}).join('<br>')||'Part 1 · Section A — External Financial Reporting Decisions')+'</p>'+
     '<p>Enter the access code you received from <b>START TIME — ASHRAF FATHY</b>.</p>'+
     '<form id="gForm" autocomplete="off"><label for="gCode">Access code</label><div class="g-in"><input class="inp mask" id="gCode" type="password" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="30" placeholder="e.g. KX48213907" aria-describedby="gMsg"><span class="g-dots" id="gDots" aria-hidden="true"></span><button type="button" class="g-eye" id="gEye" aria-pressed="false" aria-label="Show the code">Show</button></div>'+
     '<button class="btn pri" id="gGo" type="submit">Open the deck</button></form><div id="gMsg" role="alert">'+(msg?'<div class="fb bad">'+esc(msg)+'</div>':'')+'</div>'+
