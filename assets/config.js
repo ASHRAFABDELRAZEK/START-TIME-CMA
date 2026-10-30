@@ -10,6 +10,10 @@ ST.CONFIG={
   /* Start screen: the deck opens only with a valid code. Student and trainer codes are both checked against the instructor's Google Sheet. */
   gate:true,
 
+  /* "Need help?" line under the sign-in card (lost code, no devices left). WhatsApp number with country code, digits only, and/or an email.
+     Both empty = the line is hidden. */
+  gateHelp:{wa:'', mail:''},
+
   /* Google Apps Script web-app URL (ends in /exec) that checks codes and stores student progress.
      A public endpoint, not a secret. Empty = codes cannot be checked yet. */
   syncUrl:'https://script.google.com/macros/s/AKfycbzzx1rLvNPV6lBq7MnVp4e-_ONfozdvqZYsrW1UsU7QRwKnKV8P08luIK3Sdxargx8p/exec',

@@ -18,11 +18,11 @@ ST.showGate=function(){
     '<div class="gw-kick">START TIME — ASHRAF FATHY</div><div class="gw-sub">Study platform</div>';
   wrap.appendChild(hero);wrap.appendChild(card);
   card.innerHTML='<div class="gate-logo">ST</div><div class="kick">START TIME — ASHRAF FATHY</div><h1>Welcome</h1>'+
-    '<p>Enter the access code you received from <b>START TIME — ASHRAF FATHY</b>.</p>'+
+    '<p>Enter the access code you received from START TIME.</p>'+
     '<form id="gForm" autocomplete="off"><label for="gCode">Access code</label><div class="g-in"><input class="inp mask" id="gCode" type="password" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="30" placeholder="e.g. KX48213907" aria-describedby="gMsg"><span class="g-dots" id="gDots" aria-hidden="true"></span><button type="button" class="g-eye" id="gEye" aria-pressed="false" aria-label="Show the code">Show</button></div>'+
-    '<button class="btn pri" id="gGo" type="submit">Open the deck</button></form><div id="gMsg" role="alert">'+(msg?'<div class="fb bad">'+esc(msg)+'</div>':'')+'</div>'+
+    '<button class="btn pri" id="gGo" type="submit">Sign in</button></form><div id="gMsg" role="alert">'+(msg?'<div class="fb bad">'+esc(msg)+'</div>':'')+'</div>'+
     '<p class="note">Your code works on a set number of devices. Your progress is saved under your code, so it follows you to each of them.</p>'+
-    '<button class="btn ghost sm g-inst" id="gInst" type="button" hidden>Install the app on this device</button>';
+    '<button class="btn ghost sm g-inst" id="gInst" type="button" hidden>Install the app on this device</button>'+gateHelp();
   app.appendChild(wrap);if(ST.paintInstall)ST.paintInstall();
   var inp=$('#gCode'),go=$('#gGo'),out=$('#gMsg'),eye=$('#gEye');
   /* the code never shows on screen while typing (safe on a live stream or a shared screen): the real field is a password
@@ -34,12 +34,22 @@ ST.showGate=function(){
   if(!window.matchMedia||matchMedia('(pointer:fine)').matches)setTimeout(function(){inp.focus({preventScroll:true})},50);   /* on a phone: no keyboard jumping up over the shutter */
   $('#gForm').onsubmit=function(e){
     e.preventDefault();var code=inp.value.toUpperCase().replace(/[\s-]+/g,'');if(!code){out.innerHTML='<div class="fb bad">Enter your code.</div>';return}
-    if(!/^[A-Z0-9]{6,24}$/.test(code)){out.innerHTML='<div class="fb bad">Codes have 2 letters and 8 digits, e.g. KX48213907. Check the code and try again.</div>';return}
+    if(!/^[A-Z0-9]{6,24}$/.test(code)){out.innerHTML='<div class="fb bad">That does not look like an access code. Student codes look like KX48213907. Check the code and try again.</div>';return}
     go.disabled=true;go.textContent='Checking…';out.innerHTML='';wrap.classList.add('gw-busy');
-    ST.accessLogin(code).then(function(){try{sessionStorage.removeItem('st-splash')}catch(e){}location.reload()}).catch(function(err){wrap.classList.remove('gw-busy');go.disabled=false;go.textContent='Open the deck';out.innerHTML='<div class="fb bad">'+esc((err&&err.message)||'No connection — check the internet and try again.')+'</div>'});
+    /* a check that hangs (no network, a slow server) must not leave the shutter closed: after WAIT ms the card comes back with a message;
+       if the answer still arrives later and the code was good, the page opens anyway */
+    var done=false,WAIT=25000,back=function(m){wrap.classList.remove('gw-busy');go.disabled=false;go.textContent='Sign in';out.innerHTML='<div class="fb bad">'+esc(m)+'</div>'};
+    var timer=setTimeout(function(){if(done)return;done=true;back('No answer from the server — check the internet and try again.')},WAIT);
+    ST.accessLogin(code).then(function(){clearTimeout(timer);done=true;try{sessionStorage.removeItem('st-splash')}catch(e){}location.reload()}).catch(function(err){clearTimeout(timer);if(done)return;done=true;back((err&&err.message)||'No connection — check the internet and try again.')});
   };
 };
 function $$hide(n){n.style.visibility='hidden'}
+/* "Need help?" under the sign-in card: a lost code or no devices left. The links come from config.js (gateHelp: {wa, mail});
+   both empty = the line is not shown. */
+function gateHelp(){var h=CFG.gateHelp||{},wa=String(h.wa||'').replace(/\D/g,''),ml=String(h.mail||'').trim(),a=[];
+  if(wa)a.push('<a href="https://wa.me/'+wa+'?text='+encodeURIComponent('Hello START TIME, I need help signing in.')+'" target="_blank" rel="noopener">WhatsApp</a>');
+  if(ml&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ml))a.push('<a href="mailto:'+esc(ml)+'?subject='+encodeURIComponent('Help signing in')+'">Email</a>');
+  return a.length?'<p class="note g-help">Lost your code or out of devices? '+a.join(' · ')+'</p>':''}
 
 /* ---------- the student's details: filled in or confirmed once, changed later from My account ----------
    need = fields still empty, or ['confirm'] when the details on file must be confirmed now. opts.edit = opened by the student himself. */
