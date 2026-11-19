@@ -143,11 +143,34 @@ function dash(){
       '<p class="pf-dim">Completion certificates are coming soon. Your progress is already counted.</p>';grid.appendChild(cc)}
   m.appendChild(grid);
   if(!installed()){var ic=el('section','pf-card pf-install');ic.setAttribute('aria-label','Install the app');
-    ic.innerHTML='<div class="pf-row pf-sb"><div><h2>Install the app</h2><div class="pf-dim">Open START TIME from your home screen, full screen, without the link.</div></div><a class="btn" href="install.html">Install</a></div>';
+    ic.innerHTML='<div class="pf-row pf-sb"><div><h2>Install the app</h2><div class="pf-dim">Open START TIME from your home screen, full screen, without the link.</div></div><a class="btn" href="install.html">Install</a></div>'+
+      '<p class="pf-dim" style="margin:10px 0 0"><a href="#" class="pf-have">I already installed it \u2014 stop showing this</a></p>';
+    ic.addEventListener('click',function(e){var t=e.target;if(t&&t.className==='pf-have'){e.preventDefault();hideInstallNudges()}});
     m.appendChild(ic)}
 }
-/* running as the installed app (home screen / desktop app window) */
-function installed(){try{return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true}catch(e){return false}}
+/* Is the app INSTALLED on this device? Not the same question as "am I running inside it right now".
+   A student who installed the app and then opens the site from a link, a bookmark or WhatsApp is in a
+   browser tab, so display-mode is not standalone and the old check offered them an app they already had. */
+function runningInApp(){try{return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true}catch(e){return false}}
+function installFlag(v){try{if(v===undefined)return localStorage.getItem('st-installed')==='1';localStorage.setItem('st-installed',v?'1':'0')}catch(e){return false}}
+function installed(){return runningInApp()||installFlag()}
+/* Running inside the app proves it is installed, so remember that for later browser visits. */
+if(runningInApp())installFlag(true);
+/* Chromium on Android can answer the real question; Safari on iOS has no such API, which is why the
+   flag above and the "I already installed it" control below carry those devices. */
+function hideInstallNudges(){
+  installFlag(true);
+  var a=document.querySelectorAll('.pf-install,.pf-inst');
+  for(var i=0;i<a.length;i++)if(a[i].parentNode)a[i].parentNode.removeChild(a[i]);
+}
+window.addEventListener('appinstalled',hideInstallNudges);
+(function(){
+  if(!navigator.getInstalledRelatedApps)return;
+  try{navigator.getInstalledRelatedApps().then(function(list){
+    if(list&&list.length)hideInstallNudges();
+    else if(!runningInApp())installFlag(false);   /* uninstalled since: offer it again */
+  }).catch(function(){})}catch(e){}
+})();
 
 /* ---------- Courses ---------- */
 function coursesPage(){
@@ -230,6 +253,6 @@ var route0=ST.route;if(route0)ST.route=function(){route0();back();homeIcon()};  
 var start0=ST.start;
 ST.start=function(){
   if(on()){var seen=false;try{seen=sessionStorage.getItem('st-pf-in')==='1';sessionStorage.setItem('st-pf-in','1')}catch(e){}
-    if(!seen&&(location.hash===''||location.hash==='#'||location.hash==='#/'))location.replace('#/home')}   // also after "Complete your details" (the page reloads on #/)
+    if(!seen&&(location.hash===''||location.hash==='#'||location.hash==='#/'))location.replace(location.pathname+location.search+'#/home')}   // also after "Complete your details" (the page reloads on #/)
   start0();back();homeIcon()};
 })();
