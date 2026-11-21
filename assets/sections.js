@@ -4,7 +4,7 @@
    A section with no topic files yet shows as "coming soon". Loaded after config.js and los.js, before core.js. */
 (function(){
 var ST=window.ST=window.ST||{};
-ST.ENC={"p1a":"e19e6c711c","p1b":"29203f3b47","p1c":"21f7597b54","p1d":"20a26ad9ab","p1e":"66e410d587","p1f":"fb8f0885b0"};
+ST.ENC={"p1a":"f9219175f2","p1b":"29203f3b47","p1c":"21f7597b54","p1d":"20a26ad9ab","p1e":"66e410d587","p1f":"fb8f0885b0"};
 ST.SECTIONS=[
  {k:'A',deck:'p1a',section:'Section A',title:'External Financial Reporting Decisions',weight:15,
   blurb:'Every LOS in Section A, explained in order: a short story about a company that fits each idea, pictures that move when movement helps, and exam-style practice.',
