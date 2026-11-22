@@ -52,7 +52,7 @@ ST.LOSmap={};ST.LOS.forEach(function(l){ST.LOSmap[l.c]=l});
    Sync-ready: every entry carries a timestamp, resets are tombstones.
    r[k]=ts concept slide read (>= readSec() on screen, or marked read) · mk[k]=ts read with the "Mark as read" button (still counts while mk[k] >= r[k]; staying the full time later turns it into a timed read) · un[k]=ts marked unread by the learner (wins over an older r[k]) · q[k]=[1|0,ts] last answer to a practice slide
    d[tid]=[1|0,ts] topic marked "studied" by the learner · tr[tid]=ts topic reset · R=ts reset of everything */
-/* compact synchronous SHA-256 (ASCII input) — used to recognise the private trainer code without storing it */
+/* compact synchronous SHA-256 (ASCII input) — used to recognize the private trainer code without storing it */
 ST.sha256=function(ascii){
   function rr(v,a){return (v>>>a)|(v<<(32-a))}
   var mp=Math.pow,mw=mp(2,32),i,j,res='',words=[],bl=ascii.length*8,hash=[],k=[],pc=0,comp={};
@@ -99,7 +99,7 @@ ST.gated=function(){return !!CFG.gate&&!ROLE};
 /* the access map in force: a student's own, or the group a staff member previews in Student view; null = everything open */
 function accMap(){if(ROLE==='student'&&SESS&&SESS.access)return SESS.access;if(ROLE==='trainer'&&VIEW==='student'&&SESS&&SESS.preview)return SESS.preview.access||{};return null}
 /* a topic the sheet does not list yet follows its section (topic ids start with the section letter: a1-…, b2-…) */
-function accOf(a,id){if(Object.prototype.hasOwnProperty.call(a,id))return a[id];return a[(CFG.partKey||'P1')+'-'+String(id).charAt(0).toUpperCase()]||'closed'}
+function accOf(a,id){if(Object.prototype.hasOwnProperty.call(a,id))return a[id];var sid=String(id),k=/^p2[a-f]/.test(sid)?sid.charAt(2):sid.charAt(0);return a[(CFG.partKey||'P1')+'-'+k.toUpperCase()]||'closed'}
 /* Hidden (Access sheet, column F or "hidden" in a group cell): a student does not see the topic or section at all, open or closed.
    ST.topics / ST.byId keep only what he may see; staff keep everything and see a "Hidden" mark (SESS.hid: {key: 'All' | 'Group 1, …'}). */
 var ALLT=null;
@@ -188,7 +188,13 @@ ST.ICON=ICON;
 ST.call=function(kind,title,html){return '<div class="call '+kind+'"><div class="ct">'+(ICON[kind]||ICON.key)+esc(title)+'</div>'+html+'</div>'};
 /* quick check inside an explanation: tap an answer, see right/wrong and why. Does not count towards mastery.
    ST.qc(question, [options], index of the right one, explanation) */
-ST.qc=function(q,o,a,e){return '<div class="qc" data-a="'+a+'"><div class="qc-q"><span class="qc-t">Quick check</span>'+q+'</div><div class="qc-os">'+o.map(function(x,i){return '<button type="button" class="qc-o" data-i="'+i+'"><span class="k">'+'ABCDEFG'[i]+'</span><span>'+x+'</span></button>'}).join('')+'</div><div class="qc-e" hidden><b>Answer: '+'ABCDEFG'[a]+'.</b> '+e+'</div></div>'};
+/* Part 2 only: options are shown in a random order (owner decision, 14 Nov 2026). Part 1 keeps its authored order, because its explanations name letters.
+   Options such as "all of the above" or "both …" keep their authored place. Answers, marks and explanations still use the authored index. */
+function optOrder(o){var n=o.length,ord=[];for(var i=0;i<n;i++)ord.push(i);if((CFG.partKey||'P1')!=='P2'||n<3)return ord;
+  var pin=/\b(all|none|both|neither) of (the )?above\b|^\s*(both|neither|all|none)\b/i,free=ord.filter(function(i){return !pin.test(String(o[i]).replace(/<[^>]*>/g,''))}),sh=free.slice();
+  for(var j=sh.length-1;j>0;j--){var r=Math.floor(Math.random()*(j+1)),t=sh[j];sh[j]=sh[r];sh[r]=t}
+  var out=ord.slice(),f=0;free.forEach(function(slot){out[slot]=sh[f++]});return out}
+ST.qc=function(q,o,a,e){var ord=optOrder(o);return '<div class="qc" data-a="'+a+'"><div class="qc-q"><span class="qc-t">Quick check</span>'+q+'</div><div class="qc-os">'+ord.map(function(i,d){var x=o[i];return '<button type="button" class="qc-o" data-i="'+i+'"><span class="k">'+'ABCDEFG'[d]+'</span><span>'+x+'</span></button>'}).join('')+'</div><div class="qc-e" hidden><b>Answer: '+'ABCDEFG'[ord.indexOf(a)]+' — '+o[a]+'.</b> '+e+'</div></div>'};
 /* "Check yourself": the topic's quick checks gathered on one slide, each with a link back to the slide that teaches it.
    ST.qcSet(topicId, [[question, [options], answerIndex, explanation, slideNumber], ...]); numbering counts the lesson slides from 1. */
 ST.qcSet=function(id,items){return items.map(function(x,n){var q=ST.qc(x[0],x[1],x[2],x[3]);
@@ -265,7 +271,6 @@ function topicMenu(t){
    '<p class="note">A slide counts as read after '+readTxt()+' on screen. Mastery = 30% reading + 70% practice answered correctly (your latest try). A topic is <b>mastered</b> at 80% correct with every slide read — or when you mark it as studied.</p>';
   var r=el('div','row');
   var go=el('a','btn pri','Open topic');go.href='#/t/'+t.id+'/1';go.onclick=closeModal;r.appendChild(go);
-  if(t.nB){var bq=el('a','btn','Questions ('+bankQs(t).length+')');bq.href='#/bank/'+t.id;bq.onclick=closeModal;r.appendChild(bq)}
   var mk=el('button','btn',st.done?'Remove "studied" mark':'Mark as studied');mk.onclick=function(){ST.setDone(t.id,!st.done);closeModal();route()};r.appendChild(mk);
   if(ST.printDialog&&ST.can('print')){var pb=el('button','btn','Print / PDF');pb.onclick=function(){ST.printDialog(t)};r.appendChild(pb)}
   var rs=el('button','btn ghost','Reset this topic');rs.onclick=function(){if(rs.dataset.c){ST.resetTopic(t.id);closeModal();route()}else{rs.dataset.c=1;rs.textContent='Tap again to confirm reset'}};r.appendChild(rs);
@@ -293,12 +298,43 @@ function secBar(app){
     if(on)b.setAttribute('aria-current','true');
     bar.appendChild(b)});
   app.appendChild(bar)}
+/* =========================================================
+   STUDY / PRACTICE — two separate doors (owner, 20 and 22 Nov 2026). The lessons and the question bank are entered separately:
+   the student chooses at the start, and can switch from the top bar at any time. Each door has its own permission
+   (Roles sheet: "lessons", "bank"), so one can be offered without the other. The choice is kept on this device (st-mode).
+   Nothing in the content, the keys or the saved progress depends on it.
+   ========================================================= */
+var MODEK='st-mode';
+function canL(){return ST.can('lessons')}
+function canB(){return ST.can('bank')}
+function modeGet(){if(!canB())return 'study';if(!canL())return 'practise';var m=null;try{m=localStorage.getItem(MODEK)}catch(e){}return m==='study'||m==='practise'?m:null}
+function modeSet(m){try{if(m)localStorage.setItem(MODEK,m);else localStorage.removeItem(MODEK)}catch(e){}modeBar()}
+ST.mode=modeGet;ST.setMode=modeSet;
+/* the switch in the top bar (only when both doors are open to this person) */
+function modeBar(){var nav=$('.top-act');if(!nav)return;var sg=$('#nMode');
+  if(!sg){sg=el('span','seg sm','<button type="button" data-m="study">Study</button><button type="button" data-m="practise">Practice</button>');sg.id='nMode';sg.setAttribute('role','group');sg.setAttribute('aria-label','Study or practice');
+    nav.insertBefore(sg,nav.firstChild);
+    sg.onclick=function(e){var b=e.target.closest&&e.target.closest('button[data-m]');if(!b)return;modeSet(b.getAttribute('data-m'));var h=location.hash||'#/';if(h==='#/'||h==='#'||h==='')route();else location.hash='#/'}}
+  var both=canL()&&canB()&&!(ST.gated&&ST.gated()),m=modeGet();sg.hidden=!both;
+  $$('button',sg).forEach(function(b){var on=b.getAttribute('data-m')===m;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
+  var mp=$('#nMap');if(mp)mp.hidden=!canL()}
+function doorPage(){var app=$('#app');app.innerHTML='';
+  var w=el('section','doors','<div class="kick">CMA '+esc(CFG.part||'Part 1')+'</div><h1>What do you want to do today?</h1>'+
+    '<div class="door-g">'+
+    '<button type="button" class="door" data-m="study"><b>Study</b><span>The lessons, section by section: the story, the slides, the labs, and a short check at the end of each topic.</span><i class="btn pri">Open the lessons</i></button>'+
+    '<button type="button" class="door" data-m="practise"><b>Practice</b><span>The question bank on its own: each topic\'s questions and its case, practice sets, exam sets, and your mistakes.</span><i class="btn">Open the question bank</i></button>'+
+    '</div><p class="note">You can switch between the two at any time from the top bar.</p>');
+  $$('.door',w).forEach(function(b){b.onclick=function(){modeSet(b.getAttribute('data-m'));route()}});
+  app.appendChild(w)}
 function home(){
+  modeBar();var md=modeGet();
+  if(!md){doorPage();return}
+  if(md==='practise'){setPage();return}
   var app=$('#app');app.innerHTML='';
   secBar(app);
   if(ST.detailsBanner)ST.detailsBanner(app);
   var all=allSlides(),O=overall(),cov={};all.forEach(function(x){losOf(x.s).forEach(function(c){cov[c]=1})});
-  var covN=ST.LOS.filter(function(l){return cov[l.c]}).length,pct=O.pct;
+  var covN=ST.LOS.filter(function(l){return cov[l.c]}).length,pct=O.cn?Math.round(100*O.rd/O.cn):0;   /* Study shows reading progress only; answers, mastery and readiness live in Practice (owner 22 Nov 2026) */
   var last=P.last&&P.last.split('/'),cont=last&&ST.byId[last[0]]&&!ST.lock(ST.byId[last[0]])?'#/t/'+last[0]+'/'+last[1]:null;
   var openTs=ST.topics.filter(function(t){return !t.soon&&!ST.lock(t)}),first=openTs[0],noneOpen=!openTs.length;
   var C=2*Math.PI*50,off=C*(1-pct/100);
@@ -306,13 +342,13 @@ function home(){
   hero.innerHTML='<div><div class="kick">CMA '+esc(CFG.part||'Part 1')+' · '+esc(CFG.section||'')+' · '+(CFG.weight||'')+'% of the exam</div>'+
    '<h1>'+esc(CFG.sectionTitle||'')+'</h1>'+
    '<p>'+((ST.SEC&&ST.SEC.blurb)||'')+'</p>'+
-   '<div class="stats"><span><b>'+ST.topics.length+'</b> topics</span><span><b>'+all.length+'</b> slides</span><span><b>'+covN+'/'+ST.LOS.length+'</b> LOS covered</span></div><div class="stats"><span><b>'+O.rd+'/'+O.cn+'</b> slides read</span><span><b>'+O.ok+'/'+O.pr+'</b> practice correct</span><span><b>'+O.ms+'/'+O.tn+'</b> topics mastered</span>'+(Object.keys(P.q).length?'<span><b>'+readiness().pct+'%</b> exam readiness</span>':'')+'</div>'+
+   '<div class="stats"><span><b>'+ST.topics.length+'</b> topics</span><span><b>'+all.length+'</b> slides</span><span><b>'+covN+'/'+ST.LOS.length+'</b> LOS covered</span></div><div class="stats"><span><b>'+O.rd+'/'+O.cn+'</b> slides read</span><span><b>'+O.td+'/'+O.tn+'</b> topics studied</span></div>'+
    (function(){var v=revGet();if(!v||v.l!=='c')return '';var j=-1,an=0;v.a.forEach(function(r,x){if(setSt(v,r)>=0)an++;else if(j<0)j=x});
      return '<div class="fb set-run"><span><b>'+(v.ex?'An exam set':'A practice set')+' is running</b> · '+an+' of '+v.a.length+' answered</span><a class="btn sm pri" href="#/t/'+v.a[Math.max(0,j)]+'">Return to it</a></div>'})()+
    (noneOpen?'<div class="fb lk-n">'+LOCK+'<span>No topic is open for you yet. Your instructor opens each topic when its lecture comes.</span></div>':'')+
    '<div class="row">'+(cont?'<a class="btn pri" href="'+cont+'">Continue where you stopped</a>':(first?'<a class="btn pri" href="#/t/'+first.id+'/1">'+(first===ST.topics[0]?'Start from LOS '+(ST.LOS[0]?ST.LOS[0].c:''):'Start: '+esc(first.n))+'</a>':''))+
-   '<a class="btn" href="#/map">LOS map</a><a class="btn" href="#/bank">Question bank</a>'+(ST.can('glossPage')?'<a class="btn" href="#/glossary">Glossary</a>':'')+(Object.keys(P.q).length?'<a class="btn" href="#/mistakes">Readiness &amp; mistakes'+(mistakes().length?' <span class="chip r" title="Mistakes to fix">'+mistakes().length+'</span>':'')+(dueList().length?' <span class="chip t" title="Due for review">↻ '+dueList().length+'</span>':'')+'</a>':'')+'<button class="btn ghost" id="howP">How progress works</button></div></div>'+
-   '<div class="ring" aria-label="Progress '+pct+'%"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--teal)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rv"><div><b>'+pct+'%</b><br><small>mastery</small></div></div></div>';
+   '<a class="btn" href="#/map">LOS map</a>'+(ST.can('glossPage')?'<a class="btn" href="#/glossary">Glossary</a>':'')+'<button class="btn ghost" id="howP">How progress works</button></div></div>'+
+   '<div class="ring" aria-label="Progress '+pct+'%"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--teal)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rv"><div><b>'+pct+'%</b><br><small>read</small></div></div></div>';
   app.appendChild(hero);
   $('#howP',hero).onclick=howProgress;
   var groups=(ST.SEC&&ST.SEC.groups)||[],n=0;
@@ -357,8 +393,10 @@ ST.mistakes=mistakes;
 var CAUSE={c:['Concept','The idea itself was not clear yet','Re-read the concept slide below, then try again without looking.'],
   k:['Calculation','The method or the arithmetic went wrong','Write the formula first, then the numbers, and check the sign and the base you used.'],
   r:['Read the question','The question asked for something else','Underline what is asked (amount? classification? which statement?) before answering.'],
-  mix:['Mixed up two topics','The rule of a neighbouring topic was used','Compare the two topics side by side — the link below opens the other one.']};
+  mix:['Mixed up two topics','The rule of a neighboring topic was used','Compare the two topics side by side — the link below opens the other one.']};
 function numeric(t){t=String(t||'').replace(/<[^>]*>/g,'').trim();return /^[\s$€£SARUD()\-−–+.,%0-9]+$/.test(t)&&/\d/.test(t)}
+function trapWin(tol){return (tol<0.5?Math.max(tol,0.05):tol)+1e-9}
+function nearTrap(m,v,tol){var b=null,bd=Infinity;(m||[]).forEach(function(mm){var d=Math.abs(v-mm[0]);if(d<=trapWin(tol)&&d<bd){bd=d;b=mm}});return b}
 function causeOf(x){var s=x.s,ch=(P.q[x.k]&&P.q[x.k][2])||'',kind=ch.charAt(0),val=ch.slice(2),out={c:'',why:'',ans:'',mix:''};
   var tag=function(t){if(!t)return false;if(/^mix:/.test(t)){out.c='mix';out.mix=t.slice(4)}else out.c=t;return true};
   if(s.t==='mcq'&&kind==='o'){var i=+val;out.ans='ABCDEFG'[i]+' — '+(s.o[i]||'');out.why=(s.w&&s.w[i])||'';
@@ -368,8 +406,8 @@ function causeOf(x){var s=x.s,ch=(P.q[x.k]&&P.q[x.k][2])||'',kind=ch.charAt(0),v
     out.why=wrong.map(function(j){return s.w&&s.w[j]?'<b>'+'ABCDEFGH'[j]+'</b>: '+s.w[j]:''}).filter(String).join('<br>');
     if(!wrong.some(function(j){return tag(s.err&&s.err[j])}))out.c='c'}
   else if(s.t==='num'&&kind==='v'){var f=s.f||[{l:'Answer',a:s.a,tol:s.tol,m:s.m}],vs=val.split('|'),ex=[];out.ans=f.map(function(x,j){return (f.length>1?x.l+': ':'')+(vs[j]||'—')}).join(' · ');
-    f.forEach(function(x,j){var v=num(vs[j]),tol=x.tol!=null?x.tol:0.5;if(!isNaN(v)&&Math.abs(v-x.a)<=tol)return;
-      (x.m||[]).forEach(function(mm){if(!isNaN(v)&&Math.abs(v-mm[0])<=Math.max(tol,0.5)){ex.push(mm[1]);if(!out.c)tag(mm[2])}})});
+    f.forEach(function(x,j){var v=num(vs[j]),tol=x.tol!=null?x.tol:0.5;if(!isNaN(v)&&Math.abs(v-x.a)<=tol+1e-9)return;
+      var mm=isNaN(v)?null:nearTrap(x.m,v,tol);if(mm){ex.push(mm[1]);if(!out.c)tag(mm[2])}});
     out.why=ex.join('<br>');if(!out.c)out.c='k'}
   else if(s.t==='sort'&&kind==='s'){var ws=val?val.split(','):[];out.ans=ws.length+' item'+(ws.length===1?'':'s')+' in the wrong box';
     out.why=ws.map(function(w){var ix=+w.split('>')[0],it=s.i[ix];if(!it)return '';if(!out.c)tag(it.err);var bl=s.b.filter(function(b){return b.id===it.b})[0];return '<b>'+it.x+'</b> → '+(bl?bl.l:'')+(it.w?' — '+it.w:'')}).filter(String).join('<br>');if(!out.c)out.c='c'}
@@ -386,7 +424,7 @@ function paceSec(){var a=[];
   if(!a.length){box.innerHTML='<h2>Your pace</h2><p class="note">Answer a few practice questions and your pace appears here: how long you take per question against the exam\'s pace (100 questions in 3 hours = <b>1:48</b> a question).</p>';return box}
   var g={good:0,slow:0,rush:0,gap:0},sec=0,bud=0,mc=a.filter(function(x){return x.mcq}),mcs=0;
   a.forEach(function(x){sec+=x.sec;bud+=x.b;if(x.ok)g[x.r>1.5?'slow':'good']++;else g[x.r<0.5?'rush':'gap']++});mc.forEach(function(x){mcs+=x.sec});
-  var use=Math.round(sec/bud*100),T=[['good','✓','Right and on time','Keep this rhythm.'],['slow','◷','Right but slow','You know it — practise to answer faster.'],
+  var use=Math.round(sec/bud*100),T=[['good','✓','Right and on time','Keep this rhythm.'],['slow','◷','Right but slow','You know it — practice to answer faster.'],
     ['rush','»','Wrong and fast','Rushed or guessed: slow down and read the question fully.'],['gap','✗','Wrong and slow','The idea needs another look before speed.']];
   box.innerHTML='<h2>Your pace</h2><p class="pace-l">'+(mc.length?'Multiple-choice: <b>'+mmss2(mcs/mc.length)+'</b> a question on average — the exam pace is <b>1:48</b>. ':'')+
     'Across '+a.length+' timed answer'+(a.length===1?'':'s')+' you used <b>'+use+'%</b> of the time an exam would allow'+(use>115?' — too slow for the exam yet.':use<60?' — fast; make sure speed is not costing marks.':' — a good exam pace.')+'</p>'+
@@ -499,11 +537,12 @@ function bankTopic(tid){var t=ST.byId[tid];if(!t||t.soon){location.hash='#/bank'
   var Q=bankQs(t),cq=Q.filter(function(x){return x.s.case}),gq=Q.filter(function(x){return !x.s.case}),st=bankStat(Q),lb=t.n.split(' — ')[0];
   var hero=el('section','hero','<div><div class="kick">Question bank · '+esc(t.group)+' · '+esc(t.sub||'')+'</div><h1>'+esc(t.n)+'</h1>'+
     '<p>'+gq.length+' exam-style question'+(gq.length===1?'':'s')+(cq.length?' and a case with '+cq.length+' questions':'')+'. '+(st.tr?'<b>'+st.ok+' of '+st.n+'</b> correct so far.':'None answered yet.')+'</p>'+
-    '<div class="row"><a class="btn" href="#/t/'+t.id+'/1">Back to the lesson</a><a class="btn ghost" href="#/bank">All topics in the bank</a></div></div>');
+    '<div class="row">'+(canL()?'<a class="btn ghost" id="bkLes" href="#/t/'+t.id+'/1">Open the lesson (Study)</a>':'')+'<a class="btn" href="#/bank">All topics in the bank</a></div></div>');
+  var bl=$('#bkLes',hero);if(bl)bl.onclick=function(){modeSet('study')};
   app.appendChild(hero);
   function refs(a){return a.map(function(x){return x.ref})}
-  if(gq.length){var s1=el('section','mk-sum bk-s','<h2>Practise the questions</h2><p class="note">Practice shows the answer after each question; a timed exam set keeps one clock and shows the answers at the end.</p>'),r1=el('div','row');
-    var b1=el('button','btn pri','Practise all '+gq.length);b1.type='button';b1.onclick=function(){setRun(shuffle(refs(gq)),0,lb+' · questions')};r1.appendChild(b1);
+  if(gq.length){var s1=el('section','mk-sum bk-s','<h2>Practice the questions</h2><p class="note">Practice shows the answer after each question; a timed exam set keeps one clock and shows the answers at the end.</p>'),r1=el('div','row');
+    var b1=el('button','btn pri','Practice all '+gq.length);b1.type='button';b1.onclick=function(){setRun(shuffle(refs(gq)),0,lb+' · questions')};r1.appendChild(b1);
     var b2=el('button','btn','Timed exam set');b2.type='button';b2.onclick=function(){setRun(shuffle(refs(gq)),1,lb+' · exam set')};r1.appendChild(b2);
     var nr=gq.filter(function(x){return qRes(x.k)!==1});
     if(nr.length&&nr.length<gq.length){var b3=el('button','btn','Not right yet ('+nr.length+')');b3.type='button';b3.onclick=function(){setRun(shuffle(refs(nr)),0,lb+' · not right yet')};r1.appendChild(b3)}
@@ -519,11 +558,12 @@ function bankTopic(tid){var t=ST.byId[tid];if(!t||t.soon){location.hash='#/bank'
   Q.forEach(function(x,j){var r=qRes(x.k),a=el('a','k-p');a.href='#/t/'+x.ref;
     a.innerHTML='<span class="i">'+(j+1)+'</span><span class="tt">'+(x.s.h||'Question '+(j+1))+'<small><b class="kd">'+(x.s.case?'Case':'Question')+'</b>'+(losOf(x.s).length?' · LOS '+losOf(x.s).join(', '):'')+'</small></span>'+(r===1?'<span class="ok">✓</span>':r===0?'<span class="ok" style="color:var(--red)">↻</span>':'');bx.appendChild(a)});
   s3.appendChild(bx);app.appendChild(s3)}
-function setPage(){var app=$('#app');app.innerHTML='';
+function setPage(){var app=$('#app');app.innerHTML='';modeBar();if(modeGet()==='practise')secBar(app);
   var TS=setTopics(),O=setOpts(),run=revGet();if(run&&run.l!=='c')run=null;
   var hero=el('section','hero','<div><div class="kick">Question bank · '+esc(CFG.section||'')+'</div><h1>Question bank</h1>'+
     '<p>Build a set from one topic, several topics or the whole section, in lesson order or at random. The questions are spread across the LOS of what you pick — the way the exam spreads them. Below, every topic has its own section with its case.</p></div>');
   app.appendChild(hero);
+  if(Object.keys(P.q).length){var mr=el('div','row','<a class="btn" href="#/mistakes">Readiness &amp; mistakes'+(mistakes().length?' <span class="chip r" title="Mistakes to fix">'+mistakes().length+'</span>':'')+(dueList().length?' <span class="chip t" title="Due for review">↻ '+dueList().length+'</span>':'')+'</a>');hero.firstChild.appendChild(mr)}
   if(run){var an=run.a.filter(function(r){return setSt(run,r)>=0}).length,rb=el('div','fb set-run','<b>'+(run.ex?'An exam set':'A practice set')+' is running</b> · '+an+' of '+run.a.length+' answered. ');
     var rg=el('button','btn sm pri','Return to it');rg.onclick=function(){var v=revGet();if(!v)return;var j=0;v.a.some(function(r,x){if(setSt(v,r)<0){j=x;return true}return false});setGo(j)};
     var re=el('button','btn sm ghost','End it');re.onclick=function(){var v=revGet();if(v)setEnd(v)};rb.appendChild(rg);rb.appendChild(re);hero.firstChild.appendChild(rb)}
@@ -531,7 +571,7 @@ function setPage(){var app=$('#app');app.innerHTML='';
   var ids=TS.map(function(t){return t.id}),pick=O.t.filter(function(x){return ids.indexOf(x)>=0});if(!pick.length)pick=ids.slice();
   function seg(name,key,list,val){return '<span class="seg sm set-sg" data-key="'+key+'" role="group" aria-label="'+name+'">'+list.map(function(x){return '<button type="button" data-v="'+x[0]+'" aria-pressed="'+(String(x[0])===String(val)?'true':'false')+'"'+(String(x[0])===String(val)?' class="on"':'')+'>'+x[1]+'</button>'}).join('')+'</span>'}
   /* 1 — what */
-  var s1=el('section','mk-sum set-s','<h2><span class="set-i">1</span>What to practise</h2>'+seg('What to practise','sc',[['all','Whole '+esc(CFG.section||'section')],['pick','Choose topics']],O.sc));
+  var s1=el('section','mk-sum set-s','<h2><span class="set-i">1</span>What to practice</h2>'+seg('What to practice','sc',[['all','Whole '+esc(CFG.section||'section')],['pick','Choose topics']],O.sc));
   var tl=el('div','set-tl');var cnt={};TS.forEach(function(t){cnt[t.id]=t.slides.filter(function(s){return isPractice(s)&&s.t!=='trace'}).length});
   ((ST.SEC&&ST.SEC.groups)||[]).forEach(function(g){var gt=TS.filter(function(t){return t.group===g[0]});if(!gt.length)return;
     var gw=el('div','set-gp'),gh=el('label','set-gh','<input type="checkbox" data-g="'+g[0]+'"><b>'+g[0]+'</b> '+esc(g[1]));gw.appendChild(gh);
@@ -633,7 +673,7 @@ function confSec(){var g={sr:0,sw:0,ur:0,uw:0},n=0;
   var box=el('section','mk-sum');
   if(!n){box.innerHTML='<h2>How sure you were</h2><p class="note">Before answering a practice question you can tap <b>Sure</b>, <b>Not sure</b> or <b>Guessing</b>. It is optional, but it shows what you only <i>think</i> you know — the mistakes that cost the most in an exam.</p>';return box}
   var T=[['sr','p-good','Sure and right','Solid knowledge.'],['sw','p-rush','Sure but wrong','A misconception — fix these first: read the explanation slowly.'],
-    ['ur','p-slow','Unsure but right','Shaky — review these until you are sure.'],['uw','p-gap','Unsure and wrong','A known gap — study the idea, then practise.']];
+    ['ur','p-slow','Unsure but right','Shaky — review these until you are sure.'],['uw','p-gap','Unsure and wrong','A known gap — study the idea, then practice.']];
   box.innerHTML='<h2>How sure you were</h2><p class="pace-l">'+n+' answer'+(n===1?'':'s')+' with a pick.'+(g.sw?' <b>'+g.sw+'</b> sure but wrong — the most important to fix.':'')+'</p><div class="mk-cs">'+
     T.map(function(x){return '<div class="mk-c '+x[1]+'"><b>'+g[x[0]]+'</b><span>'+x[2]+'</span><small>'+x[3]+'</small></div>'}).join('')+'</div>';
   return box}
@@ -656,7 +696,7 @@ function mistakesPage(){
     $('#dueGo',hero).onclick=function(){var a=dl.slice(0,20).map(function(x){return x.t.id+'/'+(x.i+1)});revSet({l:'d',a:a});location.hash='#/t/'+a[0]}}
   var ps=el('section','mk-sum mix','<h2>Practice set</h2><p class="note">Pick the part — the whole section or some topics — and the number of questions, as Practice (the answer after each question) or Exam (one clock, the answers at the end). The questions are spread across the LOS the way the exam spreads them.</p><div class="row"><a class="btn" href="#/bank">Open the question bank</a></div>');app.appendChild(ps);
   var mp=mixPool();
-  if(mp.tn>=2&&mp.a.length>=4){var mx=el('section','mk-sum mix','<h2>Mixed quiz</h2><p class="note">10 questions from different topics in random order. The topic stays hidden until you answer, so — like the exam — you first have to recognise which idea the question tests. The best cure for mixing up two topics.</p><div class="row"><button class="btn" type="button">Start a mixed quiz</button></div>');
+  if(mp.tn>=2&&mp.a.length>=4){var mx=el('section','mk-sum mix','<h2>Mixed quiz</h2><p class="note">10 questions from different topics in random order. The topic stays hidden until you answer, so — like the exam — you first have to recognize which idea the question tests. The best cure for mixing up two topics.</p><div class="row"><button class="btn" type="button">Start a mixed quiz</button></div>');
     mx.querySelector('button').onclick=mixStart;app.appendChild(mx)}
   var pc=paceSec();if(pc)app.appendChild(pc);
   app.appendChild(confSec());
@@ -781,7 +821,7 @@ function splitLand(){var d=$('.deck.land.splitv');if(!d)return;var sec=$('.slide
   var tiny=function(p){var it=items.slice(p[0],p[1]);return it.every(function(e){return /^(P|H3|H4)$/.test(e.tagName)})&&it.reduce(function(n,e){return n+(e.textContent||'').length},0)<220};
   for(var q=0;q<parts.length-1;){if(tiny(parts[q])){parts[q]=[parts[q][0],parts[q+1][1]];parts.splice(q+1,1)}else q++}
   if(parts.length>1&&tiny(parts[parts.length-1])){var lp=parts.pop();parts[parts.length-1][1]=lp[1]}
-  /* lay each part out: both columns when it has blocks in both, otherwise one centred column */
+  /* lay each part out: both columns when it has blocks in both, otherwise one centered column */
   function lay(p,w){show(p[0],p[1]);var two=!L||(vis(L)&&vis(R));sb.classList.toggle('two',!!L&&two);sb.classList.toggle('one',!!L&&!two);sb.style.maxWidth=two?'':w}
   parts=parts.map(function(p){lay(p,'76%');return {a:p[0],b:p[1],z:grow(),w:'76%'}});   // pictures keep their own height, so a picture part may need smaller text on a short screen
   cur.parts=parts;cur.show=function(i){var p=parts[i];cur.part=i;lay([p.a,p.b],p.w);sb.style.zoom=p.z;d.dataset.zoom=p.z;d.dataset.part=(i+1)+'/'+parts.length;
@@ -796,11 +836,9 @@ ST.orient=orient;
 /* the topic's question bank: the card at the end of the lesson (and in the topic window) */
 function bankQs(t){var a=[];for(var i=t.nL||0;i<t.slides.length;i++){var s=t.slides[i];if(isPractice(s)&&s.t!=='trace')a.push({t:t,i:i,s:s,k:slideKey(t,i),ref:t.id+'/'+(i+1)})}return a}
 function bankStat(Q){var ok=0,tr=0;Q.forEach(function(x){var r=qRes(x.k);if(r!==null)tr++;if(r===1)ok++});return {ok:ok,tr:tr,n:Q.length}}
-function bankCard(t){var Q=bankQs(t),st=bankStat(Q),nc=Q.filter(function(x){return x.s.case}).length,ng=Q.length-nc;
-  var c=el('div','bank-c','<div class="bk-h">'+ICON.list+'<b>Practise this topic</b></div>'+
-    '<p>That is the end of the lesson. This topic\'s section of the question bank has <b>'+ng+' exam-style question'+(ng===1?'':'s')+'</b>'+(nc?' and <b>a case</b> ('+nc+' questions)':'')+
-    (st.tr?' — '+st.ok+' of '+st.n+' correct so far':'')+'. Practise them all, by LOS, as a timed exam set, or the case on its own.</p>');
-  var r=el('div','row'),a=el('a','btn pri','Go to this topic\'s questions');a.href='#/bank/'+t.id;r.appendChild(a);c.appendChild(r);return c}
+function bankCard(t){var n=bankQs(t).length,c=el('p','bank-l','That is the end of the lesson.');
+  if(canB()&&n){c.appendChild(document.createTextNode(' '));var a=el('a','','This topic\'s '+n+' question'+(n===1?' is':'s are')+' in Practice');a.href='#/bank/'+t.id;a.onclick=function(){modeSet('practise')};c.appendChild(a);c.appendChild(document.createTextNode('.'))}
+  return c}
 ST.bankCard=bankCard;
 function deck(tid,idx){
   var t=ST.byId[tid];if(!t||t.soon){location.hash='#/';return}
@@ -966,11 +1004,12 @@ R.x=function(b,s,k){var t=topicOf(k),i=t?t.slides.indexOf(s):-1,h=s.body||'';
 R.mcq=function(b,s,k){
   var q=el('div','q');q.innerHTML='<div class="stem">'+s.q+'</div>';
   var opts=el('div','opts'),done=false;
-  s.o.forEach(function(o,i){var btn=el('button','opt','<span class="k">'+'ABCDEFG'[i]+'</span><span><span>'+o+'</span></span>');
+  var ord=optOrder(s.o);
+  ord.forEach(function(i,d){var o=s.o[i];var btn=el('button','opt','<span class="k">'+'ABCDEFG'[d]+'</span><span><span>'+o+'</span></span>');
     btn.onclick=function(){if(done)return;done=true;btn.classList.add('pk');var ok=i===s.a;ST.mark(k,ok,'o:'+i);
-      $$('.opt',opts).forEach(function(x,j){x.disabled=true;if(j===s.a)x.classList.add('ok');else if(j===i)x.classList.add('bad');
+      $$('.opt',opts).forEach(function(x,dj){var j=ord[dj];x.disabled=true;if(j===s.a)x.classList.add('ok');else if(j===i)x.classList.add('bad');
         if(s.w&&s.w[j]){var w=el('span','why',s.w[j]);x.lastChild.appendChild(w)}});
-      var fb=el('div','fb '+(ok?'ok':'bad'),'<b class="v">'+(ok?'Correct.':'Not quite — the answer is '+'ABCDEFG'[s.a]+'.')+'</b>'+(s.e||''));q.appendChild(fb);
+      var fb=el('div','fb '+(ok?'ok':'bad'),'<b class="v">'+(ok?'Correct.':'Not quite — the answer is '+'ABCDEFG'[ord.indexOf(s.a)]+'.')+'</b>'+(s.e||''));q.appendChild(fb);
       var r=el('div','qa');var t=el('button','btn sm','Try again');t.onclick=function(){b.innerHTML='';R.mcq(b,s,k)};r.appendChild(t);q.appendChild(r)};
     opts.appendChild(btn)});
   q.appendChild(opts);b.appendChild(q);
@@ -979,14 +1018,15 @@ R.mcq=function(b,s,k){
 /* multiple select */
 R.multi=function(b,s,k){
   var q=el('div','q');q.innerHTML='<div class="stem">'+s.q+'</div>';var opts=el('div','opts'),sel={};
-  s.o.forEach(function(o,i){var btn=el('button','opt','<span class="k">'+'ABCDEFGH'[i]+'</span><span><span>'+o+'</span></span>');
+  var ord=optOrder(s.o);
+  ord.forEach(function(i,d){var o=s.o[i];var btn=el('button','opt','<span class="k">'+'ABCDEFGH'[d]+'</span><span><span>'+o+'</span></span>');
     btn.onclick=function(){if(btn.disabled)return;sel[i]=!sel[i];btn.classList.toggle('sel',!!sel[i])};opts.appendChild(btn)});
   q.appendChild(opts);
   var r=el('div','qa');var c=el('button','btn pri','Check');
-  c.onclick=function(){var ok=true;$$('.opt',opts).forEach(function(x,j){x.disabled=true;var isA=s.a.indexOf(j)>=0;
+  c.onclick=function(){var ok=true;$$('.opt',opts).forEach(function(x,dj){var j=ord[dj];x.disabled=true;var isA=s.a.indexOf(j)>=0;
       if(isA)x.classList.add('ok');else if(sel[j])x.classList.add('bad');if((!!sel[j])!==isA)ok=false;
       if(s.w&&s.w[j])x.lastChild.appendChild(el('span','why',s.w[j]))});
-    ST.mark(k,ok,'o:'+Object.keys(sel).filter(function(j){return sel[j]}).join(','));c.remove();q.appendChild(el('div','fb '+(ok?'ok':'bad'),'<b class="v">'+(ok?'Correct — all of them.':'Not quite. Correct choices: '+s.a.map(function(i){return 'ABCDEFGH'[i]}).join(', ')+'.')+'</b>'+(s.e||'')));
+    ST.mark(k,ok,'o:'+Object.keys(sel).filter(function(j){return sel[j]}).join(','));c.remove();q.appendChild(el('div','fb '+(ok?'ok':'bad'),'<b class="v">'+(ok?'Correct — all of them.':'Not quite. Correct choices: '+s.a.slice().sort(function(x,y){return ord.indexOf(x)-ord.indexOf(y)}).map(function(i){return 'ABCDEFGH'[ord.indexOf(i)]}).join(', ')+'.')+'</b>'+(s.e||'')));
     var t=el('button','btn sm','Try again');t.onclick=function(){b.innerHTML='';R.multi(b,s,k)};r.appendChild(t)};
   r.appendChild(c);q.appendChild(r);b.appendChild(q);
 };
@@ -1000,9 +1040,16 @@ R.num=function(b,s,k){
   q.appendChild(g);
   var r=el('div','qa');var c=el('button','btn pri','Check');
   function sgm(v){return (v<0?'(':'')+ST.money(Math.abs(v))+(v<0?')':'')}
-  c.onclick=function(){var ok=true,hits=[];f.forEach(function(x,j){var v=num(ins[j].value),tol=x.tol!=null?x.tol:0.5,good=!isNaN(v)&&Math.abs(v-x.a)<=tol;
+  /* Register 83: what is not a number is not an attempt. The message sits beside the box; nothing is marked, revealed or recorded,
+     and the box stays editable. What counts as a number is ST.N.answer, the same grammar as the labs. */
+  function clearErr(i){if(i._er){i._er.remove();i._er=null}i.removeAttribute('aria-invalid')}
+  ins.forEach(function(i){i.addEventListener('input',function(){clearErr(i)})});
+  c.onclick=function(){var P=ins.map(function(i){return ST.N&&ST.N.answer?ST.N.answer(i.value):{v:num(i.value),e:isNaN(num(i.value))?'Enter a number only.':null}}),first=null;
+    ins.forEach(function(i,j){clearErr(i);if(P[j].e){i.setAttribute('aria-invalid','true');i._er=el('span','note numerr',P[j].e);i._er.setAttribute('role','alert');i._er.style.cssText='display:block;color:var(--red);font-size:.9em;margin-top:4px';i.parentNode.appendChild(i._er);if(!first)first=i}});
+    if(first){first.focus();return}
+    var ok=true,hits=[];f.forEach(function(x,j){var v=P[j].v,tol=x.tol!=null?x.tol:0.5,good=!isNaN(v)&&Math.abs(v-x.a)<=tol+1e-9;
       ins[j].classList.remove('ok','bad');ins[j].classList.add(good?'ok':'bad');if(!good){ok=false;
-        (x.m||[]).forEach(function(mm){if(!isNaN(v)&&Math.abs(v-mm[0])<=Math.max(tol,0.5))hits.push('<li><b>'+(f.length>1?esc(x.l)+': ':'')+'you entered '+sgm(v)+'</b> — '+mm[1]+'</li>')})}});
+        (function(mm){if(mm)hits.push('<li><b>'+(f.length>1?esc(x.l)+': ':'')+'you entered '+sgm(v)+'</b> — '+mm[1]+'</li>')})(isNaN(v)?null:nearTrap(x.m,v,tol))}});
     ST.mark(k,ok,'v:'+ins.map(function(i){return i.value.trim()}).join('|'));$$('.fb,.whyl,.traps',q).forEach(function(o){o.remove()});
     q.appendChild(el('div','fb '+(ok?'ok':'bad'),'<b class="v">'+(ok?'Correct.':'Not yet. ')+'</b>'+(ok?'':'<span>Answer'+(f.length>1?'s':'')+': '+f.map(function(x){return (f.length>1?x.l+' = ':'')+sgm(x.a)}).join(' · ')+'</span>')+(hits.length?'<ul class="hits">'+hits.join('')+'</ul>':'')+(s.e?'<div style="margin-top:6px">'+s.e+'</div>':'')));
     var all=[];f.forEach(function(x){(x.m||[]).forEach(function(mm){all.push('<li><b>'+sgm(mm[0])+'</b>'+(f.length>1?' <span class="note">('+esc(x.l)+')</span>':'')+' — '+mm[1]+'</li>')})});
@@ -1267,8 +1314,12 @@ function route(){
   if(!$('#modal').hidden)closeModal();
   $('#nHome').classList.toggle('on',h==='#/'||h==='');document.documentElement.classList.toggle('gl-ar-on',!!ST.can('glossAr'));$('#nMap').classList.toggle('on',h==='#/map');
   if(!/^#\/t\//.test(h)){stopDwell();document.body.classList.remove('land-on');ST.inBank=false}
-  if((m=h.match(/^#\/t\/([\w-]+)\/(\d+)/)))deck(m[1],+m[2]-1);
-  else if(h==='#/map')losMap();
+  modeBar();
+  if(!canB()&&/^#\/(bank|practice|mistakes|set-result)(\/|$)/.test(h)){location.hash='#/';return}
+  if((m=h.match(/^#\/t\/([\w-]+)\/(\d+)/))){var gt=ST.byId[m[1]],gi=+m[2]-1,gv=revGet(),gs=!!(gv&&gv.a&&gv.a.indexOf(m[1]+'/'+m[2])>=0),gl=gt&&gt.nL?gt.nL:1e9;
+    if(gt&&!gs&&((gi<gl&&!canL())||(gi>=gl&&!canB()))){location.hash='#/';return}
+    deck(m[1],+m[2]-1)}
+  else if(h==='#/map'&&canL())losMap();
   else if(h==='#/glossary'&&ST.can('glossPage'))glossPage();
   else if(h==='#/mistakes')mistakesPage();
   else if(h==='#/practice')setPage();
@@ -1289,23 +1340,23 @@ function help(){
   '<li>Each lesson ends with <b>one closing question</b> or a short case. Every other exam-style question, and the topic\'s full case, is in the <b>question bank</b>, with an explanation for every option.</li></ul>'+
   '<p><b>Keyboard:</b> → next, ← previous, F full screen, L portrait / landscape, G (or the slide number at the bottom) to go to any slide. On a phone use the buttons at the bottom.</p>'+
   '<p><b>Slide view</b> (Settings): portrait for reading, or — for presenting — one screen or in parts with large text, as your role allows. <b>Portrait or landscape</b> (the screen icon in the slide\'s tools, or under ⋯): portrait is for reading — the text, then its picture. Landscape is for presenting — one screen, the text beside its picture, sized to fit. Full screen opens in landscape.</p>'+
-  '<p><b>Readiness &amp; mistakes</b> (home page): your exam readiness (knowledge, memory and pace), questions due for <b>spaced review</b>, every practice question whose latest answer was wrong with its likely cause, your pace against the exam, and how sure you were. Before answering a practice question you can tap <b>Sure</b>, <b>Not sure</b> or <b>Guessing</b>.</p>'+
-  '<p><b>Question bank</b> (home page): every topic has its own section there — practise all its questions, by LOS, as a timed set, or its case on its own. At the top you can build a set: pick the whole section or some topics and how many questions — they are spread across the LOS the way the exam spreads them. <b>Practice</b> shows the answer after each question; <b>Exam</b> runs one clock at exam pace and shows the answers, a score by LOS and every explanation at the end.</p>'+
-  '<p><b>Print / PDF</b> (printer icon in a topic): the whole topic as a handout — clean white or screen colours — with an answer key at the end. <b>Excel</b> (table icon): download the tables on the slide, or every table in the topic from the handout page.</p>'+
+  '<p><b>Readiness &amp; mistakes</b> (in Practice): your exam readiness (knowledge, memory and pace), questions due for <b>spaced review</b>, every practice question whose latest answer was wrong with its likely cause, your pace against the exam, and how sure you were. Before answering a practice question you can tap <b>Sure</b>, <b>Not sure</b> or <b>Guessing</b>.</p>'+
+  '<p><b>Study and Practice</b>: the lessons and the question bank are two separate doors. Choose one when you open the course, and switch from the top bar at any time.</p><p><b>Question bank</b> (Practice): every topic has its own section there — practice all its questions, by LOS, as a timed set, or its case on its own. At the top you can build a set: pick the whole section or some topics and how many questions — they are spread across the LOS the way the exam spreads them. <b>Practice</b> shows the answer after each question; <b>Exam</b> runs one clock at exam pace and shows the answers, a score by LOS and every explanation at the end.</p>'+
+  '<p><b>Print / PDF</b> (printer icon in a topic): the whole topic as a handout — clean white or screen colors — with an answer key at the end. <b>Excel</b> (table icon): download the tables on the slide, or every table in the topic from the handout page.</p>'+
   '<p>Progress measures <b>mastery</b>: slides read for at least '+readTxt()+' and practice answered correctly. The <b>LOS map</b> shows which LOS you have mastered.'+(ST.sync&&ST.sync.enabled()?' Sign in with your student code to use the same progress on every device.':'')+'</p>'+
   
-  '<p><b>Settings</b> (gear icon): light or dark theme, background colour, reading time, and the optional <b>focus tools</b> (Pomodoro timer, background sound, daily goal) and <b>exam tools</b> (basic calculator, present and future value tables). The calculator and table buttons also appear in the slide\'s tools on slides that need them.</p><p><b>Your screen</b> (Settings, or ⋯ on a slide): the tools at the top right of each slide — Listen, ع, calculator and the rest — sit on the slide, under ⋯, or are hidden, as you choose. <b>Focus mode</b> hides the top bar so only the slide stays.</p>'+
+  '<p><b>Settings</b> (gear icon): light or dark theme, background color, reading time, and the optional <b>focus tools</b> (Pomodoro timer, background sound, daily goal) and <b>exam tools</b> (basic calculator, present and future value tables). The calculator and table buttons also appear in the slide\'s tools on slides that need them.</p><p><b>Your screen</b> (Settings, or ⋯ on a slide): the tools at the top right of each slide — Listen, ع, calculator and the rest — sit on the slide, under ⋯, or are hidden, as you choose. <b>Focus mode</b> hides the top bar so only the slide stays.</p>'+
   '<p class="muted">Every company, person, number, case and question is invented START TIME material — any likeness to a real company is accidental. Amounts are in U.S. dollars unless stated.</p>'+
   (ST.fun?'<div class="row"><button class="btn sm" type="button" id="hTour">Take the welcome tour again</button></div>':''));
   var ht=document.getElementById('hTour');if(ht)ht.onclick=function(){ST.fun.tour()};
 }
-/* appearance: light / dark exactly as designed, plus a page background colour of your own for each (Default = as designed).
+/* appearance: light / dark exactly as designed, plus a page background color of your own for each (Default = as designed).
    Kept on this device only. */
 /* Appearance: light / dark, and a background of your own. Every choice here keeps the text easy to read:
-   ready-made backgrounds come with a short hint, and "Make your own" offers 12 colours in three soft levels per theme
-   (light: very pale tints; dark: deep shades) — strong or glaring colours are not offered. */
+   ready-made backgrounds come with a short hint, and "Make your own" offers 12 colors in three soft levels per theme
+   (light: very pale tints; dark: deep shades) — strong or glaring colors are not offered. */
 var BGS={light:[['Default','','Clean and neutral'],['Paper','#FBF8F1','Recommended · warm and soft, easiest for long study',1],['Sand','#F5EFE3','Calmer · warmer, less glare'],
-          ['Mint','#EDF6F1','Calm green, restful'],['Sky','#EDF3FB','Brighter · cool and crisp'],['Grey','#EEF0F3','Dimmer · less glare on bright screens'],['Lavender','#F2F0F9','Soft and quiet']],
+          ['Mint','#EDF6F1','Calm green, restful'],['Sky','#EDF3FB','Brighter · cool and crisp'],['Gray','#EEF0F3','Dimmer · less glare on bright screens'],['Lavender','#F2F0F9','Soft and quiet']],
          dark:[['Default','','The standard dark'],['Coffee','#1B1612','Recommended at night · warm, less blue light',1],['Charcoal','#15171C','Calmer · neutral, softer contrast'],
           ['Forest','#0E1B16','Calm green'],['Plum','#191424','Soft violet'],['Midnight','#070D1A','Darker'],['Black','#000000','Darkest · for OLED screens in a dark room']]};
 var HUES=['Red','Orange','Amber','Yellow','Lime','Green','Teal','Cyan','Blue','Indigo','Violet','Pink'];
@@ -1313,28 +1364,28 @@ var TINTS={"light":[["#FBF4F4","#FBF7F4","#FBF9F4","#FBFAF4","#F8FBF4","#F4FBF6"
 var LEVELS={light:['Brighter','Balanced','Dimmer'],dark:['Lighter','Balanced','Darker']};
 function curTheme(){return document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light'}   // the app's own choice, light unless Dark is picked — the device's dark mode does not change it
 function bgGet(t){try{return localStorage.getItem('st-bg-'+t)||''}catch(e){return ''}}
-/* ready themes: a page colour, card colour and text colour that belong together; light or dark goes with each (the academy colours stay) */
+/* ready themes: a page color, card color and text color that belong together; light or dark goes with each (the academy colors stay) */
 var RT=[['','Standard','The platform as designed','light','#F8FAFC','#112240'],['sepia','Warm paper','For long study hours','light','#F3EAD7','#3A2E22'],
   ['night','Calm night','Less blue light at night','dark','#14110E','#ECE3D3'],['contrast','High contrast','Tired eyes, or a screen in the sun','light','#FFFFFF','#000000'],
-  ['calm','Very calm','Soft grey, nothing bright','light','#ECEEF1','#2E3846']];
+  ['calm','Very calm','Soft gray, nothing bright','light','#ECEEF1','#2E3846']];
 function rtGet(){try{var v=localStorage.getItem('st-rt')||'';return RT.some(function(x){return x[0]===v})?v:''}catch(e){return ''}}
 function rtSet(v){try{if(v)localStorage.setItem('st-rt',v);else localStorage.removeItem('st-rt')}catch(e){}var r=document.documentElement;if(v)r.setAttribute('data-rt',v);else r.removeAttribute('data-rt')}
 function applyBg(){var t=curTheme(),v=rtGet()?'':bgGet(t),r=document.documentElement;
   if(v)r.style.setProperty('--bg',v);else r.style.removeProperty('--bg');
-  if(v&&t==='light')r.style.setProperty('--muted','#4F5C73');else r.style.removeProperty('--muted')}   // a tinted page gets slightly darker grey text
+  if(v&&t==='light')r.style.setProperty('--muted','#4F5C73');else r.style.removeProperty('--muted')}   // a tinted page gets slightly darker gray text
 function appearance(){
   var box=el('div','apx');
   function sw(c,name,hint,on,rec,small){var t=curTheme(),bg=c||(t==='dark'?'#0B1324':'#F8FAFC');
     return '<button class="sw'+(small?' sm':'')+(on?' on':'')+'" data-c="'+c+'" title="'+esc(name+(hint?' — '+hint:''))+'" aria-label="'+esc(name)+'" style="background:'+bg+'">'+(small?'':'<span>'+esc(name)+'</span>')+(rec?'<i class="rec">★</i>':'')+'</button>'}
   function draw(){var t=curTheme(),cur=bgGet(t);
     var rt=rtGet();
-    box.innerHTML='<h4 class="apx-h" style="margin-top:0">Ready themes <span class="note">— the page and the text together; the academy colours stay</span></h4>'+
+    box.innerHTML='<h4 class="apx-h" style="margin-top:0">Ready themes <span class="note">— the page and the text together; the academy colors stay</span></h4>'+
       '<div class="apx-rt">'+RT.map(function(x){return '<button type="button" class="rt'+(x[0]===rt&&(x[0]||!bgGet(t))?' on':'')+'" data-rt="'+x[0]+'" style="background:'+x[4]+';color:'+x[5]+'" aria-pressed="'+(x[0]===rt?'true':'false')+'"><b>Aa</b><i></i><span>'+x[1]+'</span><small>'+x[2]+'</small></button>'}).join('')+'</div>'+
       '<div class="apx-r"><span class="note">Theme</span><div class="seg" id="apT"><button data-t="light"'+(t==='light'?' class="on"':'')+'>Light</button><button data-t="dark"'+(t==='dark'?' class="on"':'')+'>Dark</button></div></div>'+
       '<p class="note apx-tip">The platform keeps its own theme: it stays the way you choose here even when the phone or computer is in dark mode.</p>'+
       '<p class="note apx-tip">'+(t==='light'?'For long study a warm, soft background is easiest on the eyes — <b>Paper</b> ★ is our pick. In a dark room, switch to <b>Dark</b>.':'At night a warm dark background is gentlest — <b>Coffee</b> ★ is our pick. In daylight, <b>Light</b> is easier to read.')+'</p>'+
       '<div class="apx-ready">'+BGS[t].map(function(x){return '<div class="apx-it">'+sw(x[1],x[0],x[2],(x[1]||'')===cur,x[3])+'<small>'+esc(x[2])+'</small></div>'}).join('')+'</div>'+
-      '<h4 class="apx-h">Make your own <span class="note">— 12 colours, each in three soft levels</span></h4>'+
+      '<h4 class="apx-h">Make your own <span class="note">— 12 colors, each in three soft levels</span></h4>'+
       '<div class="apx-grid">'+TINTS[t].map(function(row,li){return '<div class="apx-lv"><span class="note">'+LEVELS[t][li]+'</span><div class="apx-row">'+row.map(function(c,hi){return sw(c,HUES[hi]+' · '+LEVELS[t][li],'',c===cur,0,1)}).join('')+'</div></div>'}).join('')+'</div>'+
       '<div class="apx-r"><button class="btn sm ghost" id="apD">Back to default</button><span class="note">Saved on this device only. Light and dark keep their own background.</span></div>';
     ST.h.$$('#apT button',box).forEach(function(b){b.onclick=function(){var r0=RT.filter(function(x){return x[0]===rtGet()})[0];if(r0&&r0[0]&&r0[3]!==b.dataset.t)rtSet('');   // a theme made for the other mode goes back to Standard
@@ -1441,7 +1492,7 @@ ST.start=function(){
   $('#nTheme').onclick=settings;
   document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.qc-o');if(!b)return;var q=b.closest('.qc');if(!q||q.classList.contains('done'))return;
     var a=+q.getAttribute('data-a'),i=+b.getAttribute('data-i');q.classList.add('done');
-    $$('.qc-o',q).forEach(function(x,j){x.disabled=true;if(j===a)x.classList.add('ok');else if(j===i)x.classList.add('bad')});
+    $$('.qc-o',q).forEach(function(x){var j=+x.getAttribute('data-i');x.disabled=true;if(j===a)x.classList.add('ok');else if(j===i)x.classList.add('bad')});
     var ex=$('.qc-e',q);ex.hidden=false;ex.insertAdjacentHTML('afterbegin','<span class="qc-v '+(i===a?'ok':'bad')+'">'+(i===a?'Right. ':'Not quite. ')+'</span>')});
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape'&&!$('#modal').hidden){closeModal();return}

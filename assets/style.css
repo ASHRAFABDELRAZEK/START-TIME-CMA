@@ -1760,7 +1760,8 @@ a.hf-i{color:var(--navy);text-decoration:underline}
 .gw-mark text{fill:var(--gold);font:800 64px var(--f)}
 .gw-bl{stroke:var(--gold);stroke-opacity:.35;stroke-width:.8}
 .gw-b0 .gw-bl{fill:#252e42}.gw-b1 .gw-bl{fill:#323c53}
-.gw-kick{font-size:12px;font-weight:700;letter-spacing:.26em;color:var(--gold)}
+.gw-kick{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--gold);font-weight:700}.gw-kick b{font-size:18px;letter-spacing:.3em;margin-inline-end:-.3em;opacity:0;animation:gwIn .6s .35s ease forwards}.gw-kick span{font-size:12px;letter-spacing:.38em;margin-inline-end:-.38em;opacity:0;animation:gwIn .6s .65s ease forwards}@keyframes gwIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.gate .kick-2{display:flex;flex-direction:column;gap:2px;text-transform:none}.gate .kick-2 b{font-size:14px;letter-spacing:.2em}.gate .kick-2 span{font-size:11px;letter-spacing:.28em;opacity:.85}
 .gw-sub{font-size:26px;font-weight:700;color:#fff}
 .gw .gw-card{margin:0;max-width:none;border:0;border-radius:0;box-shadow:none;align-self:center;padding:36px 34px}
 .gw .gw-card .gate-logo,.gw .gw-card>.kick{display:none}
@@ -1790,3 +1791,21 @@ a.hf-i{color:var(--navy);text-decoration:underline}
 .gw.gw-busy .gw-ring{animation:gwLoop 2.4s linear infinite}
 @keyframes gwClose{from{transform:rotate(132deg)}to{transform:rotate(62deg)}}
 @keyframes gwLoop{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* Study / Practice: the two doors of a course (22 Nov 2026) */
+#nMode{align-self:center;margin-inline-end:6px}#nMode[hidden]{display:none}
+.doors{max-width:860px;margin:24px auto;padding:0 4px}
+.doors h1{margin:6px 0 18px}
+.door-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.door{display:flex;flex-direction:column;gap:10px;text-align:start;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer;transition:border-color .15s,transform .08s}
+.door:hover{border-color:var(--gold)}.door:active{transform:translateY(1px)}
+.door b{font-size:22px}.door span{color:var(--muted);line-height:1.6;flex:1}.door i{font-style:normal;align-self:flex-start;pointer-events:none}
+.bank-l{margin:18px 0 4px;font-size:14.5px;color:var(--muted)}.bank-l a{color:inherit;text-decoration:underline}
+#nMode{flex:none;flex-wrap:nowrap;gap:0;margin-block:0;border-radius:99px}#nMode button{white-space:nowrap;border-radius:99px;padding:6px 12px}
+@media(max-width:520px){.top .brand-t{display:none}.brand{flex:none}.top{gap:4px}.top .ib{width:34px;height:36px}.top-act{gap:0;min-width:0}#nMode{margin-inline-end:2px}#nMode button{padding:5px 9px;font-size:13px}}
+
+/* brand watermark, on the Study / Practice choice page ONLY (owner 22 Nov 2026: liked the faint logo + name showing through, asked for it a little stronger) */
+body::after{display:none;content:'';position:fixed;left:50%;top:44%;width:min(460px,78vw);aspect-ratio:400/520;transform:translate(-50%,-50%);background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 520'><g fill='none' stroke='%23C9A227'><circle cx='200' cy='175' r='160' stroke-width='3' stroke-dasharray='4 12'/><circle cx='200' cy='175' r='140' stroke-width='5'/></g><text x='200' y='222' text-anchor='middle' font-family='IBM Plex Sans,Segoe UI,Arial,sans-serif' font-weight='800' font-size='130' fill='%23C9A227'>ST</text><text x='200' y='420' text-anchor='middle' font-family='IBM Plex Sans,Segoe UI,Arial,sans-serif' font-weight='700' font-size='38' letter-spacing='11' fill='%23C9A227'>START TIME</text><text x='200' y='462' text-anchor='middle' font-family='IBM Plex Sans,Segoe UI,Arial,sans-serif' font-weight='700' font-size='23' letter-spacing='10' fill='%23C9A227'>ASHRAF FATHY</text></svg>") center/contain no-repeat;opacity:.045;pointer-events:none;z-index:6}
+body:has(.doors)::after{display:block}
+:root[data-theme="dark"] body::after{opacity:.05}
+@media print{body::after{display:none}}

@@ -1,4 +1,4 @@
-/* START TIME — extras: trainer "show answer", printable handouts (clean or screen colours), Excel export of tables. */
+/* START TIME — extras: trainer "show answer", printable handouts (clean or screen colors), Excel export of tables. */
 (function(){
 'use strict';
 var ST=window.ST,el=ST.h.el,$=ST.h.$,$$=ST.h.$$,esc=ST.h.esc,M=ST.money;
@@ -63,7 +63,7 @@ function printDialog(t){
      '<label class="ck"><input type="checkbox" name="pk" value="p" checked><span>Practice questions</span></label>'+
      (ST.can('glossPrint')?'<label class="ck"><input type="checkbox" name="pk" value="g"><span>Glossary (A–Z, at the end)</span></label>':'')+
    '</div><p class="note" id="pkNote" hidden></p></fieldset>'+
-   '<div class="ctl"><label>Style<select class="sel-in" id="pStyle"><option value="clean">Clean — white page, saves ink</option><option value="color">Screen colours</option></select></label>'+
+   '<div class="ctl"><label>Style<select class="sel-in" id="pStyle"><option value="clean">Clean — white page, saves ink</option><option value="color">Screen colors</option></select></label>'+
    (ST.can('answerKey')?'<label id="pAnsW">Answer key<select class="sel-in" id="pAns"><option value="1">At the end</option><option value="0">Leave it out</option></select></label>':'')+'</div>'+
    '<div class="row"><label>Show first<select class="sel-in" id="pOri"><option value="p">A4 portrait</option><option value="l">A4 landscape</option></select></label></div>'+
    '<p class="note">You see the exact pages before printing. Portrait and landscape are both prepared: the print window\'s orientation decides which one prints. Every page carries the academy\'s name, your details and the page number.</p>'+
@@ -309,7 +309,7 @@ ST.printView=function(tidList){
     '<div class="seg" role="group" aria-label="Preview"><button type="button" data-o="p">Portrait</button><button type="button" data-o="l">Landscape</button></div>'+
     '<button class="btn" id="pEdit">Change selection</button>'+(ST.can('excel')&&(hasC||hasP)?'<button class="btn" id="pXls">Excel — all tables</button>':'')+
     '<span class="note" id="pStat">Preparing the pages…</span>'+
-    '<p class="note prt-tip">'+ids.length+' topic'+(ids.length>1?'s':'')+' · '+what+' · '+(style==='clean'?'clean style':'screen colours')+(ans?' · with answer key':'')+
+    '<p class="note prt-tip">'+ids.length+' topic'+(ids.length>1?'s':'')+' · '+what+' · '+(style==='clean'?'clean style':'screen colors')+(ans?' · with answer key':'')+
     '. The layout chosen here (Portrait / Landscape) is the one that prints, on A4. <b>For a PDF file, choose «Save as PDF» as the destination in the print window</b> — it keeps A4 and the layout exactly. On a printer, keep the scale at <b>100%</b>; Letter paper also fits.</p>';
   app.appendChild(bar);
   $('#pEdit').onclick=function(){printDialog(ST.byId[ids[0]])};

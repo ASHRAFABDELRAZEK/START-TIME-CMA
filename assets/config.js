@@ -38,6 +38,8 @@ ST.CONFIG={
     listenBank:['trainer'],            /* Listen: question bank */
     listenAuto:['trainer'],            /* Listen: hands-free */
     listenRecord:['trainer'],          /* Listen: record MP3 (computer) */
-    uiCustom:  ['trainer','student']   /* Your screen: each person chooses the tools on the slide */
+    uiCustom:  ['trainer','student'],  /* Your screen: each person chooses the tools on the slide */
+    lessons:   ['trainer','student'],  /* Study: the lessons (one of the two doors of a course) */
+    bank:      ['trainer','student']   /* Practice: the question bank, sets, mistakes (the other door) */
   }
 };

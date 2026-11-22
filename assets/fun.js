@@ -56,7 +56,7 @@ var ds=ST.deckSlide;ST.deckSlide=function(sec,body,t,s,idx){if(ds)ds.apply(this,
   var gl=$('table.gl',body);if(!gl)return;
   var rows=$$('tr',gl).slice(1).map(function(tr){return $$('td',tr).map(function(td){return td.innerHTML})}).filter(function(r){return r.length>=2});
   if(rows.length<3)return;
-  var b=el('div','fc-open','<button class="btn pri sm" type="button">'+ICN.cards+'<span>Practise these terms as flashcards</span></button><span class="note">'+rows.length+' cards · terms you miss come back</span>');
+  var b=el('div','fc-open','<button class="btn pri sm" type="button">'+ICN.cards+'<span>Practice these terms as flashcards</span></button><span class="note">'+rows.length+' cards · terms you miss come back</span>');
   $('button',b).onclick=function(){F.flash(rows,'Key terms · '+t.n)};gl.parentNode.parentNode.insertBefore(b,gl.parentNode)};
 
 var ICN={cards:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v13"/></svg>',
@@ -197,7 +197,7 @@ var TOUR=[
  ['Welcome to START TIME — CMA','tour-1','Short slides, one idea each, every slide tagged with its LOS. Each idea comes with a one-line story about a company that fits it, and a picture that moves when movement helps.'],
  ['Learn by doing','tour-2','After each idea a <b>quick check</b> tells you at once if you got it. On interactive slides you change the numbers and watch the statements react, play short games and see the numbers travel.'],
  ['Practice like the exam','tour-3','Exam-style questions with an explanation for <b>every</b> option, cases like the exam\'s, and before you answer you can say how sure you are: <b>Sure, Not sure, Guessing</b>.'],
- ['We remember for you','tour-4','Every mistake is saved with its likely cause. Questions come back on day <b>1, 3, 7, 14 and 30</b> so you don\'t forget, a <b>mixed quiz</b> trains you to recognise the topic, and <b>exam readiness</b> shows how close you are to 75%.'],
+ ['We remember for you','tour-4','Every mistake is saved with its likely cause. Questions come back on day <b>1, 3, 7, 14 and 30</b> so you don\'t forget, a <b>mixed quiz</b> trains you to recognize the topic, and <b>exam readiness</b> shows how close you are to 75%.'],
  ['Your study tools','tour-5','A <b>Pomodoro</b> timer, calm background sound and a <b>daily goal</b> with a streak. The <b>calculator</b> and <b>present value tables</b> you will have in the exam. All in Settings — on only when you want them.'],
  ['Take it with you','tour-6','Print any topic as a clean handout with an answer key, export tables to Excel, and continue on any device with your code. Six sections of Part 1 — switch from the bar at the top of the home page.']];
 F.tour=function(){var i=0,box=el('div','tour');

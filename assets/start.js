@@ -86,13 +86,13 @@ var P2=[['A','Financial Statement Analysis',20,'Judge a company\'s health with r
  ['F','Professional Ethics',15,'Apply professional ethics to real dilemmas.']];
 var REQ=[['Join IMA','Become an IMA member and keep the membership active.'],['Pay the CMA entrance fee','Paid once, before you sit the exams; it starts your three-year window to pass both parts.'],['Pass Part 1 and Part 2','Both parts, within three years of entering the program.'],['A bachelor\'s degree or an approved professional certification','You can sit the exams first; the proof can follow later.'],['Two years of relevant experience','Continuous management accounting or financial management work, before or within seven years after passing.'],['Follow IMA\'s ethics standard','The Statement of Ethical Professional Practice — and 30 hours of continuing education a year once certified, 2 of them on ethics.']];
 var CERTS={CMA:['IMA (USA, global)','Planning, performance, cost and decision support inside organizations','Corporate finance teams: budgeting, cost, FP&amp;A, controllership'],
- CPA:['US state boards of accountancy (Uniform CPA Examination)','Audit, financial reporting and tax, with a US licence to practise','Public accounting, audit and tax, especially in the US'],
+ CPA:['US state boards of accountancy (Uniform CPA Examination)','Audit, financial reporting and tax, with a US license to practice','Public accounting, audit and tax, especially in the US'],
  ACCA:['Association of Chartered Certified Accountants (UK, global)','A broad route through reporting, audit, tax, management and strategy','Accounting, audit and finance roles in the many countries that recognize it'],
  CIMA:['Chartered Institute of Management Accountants (UK, with AICPA; CGMA)','Management accounting linked to business strategy','Management accounting and business partnering in UK-linked markets'],
  CFA:['CFA Institute (USA, global)','Investment analysis, portfolio management and ethics','Investment, asset management and securities research']};
 var FITQ=[['Where do you see yourself working?',[['In a company\'s finance team',{CMA:2,CIMA:2,ACCA:1}],['In an audit or tax firm',{CPA:2,ACCA:2}],['In investment or asset management',{CFA:3}],['Not sure yet',{CMA:1,CPA:1,ACCA:1,CIMA:1,CFA:1}]]],
  ['Which work excites you most?',[['Plans, budgets, costs and decisions',{CMA:2,CIMA:2}],['Auditing and financial reporting',{CPA:2,ACCA:2}],['Valuing companies and markets',{CFA:3}],['Tax rules and compliance',{CPA:2,ACCA:1}]]],
- ['Which kind of recognition matters most to you?',[['Global companies and multinationals',{CMA:2,ACCA:1,CFA:1}],['UK and Commonwealth markets',{ACCA:2,CIMA:2}],['A licence to practise in the US',{CPA:3}],['The global investment industry',{CFA:2}]]]];
+ ['Which kind of recognition matters most to you?',[['Global companies and multinationals',{CMA:2,ACCA:1,CFA:1}],['UK and Commonwealth markets',{ACCA:2,CIMA:2}],['A license to practice in the US',{CPA:3}],['The global investment industry',{CFA:2}]]]];
 var ROLES=[['Cost accountant','Works out what products and services really cost, and keeps the costing system honest.','CD'],
  ['Budget and FP&amp;A analyst','Builds budgets and forecasts, and explains the gap between plan and actual.','BC'],
  ['Financial analyst','Reads statements, models scenarios and supports investment decisions.','ABF'],
@@ -248,7 +248,7 @@ document.addEventListener('keydown',function(e){var m=location.hash.match(/^#\/s
 /* first visit on this device: open Start here once.
    To show it once more to everyone (e.g. after a big update), bump the number: st-intro2, st-intro3 … */
 var INTRO_KEY='st-intro1';
-ST.introFirst=function(){if(st(INTRO_KEY))return false;var h=location.hash;if(h&&h!=='#/'&&h!=='#')return false;st(INTRO_KEY,'1');location.replace('#/start');return true};
+ST.introFirst=function(){if(st(INTRO_KEY))return false;var h=location.hash;if(h&&h!=='#/'&&h!=='#')return false;st(INTRO_KEY,'1');location.replace(location.pathname+location.search+'#/start');return true};
 
 var t0=setInterval(function(){if($('.top-act')){clearInterval(t0);addIcon()}},100);
 setInterval(paintBadge,3600000);

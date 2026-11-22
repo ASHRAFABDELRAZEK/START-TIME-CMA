@@ -11,7 +11,7 @@
    ACTION:  ['show',id] ['hide',id] ['move',id,x,y] ['fly',from,to,label,tone] ['set','card.row',value,tone]
             ['text','id.part',value] ['hl','card.row',tone] ['unhl','card.row'] ['draw',id] ['pulse',id]
             ['wait',ms] ['par',[ACTION…]]  (refs: 'id' or 'id.part'; fly/points also take [x,y])
-   Tones (colour = meaning, the same on every slide): asset liab eq inc exp cash key neu
+   Tones (color = meaning, the same on every slide): asset liab eq inc exp cash key neu
    The HTML written into the slide already shows the finished picture (print, PDF, no script);
    the player resets it and plays it: on its own the first time a learner meets it, after that on request.
    Motion off (Settings or the device) → no movement, the steps still go one by one. */
@@ -34,6 +34,8 @@ var TONES={asset:1,liab:1,eq:1,inc:1,exp:1,cash:1,key:1,neu:1};
 function tn(t){return 'tn-'+(TONES[t]?t:'neu')}
 function tw(s,px){return Math.round(String(s).length*(px||16)*0.55)}
 /* keep a label inside its shape: a size down first, then squeeze */
+/* R13 sweep (15 Nov 2026): a box's second line (13.5px) is squeezed to the box width instead of running past the card edge. */
+function fitS(t,avail){t=String(t==null?'':t);if(!t.length||t.length*13.5*0.6<=avail)return '';return ' textLength="'+Math.round(avail)+'" lengthAdjust="spacingAndGlyphs"'}
 function fit(t,avail,px){if(!String(t==null?'':t).length)return '';var w=String(t).length*(px||16)*0.6;if(w<=avail)return '';if(String(t).length*14*0.6<=avail)return ' style="font-size:14px"';return ' style="font-size:14px" textLength="'+Math.round(avail)+'" lengthAdjust="spacingAndGlyphs"'}
 
 /* ---------- the cast: simple shapes drawn around (0,0), about 64 units tall ---------- */
@@ -63,7 +65,7 @@ var CAST={
   '<g class="an-vdoc"><path d="M-34 -11 H-20 L-15 -6 V12 H-34 Z" class="an-w"/><path d="M-30 -3 H-19 M-30 2 H-19 M-30 7 H-23" class="an-l"/></g><circle cx="-26" cy="22" r="7" class="an-wh"/><circle cx="20" cy="22" r="7" class="an-wh"/>'}
 };
 
-/* ---------- line icons for badges: drawn in a 24-unit box around (0,0), navy strokes, one colour circle per kind of reader or item ---------- */
+/* ---------- line icons for badges: drawn in a 24-unit box around (0,0), navy strokes, one color circle per kind of reader or item ---------- */
 var ICO={
  bank:'<path d="M-11 -3 L0 -10 L11 -3 Z"/><path d="M-8 -1 V7 M-3 -1 V7 M3 -1 V7 M8 -1 V7 M-11 9.5 H11"/>',
  truck:'<path d="M-11 -6 H3 V6 H-11 Z"/><path d="M3 -2 H8 L11 2 V6 H3"/><circle cx="-6" cy="8" r="2.2"/><circle cx="7" cy="8" r="2.2"/>',
@@ -134,7 +136,7 @@ var KIND={
     s+='<text x="'+((e.lx||130)+ind)+'" y="'+y+'" dominant-baseline="central" class="an-t" data-r="'+l[0]+'">'+esc(l[1]+'  '+l[2])+'</text><text x="'+ax+'" y="'+y+'" text-anchor="end" dominant-baseline="central" class="an-t an-num" data-r="'+l[0]+'-v">'+esc(l[3])+'</text>'});
   return {s:s+'</g>',w:w,h:h}},
  box:function(e,P){var w=e.w||Math.max(tw(e.text,16),tw(e.sub||'',13))+36,h=e.h||(e.sub?58:44);P[e.id]=[e.x+w/2,e.y+h/2];
-  return {s:'<g class="'+tn(e.tone)+'"><rect width="'+w+'" height="'+h+'" rx="10" class="an-f"/><text x="'+(w/2)+'" y="'+(e.sub?h/2-10:h/2)+'" text-anchor="middle" dominant-baseline="central" class="an-h an-ink" data-r="t"'+fit(e.text,w-20)+'>'+esc(e.text)+'</text>'+(e.sub?'<text x="'+(w/2)+'" y="'+(h/2+12)+'" text-anchor="middle" dominant-baseline="central" class="an-s an-ink" data-r="s">'+esc(e.sub)+'</text>':'')+'</g>',w:w,h:h}},
+  return {s:'<g class="'+tn(e.tone)+'"><rect width="'+w+'" height="'+h+'" rx="10" class="an-f"/><text x="'+(w/2)+'" y="'+(e.sub?h/2-10:h/2)+'" text-anchor="middle" dominant-baseline="central" class="an-h an-ink" data-r="t"'+fit(e.text,w-20)+'>'+esc(e.text)+'</text>'+(e.sub?'<text x="'+(w/2)+'" y="'+(h/2+12)+'" text-anchor="middle" dominant-baseline="central" class="an-s an-ink" data-r="s"'+fitS(e.sub,w-20)+'>'+esc(e.sub)+'</text>':'')+'</g>',w:w,h:h}},
  pill:function(e,P){var w=e.w||tw(e.text,15)+36,h=e.h||32;P[e.id]=[e.x+w/2,e.y+h/2];
   return {s:'<g class="'+tn(e.tone||'key')+'"><rect width="'+w+'" height="'+h+'" rx="'+(h/2)+'" class="an-f"/><text x="'+(w/2)+'" y="'+(h/2)+'" text-anchor="middle" dominant-baseline="central" class="an-h an-ink" data-r="t"'+fit(e.text,w-28)+'>'+esc(e.text)+'</text></g>',w:w,h:h}},
  bubble:function(e,P){var w=e.w||tw(e.text,14)+30,h=30,tx=e.tail!=null?e.tail:w/2;P[e.id]=[e.x+w/2,e.y+h/2];
@@ -146,7 +148,7 @@ var KIND={
     (e.label?'<text x="0" y="'+(40*sc+14)+'" text-anchor="middle" dominant-baseline="central" class="an-s" data-r="label">'+esc(e.label)+'</text>':''),origin:1}},
  text:function(e,P){P[e.id]=[e.x,e.y];return {s:'<text x="0" y="0" text-anchor="'+(e.anchor||'start')+'" dominant-baseline="central" class="'+(e.cls||'an-t')+'" data-r="t">'+esc(e.text)+'</text>',origin:1}},
  arrow:function(e){return {s:'<path d="'+e.d+'" class="an-arr '+tn(e.tone)+(e.soft?' an-soft':'')+'"'+(e.draw?' pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"':'')+(e.head===false?'':' marker-end="url(#'+e._m+')"')+' data-r="p"/>',origin:1}},
- /* a round badge: colour = kind of item, navy line icon inside, bold label and a short line under it */
+ /* a round badge: color = kind of item, navy line icon inside, bold label and a short line under it */
  badge:function(e,P){var r=e.r||26,sc=r/15,lp=e.lp||'b';P[e.id]=[e.x,e.y];
   var s='<g class="'+tn(e.tone)+' an-bdg"><circle r="'+r+'" class="an-bc"/>'+(e.inner?'<g class="an-li" transform="translate(0 '+(-r*.4).toFixed(1)+') scale('+(sc*.5).toFixed(2)+')">'+(ICO[e.icon]||ICO.doc)+'</g>'+e.inner.map(function(t,i){return '<text x="0" y="'+(r*(e.inner.length>1?.2:.3)+i*15).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" class="an-in">'+esc(t)+'</text>'}).join(''):'<g class="an-li" transform="scale('+sc.toFixed(2)+')">'+(ICO[e.icon]||ICO.doc)+'</g>')+'</g>';
   var L=wrap(e.sub||'',e.wc||22),n=(e.label?1:0)+L.length,hh=(e.label?20:0)+L.length*17,x=0,y=0,an='middle';
@@ -158,7 +160,7 @@ var KIND={
  axis:function(e){var s='<path d="M0 0 H'+e.w+'" class="an-axis" marker-end="url(#'+e._m+')"/>';
   (e.ticks||[]).forEach(function(t,i){s+='<g data-r="t'+i+'"><path d="M'+t[0]+' -7 V7" class="an-axis"/><text x="'+t[0]+'" y="24" text-anchor="middle" class="an-h an-sm">'+esc(t[1])+'</text>'+(t[2]?'<text x="'+t[0]+'" y="42" text-anchor="middle" class="an-s">'+esc(t[2])+'</text>':'')+'</g>'});
   return {s:s,origin:1}},
- /* a document thumbnail: coloured top edge, folded corner, title and a few grey lines */
+ /* a document thumbnail: colored top edge, folded corner, title and a few gray lines */
  sheet:function(e,P){var w=e.w||120,h=e.h||84,k=14;P[e.id]=[e.x+w/2,e.y+h/2];
   var s='<g class="'+tn(e.tone)+'"><path d="M0 0 H'+(w-k)+' L'+w+' '+k+' V'+h+' H0 Z" class="an-sh"/><path d="M'+(w-k)+' 0 V'+k+' H'+w+'" class="an-sh2"/><rect x="0" y="0" width="'+(w-k)+'" height="5" class="an-shh"/>'+
    '<text x="'+(w/2)+'" y="'+(e.sub?24:28)+'" text-anchor="middle" dominant-baseline="central" class="an-h an-sm an-ink" data-r="t"'+fit(e.text,w-16,15)+'>'+esc(e.text)+'</text>'+(e.sub?'<text x="'+(w/2)+'" y="44" text-anchor="middle" dominant-baseline="central" class="an-s" data-r="s">'+esc(e.sub)+'</text>':'');
@@ -185,10 +187,14 @@ var KIND={
  palm:function(e){var s=e.s||1;return {s:'<g transform="scale('+s+')" class="an-palm"><path d="M0 0 V-70"/><path d="M0 -70 c-22 -10 -40 -4 -48 6 M0 -70 c22 -10 40 -4 48 6 M0 -70 c-10 -18 -28 -22 -40 -18 M0 -70 c10 -18 28 -22 40 -18"/></g>',origin:1}}
 };
 function sceneOf(spec,narrow){var L={narrow:narrow,w:narrow?380:680};var sc=typeof spec.scene==='function'?spec.scene(L):spec.scene;return sc}
-function svgOf(spec,narrow,fid){var sc=sceneOf(spec,narrow),P={},m='anm-a'+fid,parts=[];
+function svgOf(spec,narrow,fid){var sc=sceneOf(spec,narrow),P={},m='anm-a'+fid,parts=[],bot=0;
   sc.els.forEach(function(e){e._m=m;if(e.x==null)e.x=0;if(e.y==null)e.y=0;var r=(KIND[e.k]||KIND.text)(e,P);
-    parts.push('<g class="an-el" data-id="'+esc(e.id||'')+'" data-x="'+e.x+'" data-y="'+e.y+'" transform="translate('+e.x+' '+e.y+')"'+(e.hidden?' style="opacity:0"':'')+'>'+r.s+'</g>')});
-  var svg='<svg viewBox="0 0 '+sc.w+' '+sc.h+'" class="anm-svg" role="img" aria-label="'+esc(spec.label||'Animated explanation')+'"><defs><marker id="'+m+'" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>'+
+    parts.push('<g class="an-el" data-id="'+esc(e.id||'')+'" data-x="'+e.x+'" data-y="'+e.y+'" transform="translate('+e.x+' '+e.y+')"'+(e.hidden?' style="opacity:0"':'')+'>'+r.s+'</g>');
+    if(e.k==='ask'&&P[e.id])bot=Math.max(bot,e.y+2*(P[e.id][1]-e.y)+12)});
+  /* R13 (15 Nov 2026): a "Your turn" box, with its answer explanation, must never be cut by the bottom of the stage. If the
+     box reaches past the scene height (often in the narrow scene, where the explanation wraps to more lines), the stage grows. */
+  var H=Math.max(sc.h,Math.ceil(bot));
+  var svg='<svg viewBox="0 0 '+sc.w+' '+H+'" class="anm-svg" role="img" aria-label="'+esc(spec.label||'Animated explanation')+'"><defs><marker id="'+m+'" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>'+
     parts.join('')+'<g class="an-tok" style="opacity:0"><rect x="-44" y="-15" width="88" height="30" rx="15" class="an-f"/><text x="0" y="0" text-anchor="middle" dominant-baseline="central" class="an-h an-ink">0</text></g></svg>';
   return {svg:svg,P:P}}
 
