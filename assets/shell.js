@@ -113,6 +113,14 @@ function frame(cur,title,sub){
 function who(){var s=ST.session()||{};return s.name?s.name.split(' ')[0]:''}
 
 /* ---------- My dashboard ---------- */
+/* the way into the course (owner 23 Nov 2026: from the dashboard there was no way back to Study once Practice was picked).
+   Both doors open → two buttons, Study and Practice; the one used last is gold. One door → the single button as before. */
+function goBtns(h){
+  var L=ST.can&&ST.can('lessons'),B=ST.can&&ST.can('bank');
+  if(!(L&&B)||!ST.setMode)return '<a class="btn gold" href="'+h.cont+'">'+(h.cont==='#/'?'Open the course':'Continue learning')+'</a>';
+  var m=ST.mode&&ST.mode();
+  return '<a class="btn'+(m!=='practise'?' gold':'')+'" href="'+h.cont+'" data-go="study">Study</a>'+
+         '<a class="btn'+(m==='practise'?' gold':'')+'" href="#/" data-go="practise">Practice</a>'}
 function dash(){
   var s=ST.session()||{},st=student(),h=here(),si=secInfo(),left=daysLeft(s.expires),end=longDate(s.expires);
   var m=frame('#/home','My dashboard',who()?'Welcome back, '+esc(who())+'.':'');
@@ -122,8 +130,9 @@ function dash(){
   card.innerHTML='<div class="pf-sub-l"><div class="pf-row">'+status+'<span class="pf-dim">'+(st?'Your subscription':'Staff access')+'</span></div>'+
     '<div class="pf-big">'+esc(!st||inCourse(here_())?PROGRAM+' — '+PART:(enrolledIn().length?enrolledIn().map(function(e){return e.code}).join(' · '):'START TIME'))+'</div>'+
     (st?(end?'<div class="pf-dim">Ends on <b>'+esc(end)+'</b></div>':'<div class="pf-dim">No end date is set for your code.</div>'):(s.name?'<div class="pf-dim">'+esc(s.name)+'</div>':''))+
-    '<div class="pf-row pf-acts"><a class="btn gold" href="'+h.cont+'">'+(h.cont==='#/'?'Open the course':'Continue learning')+'</a>'+(st?'':'<a class="btn" href="#/staff">Staff panel</a>')+'</div></div>'+
+    '<div class="pf-row pf-acts">'+goBtns(h)+(st?'':'<a class="btn" href="#/staff">Staff panel</a>')+'</div></div>'+
     (st&&left!==null?'<div class="pf-days"><b>'+Math.max(0,left)+'</b><span>'+(left<0?'expired':left===1?'day remaining':'days remaining')+'</span></div>':'');
+  $$('[data-go]',card).forEach(function(a){a.onclick=function(){ST.setMode(a.getAttribute('data-go'))}});
   m.appendChild(card);
   /* my courses + certificates */
   var grid=el('div','pf-grid');

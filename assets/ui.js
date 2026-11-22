@@ -60,7 +60,10 @@ function avail(id){switch(id){
   case 'calc':case 'tables':return secOK(id);
   default:return true}}
 function focusOn(){return sv(FK)==='1'}
-function applyFocus(){document.body.classList.toggle('ui-focus',focusOn())}
+/* focus mode hides the top bar on a lesson slide only: everywhere else (dashboard, course home, question bank) the bar comes back,
+   so the Study / Practice switch, Home and Settings are always reachable (owner 23 Nov 2026: focus mode left on, no way back to Study) */
+function applyFocus(){document.body.classList.toggle('ui-focus',focusOn()&&/^#\/t\//.test(location.hash||''))}
+window.addEventListener('hashchange',applyFocus);
 
 /* ---------- the slide's tool row ---------- */
 var menu=null,menuFor=null;
