@@ -229,7 +229,7 @@ function setLang(l){L=l;root.lang=l;root.dir=l==='ar'?'rtl':'ltr';
 lbs.forEach(function(x){x.addEventListener('click',function(){setLang(L==='ar'?'en':'ar')})});
 var tp=document.querySelector('.top');function sc(){tp.classList.toggle('s',window.scrollY>8)}window.addEventListener('scroll',sc,{passive:true});sc();
 var s=null;try{s=localStorage.getItem('st-site-lang')}catch(e){}
-setLang(s==='en'||s==='ar'?s:(/^ar/i.test(navigator.language||'ar')?'ar':'en'));
+setLang(s==='en'?'en':'ar');
 var calm=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches,rv=[].slice.call(document.querySelectorAll('.rv'));
 if('IntersectionObserver' in window&&!calm){var io=new IntersectionObserver(function(a){a.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}})},{rootMargin:'0px 0px -6% 0px'});rv.forEach(function(e){io.observe(e)})}
 else rv.forEach(function(e){e.classList.add('in')});
