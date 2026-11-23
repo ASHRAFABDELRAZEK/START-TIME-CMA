@@ -57,7 +57,7 @@
   "related_applications": [
     {
       "platform": "webapp",
-      "url": "https://starttime.academy/manifest.json"
+      "url": "https://starttime.academy/app/manifest.json"
     }
   ]
 }
