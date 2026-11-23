@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<script>if(/(^|\.)starttime\.academy$/.test(location.hostname)){if(location.protocol==="http:")location.replace("https://"+location.host+location.pathname+location.search+location.hash);else{var g=false;try{g=!!localStorage.getItem("st-p1a-session")}catch(e){}if(!/[?&]home\b/.test(location.search)&&(/^#\//.test(location.hash)||/[?&]s=[a-f]/i.test(location.search)||g||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)))location.replace("app/"+location.search+location.hash)}}</script>
+<script>if(/(^|\.)starttime\.academy$/.test(location.hostname)){if(location.protocol==="http:")location.replace("https://"+location.host+location.pathname+location.search+location.hash);else{var g=false;try{g=!!localStorage.getItem("st-p1a-session")}catch(e){}if(!/[?&]home\b/.test(location.search)&&(/^#\//.test(location.hash)||/[?&]s=[a-f]/i.test(location.search)||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)))location.replace("app/"+location.search+location.hash)}}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>START TIME — أشرف فتحي | كل خطوة بتفرق، وإحنا معاك</title>
 <meta name="description" content="START TIME منصة تعليمية: إنت بتاخد الخطوة، وإحنا بنتابع تقدّمك ونساعدك تعرف وصلت لفين وإيه اللي جاي.">
@@ -219,6 +219,7 @@ var root=document.documentElement,L='ar',btn=document.getElementById('lang'),lbs
 [].forEach.call(document.querySelectorAll('.grp'),function(g){var n=g.querySelectorAll('li').length-2,sp=g.querySelector('h3 span');if(n<1)return;
   var b=document.createElement('button');b.type='button';b.className='gmore';b.textContent='باقي مزايا '+sp.textContent+' ('+n+')';b.setAttribute('data-en','More '+sp.getAttribute('data-en').toLowerCase()+' features ('+n+')');
   b.addEventListener('click',function(){g.classList.add('all')});g.appendChild(b)});
+try{if(localStorage.getItem('st-p1a-session')){var lg=document.querySelectorAll('.top .btn.line span');lg[0].textContent='ادخل';lg[0].setAttribute('data-en','Open');lg[1].textContent='إلى منصتك';lg[1].setAttribute('data-en','my platform')}}catch(e){}
 var els=[].slice.call(document.querySelectorAll('[data-en]'));
 els.forEach(function(e){e.setAttribute('data-ar',e.textContent)});
 var T={ar:document.title,en:"START TIME — Ashraf Fathy | Every step matters. And we're with you."};
