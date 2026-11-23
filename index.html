@@ -224,9 +224,8 @@ els.forEach(function(e){e.setAttribute('data-ar',e.textContent)});
 var T={ar:document.title,en:"START TIME — Ashraf Fathy | Every step matters. And we're with you."};
 function setLang(l){L=l;root.lang=l;root.dir=l==='ar'?'rtl':'ltr';
   els.forEach(function(e){e.textContent=e.getAttribute('data-'+l)});
-  lbs.forEach(function(x){x.textContent=l==='ar'?'English':'العربية'});document.title=T[l];
-  try{localStorage.setItem('st-site-lang',l)}catch(e){}}
-lbs.forEach(function(x){x.addEventListener('click',function(){setLang(L==='ar'?'en':'ar')})});
+  lbs.forEach(function(x){x.textContent=l==='ar'?'English':'العربية'});document.title=T[l];}
+lbs.forEach(function(x){x.addEventListener('click',function(){setLang(L==='ar'?'en':'ar');try{localStorage.setItem('st-site-lang',L)}catch(e){}})});
 var tp=document.querySelector('.top');function sc(){tp.classList.toggle('s',window.scrollY>8)}window.addEventListener('scroll',sc,{passive:true});sc();
 var s=null;try{s=localStorage.getItem('st-site-lang')}catch(e){}
 setLang(s==='en'?'en':'ar');
