@@ -166,6 +166,9 @@ details.rv[open]{background:var(--card)}
 .dk-nav .mid:hover{border-color:var(--line2);background:var(--card)}
 .dk-nav .mid svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
 .dk-nav .btn{min-width:110px}
+/* a running set: End sits in the pager (owner 23 Nov 2026); on a phone the four buttons share the row */
+.dk-nav.has-end .dk-end{min-width:0}
+@media (max-width:560px){.dk-nav.has-end{gap:6px}.dk-nav.has-end .btn{min-width:0;flex:1;padding-inline:8px}.dk-nav.has-end .btn svg{display:none}.dk-nav.has-end .mid{flex:none;min-width:0;padding-inline:4px}.dk-nav.has-end .mq{display:none}}
 .toc{display:grid;gap:6px}
 .toc a{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;text-decoration:none;color:var(--ink);border:1px solid var(--line)}
 .toc a:hover{border-color:var(--teal)}
@@ -1809,3 +1812,9 @@ body::after{display:none;content:'';position:fixed;left:50%;top:44%;width:min(46
 body:has(.doors)::after{display:block}
 :root[data-theme="dark"] body::after{opacity:.05}
 @media print{body::after{display:none}}
+
+/* quick checks: the picked option before "Check answer" (owner 23 Nov 2026) */
+.qc-o.sel{border-color:var(--teal);box-shadow:0 0 0 2px color-mix(in srgb,var(--teal) 25%,transparent)}
+.qc-act{display:flex;justify-content:flex-start;margin-top:6px}
+html.printing .qc-act{display:none!important}
+@media print{.qc-act{display:none!important}}

@@ -147,12 +147,12 @@ function merge(a,b){var m=blank();a=a||blank();b=b||blank();m.R=Math.max(a.R||0,
     ['q','d'].forEach(function(f){Object.keys(x[f]||{}).forEach(function(k){if(!m[f][k]||x[f][k][1]>m[f][k][1])m[f][k]=x[f][k]})});   // q[k] may carry the chosen answer as a third item
     if((x.lt||0)>m.lt){m.lt=x.lt;m.last=x.last}});
   return prune(m)}
-var CF={};   // "How sure are you?" picked before answering (s = sure, u = not sure, g = guessing)
+var CF={},AN={};   // "How sure are you?" picked before answering (s = sure, u = not sure, g = guessing); AN[k]: answered on the slide now on screen
 var IV=[1,3,7,14,30];   // spaced review: days before a right answer comes back — longer each time it is right again
 function dueAt(q){var n=Math.max(1,q[5]||1);return q[1]+IV[Math.min(n,IV.length)-1]*864e5}
 /* q[k] = [right?, when, what was chosen (wrong answers), seconds spent on this try, how sure (s/u/g), right in a row at review times] — empty tail items are dropped */
 ST.mark=function(k,ok,ch){var sec=Math.min(3600,Math.round(QS[k]||0));QS[k]=0;
-  var o=P.q[k],cf=CF[k]||'',n=0;delete CF[k];
+  var o=P.q[k],cf=CF[k]||'',n=0;delete CF[k];AN[k]=1;
   if(ok){var was=o&&o[0]===1&&live(o[1],tidOf(k));n=was?Math.min(20,Date.now()>=dueAt(o)?(o[5]||1)+1:(o[5]||1)):1}
   var e=[ok?1:0,Date.now(),ok||ch==null?'':String(ch).slice(0,60),sec,cf,n];while(e.length>2&&!e[e.length-1])e.pop();
   P.q[k]=e;save();var dq=document.querySelector('.deck.mixq');if(dq)dq.classList.remove('mixq');   // mixed quiz: answered — show the topic
@@ -194,7 +194,7 @@ function optOrder(o){var n=o.length,ord=[];for(var i=0;i<n;i++)ord.push(i);if((C
   var pin=/\b(all|none|both|neither) of (the )?above\b|^\s*(both|neither|all|none)\b/i,free=ord.filter(function(i){return !pin.test(String(o[i]).replace(/<[^>]*>/g,''))}),sh=free.slice();
   for(var j=sh.length-1;j>0;j--){var r=Math.floor(Math.random()*(j+1)),t=sh[j];sh[j]=sh[r];sh[r]=t}
   var out=ord.slice(),f=0;free.forEach(function(slot){out[slot]=sh[f++]});return out}
-ST.qc=function(q,o,a,e){var ord=optOrder(o);return '<div class="qc" data-a="'+a+'"><div class="qc-q"><span class="qc-t">Quick check</span>'+q+'</div><div class="qc-os">'+ord.map(function(i,d){var x=o[i];return '<button type="button" class="qc-o" data-i="'+i+'"><span class="k">'+'ABCDEFG'[d]+'</span><span>'+x+'</span></button>'}).join('')+'</div><div class="qc-e" hidden><b>Answer: '+'ABCDEFG'[ord.indexOf(a)]+' — '+o[a]+'.</b> '+e+'</div></div>'};
+ST.qc=function(q,o,a,e){var ord=optOrder(o);return '<div class="qc" data-a="'+a+'"><div class="qc-q"><span class="qc-t">Quick check</span>'+q+'</div><div class="qc-os">'+ord.map(function(i,d){var x=o[i];return '<button type="button" class="qc-o" data-i="'+i+'"><span class="k">'+'ABCDEFG'[d]+'</span><span>'+x+'</span></button>'}).join('')+'</div><div class="qc-act"><button type="button" class="btn sm pri qc-c" disabled>Check answer</button></div><div class="qc-e" hidden><b>Answer: '+'ABCDEFG'[ord.indexOf(a)]+' — '+o[a]+'.</b> '+e+'</div></div>'};
 /* "Check yourself": the topic's quick checks gathered on one slide, each with a link back to the slide that teaches it.
    ST.qcSet(topicId, [[question, [options], answerIndex, explanation, slideNumber], ...]); numbering counts the lesson slides from 1. */
 ST.qcSet=function(id,items){return items.map(function(x,n){var q=ST.qc(x[0],x[1],x[2],x[3]);
@@ -508,10 +508,7 @@ function setBar(rv,i){var A=rv.a,n=A.length,ex=!!rv.ex,me=A[i],fl=(rv.f||[]).ind
   if(ex){var ck=el('span','set-clk');ck.setAttribute('role','timer');ck.title='Time left — the set ends by itself at 0';b.appendChild(ck)}
   var f=el('button','btn sm ghost set-fl'+(fl?' on':''),'⚑<span class="set-ft"> '+(fl?'Flagged':'Flag')+'</span>');f.type='button';f.setAttribute('aria-pressed',fl?'true':'false');f.title='Flag this question to come back to it';f.setAttribute('aria-label','Flag this question');
   f.onclick=function(){var v=revGet();if(!v)return;v.f=v.f||[];var p=v.f.indexOf(me),on=p<0;if(on)v.f.push(me);else v.f.splice(p,1);revSet(v);f.classList.toggle('on',on);f.lastChild.textContent=' '+(on?'Flagged':'Flag');f.setAttribute('aria-pressed',on?'true':'false')};
-  var pv=el('button','btn sm','‹ Back');pv.type='button';pv.disabled=i===0;pv.onclick=function(){setGo(i-1)};
-  var nx=el('button','btn sm pri',i+1<n?'Next ›':'Finish');nx.type='button';nx.onclick=function(){if(i+1<n)setGo(i+1);else setEnd(revGet()||rv)};
-  b.appendChild(f);b.appendChild(pv);b.appendChild(nx);
-  if(i+1<n){var st=el('button','btn sm ghost','End');st.type='button';st.title='End the set now and see the result';st.onclick=function(){setEnd(revGet()||rv)};b.appendChild(st)}
+  b.appendChild(f);   // Previous / Next / Finish: the pager under the question only, as in Study (owner 23 Nov 2026: one set of buttons)
   setTimeout(setTick,0);return b}
 /* exam set: the buttons say what they do there (no checking, no feedback) */
 function exLabels(body){$$('.qa .btn',body).forEach(function(b){var t=b.textContent,x=t==='Try again'?'Change my answer':t==='Check'?'Save my answer':null;if(x&&t!==x)b.textContent=x})}
@@ -885,23 +882,26 @@ function deck(tid,idx){
   var nx=el('button','btn pri','<span>'+(si>=0?(si+1<rv0.a.length?'Next':'Finish'):inB&&idx===n-1?'Back to the questions':idx===nL-1?(nextTopic(t)?'Next topic':'Finish'):'Next')+'</span>'+ICON.next);
   if(si>=0)pv.disabled=si===0;
   nx.onclick=function(){go(1)};
-  var mid=el('button','mid','<span>'+(si>=0?'Question '+(si+1)+' / '+rv0.a.length:inB?'Bank '+(idx-nL+1)+' / '+(n-nL):(idx+1)+' / '+nL)+'</span>'+ICON.list);mid.type='button';mid.title=si>=0?'Every question in this set (G)':'Go to a slide (G, or type its number and Enter)';mid.setAttribute('aria-label',si>=0?'Every question in this set':'Go to a slide');mid.onclick=function(){if(si>=0)setGrid(revGet()||rv0,si);else toc(t)};
+  var mid=el('button','mid','<span>'+(si>=0?'<span class="mq">Question </span>'+(si+1)+' / '+rv0.a.length:inB?'Bank '+(idx-nL+1)+' / '+(n-nL):(idx+1)+' / '+nL)+'</span>'+ICON.list);mid.type='button';mid.title=si>=0?'Every question in this set (G)':'Go to a slide (G, or type its number and Enter)';mid.setAttribute('aria-label',si>=0?'Every question in this set':'Go to a slide');mid.onclick=function(){if(si>=0)setGrid(revGet()||rv0,si);else toc(t)};
   nav.appendChild(pv);nav.appendChild(mid);nav.appendChild(nx);
+  if(si>=0&&si+1<rv0.a.length){var eb=el('button','btn dk-end','End');eb.type='button';eb.title='End the set now and see the result';eb.setAttribute('aria-label','End the set now and see the result');eb.onclick=function(){setEnd(revGet()||rv0)};nav.insertBefore(eb,nx);nav.classList.add('has-end')}   // End sits with the pager (owner 23 Nov 2026)
   d.appendChild(nav);app.appendChild(d);
   if(ST.deckDone)try{ST.deckDone(d,t,s,idx)}catch(e){console.error(e)}   // ui.js: the slide's tool row
   window.scrollTo(0,0);
   if(LAND){fitLand();setTimeout(fitLand,120);setTimeout(fitLand,600);$$('img',sec).forEach(function(im){if(!im.complete)im.addEventListener('load',fitLand)})}
   startDwell(t,s,k);if(isPractice(s))startQTimer(t,k);
 }
-/* "How sure are you?" above the answer — optional; saved with the next answer, then cleared */
+/* "How sure are you?" under the answer (owner 23 Nov 2026: answer first, then say how sure) — optional.
+   Picked before answering, it goes with the answer; picked after, it is written onto that answer. */
 var CONFQ={mcq:1,multi:1,num:1,sort:1,dd:1,order:1},CONF=[['s','Sure'],['u','Not sure'],['g','Guessing']];
 function confRow(k){var r=el('div','conf');r.setAttribute('data-k',k);
-  r.innerHTML='<span class="cf-l">How sure are you?</span><span class="seg sm" role="group" aria-label="How sure are you?">'+CONF.map(function(c){return '<button type="button" data-v="'+c[0]+'" aria-pressed="false">'+c[1]+'</button>'}).join('')+'</span><small>optional · pick before you answer</small>';
-  $$('button',r).forEach(function(b){b.onclick=function(){CF[k]=CF[k]===b.dataset.v?'':b.dataset.v;paintConf(k)}});return r}
-function placeConf(body,s,k){if($('.conf',body))return;var a=s.t==='mcq'?$('.opts',body):$('.qa',body);if(a&&a.parentNode)a.parentNode.insertBefore(confRow(k),a);paintConf(k)}
+  r.innerHTML='<span class="cf-l">How sure are you?</span><span class="seg sm" role="group" aria-label="How sure are you?">'+CONF.map(function(c){return '<button type="button" data-v="'+c[0]+'" aria-pressed="false">'+c[1]+'</button>'}).join('')+'</span><small>optional</small>';
+  $$('button',r).forEach(function(b){b.onclick=function(){var v=CF[k]===b.dataset.v?'':b.dataset.v;CF[k]=v;
+    var e=AN[k]&&P.q[k];if(e){while(e.length<5)e.push('');e[4]=v;while(e.length>2&&!e[e.length-1])e.pop();save();paintConf(k,v)}else paintConf(k)}});return r}
+function placeConf(body,s,k){if($('.conf',body))return;delete AN[k];delete CF[k];var a=s.t==='mcq'?$('.opts',body):$('.qa',body);if(a&&a.parentNode)a.parentNode.insertBefore(confRow(k),a.nextSibling);paintConf(k)}
 function paintConf(k,saved){$$('.conf').forEach(function(r){if(r.getAttribute('data-k')!==k)return;
   $$('button',r).forEach(function(x){var on=x.dataset.v===(CF[k]||'');x.classList.toggle('on',on);x.setAttribute('aria-pressed',on?'true':'false')});
-  if(saved!=null)$('small',r).textContent=saved?'saved with your answer: '+CONF.filter(function(c){return c[0]===saved})[0][1]:'optional · pick before you answer'})}
+  if(saved!=null)$('small',r).textContent=saved?'saved with your answer: '+CONF.filter(function(c){return c[0]===saved})[0][1]:'optional'})}
 /* the line under a concept slide: countdown until it counts as read, and a "Mark as read" button */
 function paintRead(k,left){var b=document.getElementById('rdBar');if(!b)return;
   if(isRead(k)){b.innerHTML='<span class="chip t">✓ Read</span><button class="btn sm ghost" type="button" id="rdUn">Mark as unread</button>';
@@ -1000,19 +1000,24 @@ R.x=function(b,s,k){var t=topicOf(k),i=t?t.slides.indexOf(s):-1,h=s.body||'';
   else if(qcMode()==='below'&&i>=0){qcBelow(t,i).forEach(function(q){h+=ST.qc(q[0],q[1],q[2],q[3])})}
   b.innerHTML=h;if(b.querySelector('.gl-ar'))ST.glFill(b)};
 
-/* multiple choice (single answer) */
+/* multiple choice (single answer). Owner 23 Nov 2026: picking an option only selects it; the answer shows when "Check answer" is
+   pressed, so a student who is still unsure can change his mind first (as in the exam, where an answer can be changed until submitted). */
 R.mcq=function(b,s,k){
   var q=el('div','q');q.innerHTML='<div class="stem">'+s.q+'</div>';
-  var opts=el('div','opts'),done=false;
+  var opts=el('div','opts'),done=false,sel=null;
   var ord=optOrder(s.o);
-  ord.forEach(function(i,d){var o=s.o[i];var btn=el('button','opt','<span class="k">'+'ABCDEFG'[d]+'</span><span><span>'+o+'</span></span>');
-    btn.onclick=function(){if(done)return;done=true;btn.classList.add('pk');var ok=i===s.a;ST.mark(k,ok,'o:'+i);
-      $$('.opt',opts).forEach(function(x,dj){var j=ord[dj];x.disabled=true;if(j===s.a)x.classList.add('ok');else if(j===i)x.classList.add('bad');
-        if(s.w&&s.w[j]){var w=el('span','why',s.w[j]);x.lastChild.appendChild(w)}});
-      var fb=el('div','fb '+(ok?'ok':'bad'),'<b class="v">'+(ok?'Correct.':'Not quite — the answer is '+'ABCDEFG'[ord.indexOf(s.a)]+'.')+'</b>'+(s.e||''));q.appendChild(fb);
-      var r=el('div','qa');var t=el('button','btn sm','Try again');t.onclick=function(){b.innerHTML='';R.mcq(b,s,k)};r.appendChild(t);q.appendChild(r)};
+  var r=el('div','qa'),c=el('button','btn pri','Check answer');c.type='button';c.disabled=true;
+  function check(){if(done||sel===null)return;done=true;var i=sel,ok=i===s.a;ST.mark(k,ok,'o:'+i);c.remove();
+    $$('.opt',opts).forEach(function(x,dj){var j=ord[dj];x.disabled=true;x.classList.remove('sel');if(j===i)x.classList.add('pk');if(j===s.a)x.classList.add('ok');else if(j===i)x.classList.add('bad');
+      if(s.w&&s.w[j]){var w=el('span','why',s.w[j]);x.lastChild.appendChild(w)}});
+    var fb=el('div','fb '+(ok?'ok':'bad'),'<b class="v">'+(ok?'Correct.':'Not quite — the answer is '+'ABCDEFG'[ord.indexOf(s.a)]+'.')+'</b>'+(s.e||''));q.insertBefore(fb,r);
+    var t=el('button','btn sm','Try again');t.type='button';t.onclick=function(){b.innerHTML='';R.mcq(b,s,k)};r.appendChild(t)}
+  ord.forEach(function(i,d){var o=s.o[i];var btn=el('button','opt','<span class="k">'+'ABCDEFG'[d]+'</span><span><span>'+o+'</span></span>');btn.type='button';
+    btn.setAttribute('aria-pressed','false');
+    btn.onclick=function(){if(done)return;sel=i;$$('.opt',opts).forEach(function(x){var on=x===btn;x.classList.toggle('sel',on);x.setAttribute('aria-pressed',on?'true':'false')});c.disabled=false};
     opts.appendChild(btn)});
-  q.appendChild(opts);b.appendChild(q);
+  c.onclick=check;r.appendChild(c);
+  q.appendChild(opts);q.appendChild(r);b.appendChild(q);
 };
 
 /* multiple select */
@@ -1490,8 +1495,13 @@ ST.start=function(){
   var nav=$('.top-act');if(nav&&!$('#nInst')){var ib=el('button','ib inst','<svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg><span>Install app</span>');ib.id='nInst';ib.hidden=true;ib.title='Install the app on this device';ib.setAttribute('aria-label','Install the app on this device');nav.insertBefore(ib,nav.firstChild)}
   paintInstall();
   $('#nTheme').onclick=settings;
+  /* quick checks: a tap only selects an option; "Check answer" shows the result (owner 23 Nov 2026: a finger scrolling the page
+     landed on an option and gave the answer away) */
   document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.qc-o');if(!b)return;var q=b.closest('.qc');if(!q||q.classList.contains('done'))return;
-    var a=+q.getAttribute('data-a'),i=+b.getAttribute('data-i');q.classList.add('done');
+    $$('.qc-o',q).forEach(function(x){var on=x===b;x.classList.toggle('sel',on);x.setAttribute('aria-pressed',on?'true':'false')});var c=$('.qc-c',q);if(c)c.disabled=false});
+  document.addEventListener('click',function(e){var c=e.target.closest&&e.target.closest('.qc-c');if(!c)return;var q=c.closest('.qc');if(!q||q.classList.contains('done'))return;
+    var b=$('.qc-o.sel',q);if(!b)return;var act=$('.qc-act',q);if(act)act.remove();
+    var a=+q.getAttribute('data-a'),i=+b.getAttribute('data-i');q.classList.add('done');b.classList.remove('sel');
     $$('.qc-o',q).forEach(function(x){var j=+x.getAttribute('data-i');x.disabled=true;if(j===a)x.classList.add('ok');else if(j===i)x.classList.add('bad')});
     var ex=$('.qc-e',q);ex.hidden=false;ex.insertAdjacentHTML('afterbegin','<span class="qc-v '+(i===a?'ok':'bad')+'">'+(i===a?'Right. ':'Not quite. ')+'</span>')});
   document.addEventListener('keydown',function(e){
