@@ -22,6 +22,7 @@ ST.showGate=function(){
     '<form id="gForm" autocomplete="off"><label for="gCode">Access code</label><div class="g-in"><input class="inp mask" id="gCode" type="password" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="30" placeholder="e.g. KX48213907" aria-describedby="gMsg"><span class="g-dots" id="gDots" aria-hidden="true"></span><button type="button" class="g-eye" id="gEye" aria-pressed="false" aria-label="Show the code">Show</button></div>'+
     '<button class="btn pri" id="gGo" type="submit">Sign in</button></form><div id="gMsg" role="alert">'+(msg?'<div class="fb bad">'+esc(msg)+'</div>':'')+'</div>'+
     '<p class="note">Your code works on a set number of devices. Your progress is saved under your code, so it follows you to each of them.</p>'+
+    '<p class="note g-join">Need an access code? <a href="../?home#start">Request enrollment</a></p>'+
     '<button class="btn ghost sm g-inst" id="gInst" type="button" hidden>Install the app on this device</button>'+gateHelp();
   app.appendChild(wrap);if(ST.paintInstall)ST.paintInstall();
   var inp=$('#gCode'),go=$('#gGo'),out=$('#gMsg'),eye=$('#gEye');

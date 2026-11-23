@@ -1823,9 +1823,9 @@ html.printing .qc-act{display:none!important}
    Only the sign-in screen changes; the platform inside keeps its own colors and themes. */
 body:has(.gw){background:#F8F7F3}
 .gw{border-color:#E9E4D9;box-shadow:0 34px 70px -44px rgba(17,34,64,.4)}
-@media (min-width:761px){.gw{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+@media (min-width:761px){.gw{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
 .gw-hero{background:#EFEBE1;color:#112240}
-.gw-lens{width:min(210px,58%)}
+.gw-lens{width:min(160px,56%)}
 .gw-kick b{color:#112240}
 .gw-kick span{color:#B38A3A}
 .gw-hero .gw-sub{color:#52637A}
@@ -1834,4 +1834,5 @@ body:has(.gw){background:#F8F7F3}
 .gw .gate .g-eye{color:#112240}
 .gw .gate .g-eye:focus-visible{outline-color:#112240}
 .gw .gate .inp:focus{border-color:#112240;box-shadow:0 0 0 3px rgba(179,138,58,.25);outline:0}
-@media (max-width:760px){.gw-hero{padding:26px 20px;gap:10px}.gw-lens{width:120px}}
+@media (max-width:760px){.gw-hero{padding:22px 20px;gap:8px}.gw-lens{width:96px}}
+.gw .gate .g-join{margin-top:10px}.gw .gate .g-join a{color:#112240;font-weight:600;text-decoration:underline;text-decoration-color:#B38A3A;text-underline-offset:4px}
