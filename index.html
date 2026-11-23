@@ -71,7 +71,7 @@ h1 .l2{font-size:52px;font-weight:500;color:var(--slate)}
 .art{margin-inline-end:-40px;margin-inline-start:-24px}
 .art img{display:block;width:100%;height:auto;mix-blend-mode:multiply;transform:scale(1.13);filter:contrast(1.06)}
 
-.chap{background:var(--white);padding:112px 0}
+.chap{background:var(--white);padding:90px 0}
 .chap ul{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:20px}
 .chap li{padding:0 36px;border-inline-start:1px solid var(--stone)}
 .chap li:first-child{border-inline-start:0;padding-inline-start:0}
@@ -82,7 +82,24 @@ h2{font-size:38px;line-height:1.3;font-weight:700}
 .chap h2{margin-top:26px}
 .chap p{margin-top:16px;font-size:17px;color:var(--slate)}
 
-.inside{padding:112px 0}
+.look{padding:90px 0 0}
+.look .head{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:end}
+.look .head div{grid-column:1/8}.look .head p{grid-column:9/13;font-size:15px;color:var(--slate)}
+.look h2{font-size:48px}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;margin-top:48px}
+.shots figure{margin:0}
+.shots img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--stone);box-shadow:0 24px 48px -28px rgba(17,34,64,.35);background:#fff}
+.shots figcaption{margin-top:18px;font-size:15px;color:var(--slate);line-height:1.75}
+.shots figcaption b{display:block;color:var(--navy);font-size:17.5px;font-weight:600}
+.steps{padding:0 0 90px}
+.steps ol{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.steps li{padding:0 36px;border-inline-start:1px solid var(--stone)}
+.steps li:first-child{border-inline-start:0;padding-inline-start:0}
+.steps .num{font-family:var(--ar);letter-spacing:0;font-size:13px}
+[dir=ltr] .steps .num{font-family:var(--en);letter-spacing:.06em}
+.steps h2{margin-top:22px;font-size:26px}
+.steps p{margin-top:12px;font-size:16px;color:var(--slate)}
+.inside{padding:90px 0}
 .inside .head{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:end}
 .inside .head div{grid-column:1/7}
 .inside .head p{grid-column:8/13;font-size:17px;color:var(--slate)}
@@ -102,7 +119,7 @@ h2{font-size:38px;line-height:1.3;font-weight:700}
 .grp.all .gmore{display:none}
 
 .fine{margin-top:22px;font-size:13px;color:var(--slate)}
-.close{padding:0 0 112px}
+.close{padding:0 0 90px}
 .panel{background:var(--white);border-radius:24px;padding:64px;min-height:320px;display:grid;grid-template-columns:minmax(0,1.2fr) auto;gap:48px;align-items:center}
 .panel::before{content:"";grid-column:1/-1;width:72px;height:2px;background:var(--gold);margin-bottom:-16px}
 .panel h2{font-size:48px;line-height:1.25}
@@ -118,11 +135,14 @@ footer{padding:46px 0 34px;text-align:center;font-family:var(--en);font-size:12p
 @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.orbit{animation:none}html{scroll-behavior:auto}}
 
 @media (max-width:1023px){
+  .look h2{font-size:38px}
   .wrap{padding-inline:32px}
   h1{font-size:52px}h1 .l2{font-size:40px}
   .inside h2,.panel h2{font-size:38px}
 }
 @media (max-width:899px){
+  .look .head{display:block}.look .head p{margin-top:12px}.shots{grid-template-columns:1fr;gap:36px}
+  .steps ol{display:block}.steps li,.steps li:first-child{padding:32px 0 0;border-inline-start:0}.steps li:first-child{padding-top:8px}
   .grp{display:block}.grp h3{margin-bottom:22px}
   .hero .wrap{display:block;min-height:0;padding-top:58px}
   .hero .art{margin:30px 0 0}
@@ -149,6 +169,7 @@ footer{padding:46px 0 34px;text-align:center;font-family:var(--en);font-size:12p
   .chap li:first-child{border-top:0;padding-top:20px}
   .chap li:last-child{padding-bottom:0}
   h2{font-size:29px}.chap p{font-size:15px}
+  .look{padding:70px 0 0}.look h2{font-size:32px}.shots{margin-top:32px}.steps{padding:0 0 70px}.steps h2{font-size:22px}
   .inside{padding:70px 0}
   .inside h2{font-size:32px}.inside .head p{font-size:15px}
   .groups{margin-top:40px}.grp{display:block;padding:30px 0 6px}.grp h3{font-size:22px;margin-bottom:18px}.grp ul{grid-template-columns:1fr}.grp li{padding-bottom:18px}.grp h4{font-size:16.5px}
@@ -191,6 +212,17 @@ footer{padding:46px 0 34px;text-align:center;font-family:var(--en);font-size:12p
   </ul>
 </div></section>
 
+<section class="look"><div class="wrap">
+  <div class="head">
+    <div><p class="eyebrow rv" data-en="See the platform">شاهد المنصة</p><h2 class="rv" data-en="See how you study and practise.">شاهد كيف تذاكر وتتدرّب.</h2></div>
+    <p class="rv" data-en="Real screens from the platform, with sample data. Lessons and questions are in English, the language of the exam.">لقطات حقيقية من المنصة، ببيانات تجريبية. الدروس والأسئلة بالإنجليزية، لغة الامتحان.</p>
+  </div>
+  <div class="shots">
+    <figure class="rv"><img src="shot-study.webp" width="1720" height="1760" alt="" data-alt-ar="شاشة درس من المنصة: شرح وجدول أرقام الشركة" data-alt-en="A lesson screen: the explanation and the company's table"><figcaption><b data-en="Study">المذاكرة</b><span data-en="The lesson follows one company, and its numbers are in front of you.">الدرس يسير مع شركة واحدة، وأرقامها أمامك.</span></figcaption></figure>
+    <figure class="rv"><img src="shot-practice.webp" width="1720" height="1760" alt="" data-alt-ar="شاشة سؤال من بنك الأسئلة مع تفسير كل اختيار" data-alt-en="A question screen with every option explained"><figcaption><b data-en="Practice">التدريب</b><span data-en="Exam-style questions, and every option comes with its explanation.">أسئلة بنمط الامتحان، ولكل اختيار تفسيره.</span></figcaption></figure>
+  </div>
+</div></section>
+
 <section class="inside" id="inside"><div class="wrap">
   <div class="head">
     <div><p class="eyebrow rv" data-en="Inside the platform">داخل المنصة</p><h2 class="rv" data-en="Everything you need to keep going.">كل ما تحتاجه لتكمل.</h2></div>
@@ -198,6 +230,15 @@ footer{padding:46px 0 34px;text-align:center;font-family:var(--en);font-size:12p
   </div>
   <div class="groups" id="groups"><div class="grp"><h3 class="rv"><span data-en="Study">المذاكرة</span></h3><ul class="rv"><li><h4 data-en="Lessons told as a story">دروس في صورة قصة</h4><p data-en="Each topic follows one company and one person from start to end.">كل موضوع يسير مع شركة واحدة وشخصياتها من البداية للنهاية.</p></li><li><h4 data-en="Tools to get past the English barrier">أدوات لتخطّي حاجز اللغة الإنجليزية</h4><p data-en="Listening · instant translation at 3 levels: a word, a sentence, or the whole slide · a glossary of terms.">استماع · ترجمة فورية بـ 3 مستويات: كلمة، جملة، أو الشريحة كاملة · قاموس مصطلحات.</p></li><li><h4 data-en="Every rule with its reason">افهم القاعدة وسببها</h4><p data-en="You learn why the rule exists, so you understand it instead of memorizing it.">تعرف لماذا وُضعت القاعدة، فتفهمها بدل أن تحفظها.</p></li><li><h4 data-en="Pictures that move, tables that change">رسوم وجداول تفاعلية</h4><p data-en="Change a number yourself and watch its effect on the rest.">عدّل الأرقام وشاهد تأثيرها على باقي الأرقام.</p></li><li><h4 data-en="Simple English">إنجليزية واضحة</h4><p data-en="Short sentences and easy numbers, in the language of the exam.">جمل قصيرة وأرقام سهلة، بنفس لغة الامتحان.</p></li></ul></div><div class="grp"><h3 class="rv"><span data-en="Practice">التدريب</span></h3><ul class="rv"><li><h4 data-en="A question bank for every topic">بنك أسئلة لكل موضوع</h4><p data-en="It covers every part of the lessons, and every question can be answered from them.">يغطي كل جزء في الشرح، وكل الأسئلة مرتبطة بما درسته.</p></li><li><h4 data-en="Six question formats">ستة أشكال للأسئلة</h4><p data-en="Single choice, multiple select, numeric entry, classification, drop-down and ordering.">اختيار واحد، اختيار متعدد، إجابة رقمية، تصنيف، قوائم، وترتيب.</p></li><li><h4 data-en="Pick, then check">راجع قبل تأكيد الإجابة</h4><p data-en="A slip of the finger never reveals the answer. You check when you are ready.">الإجابة لا تظهر قبل تأكيد اختيارك، حتى لو لمست الشاشة بالخطأ.</p></li><li><h4 data-en="Every option explained">تفسير لكل اختيار</h4><p data-en="You see why the right answer is right and why each wrong one is wrong.">تفهم سبب صحة كل إجابة أو خطئها.</p></li><li><h4 data-en="How sure are you?">ما مدى ثقتك بإجابتك؟</h4><p data-en="You say whether you are sure or guessing, so the platform knows what really needs review.">تحدد إن كنت متأكداً أم تخمّن، فتعرف المنصة ما يحتاج مراجعة فعلاً.</p></li><li><h4 data-en="Practice sets and exam sets">مجموعات تدريب وامتحان</h4><p data-en="One set to practise, and one under exam conditions.">مجموعة للتمرين، ومجموعة بنفس ظروف الامتحان.</p></li><li><h4 data-en="Your mistakes, reviewed">مراجعة أخطائك</h4><p data-en="The questions you missed come back until they are fixed.">الأسئلة التي أخطأت فيها تعود إليك حتى تتقنها.</p></li><li><h4 data-en="Calculator and financial tables">آلة حاسبة وجداول مالية</h4><p data-en="Beside you whenever a question needs them, as in the exam.">بجانبك عندما يحتاجها السؤال، كما في الامتحان.</p></li></ul></div><div class="grp"><h3 class="rv"><span data-en="Follow-up and progress">المتابعة والتقدّم</span></h3><ul class="rv"><li><h4 data-en="Your readiness in one number">مؤشر جاهزيتك</h4><p data-en="A clear percentage tells you where you stand before the exam.">نسبة واضحة تبيّن موقعك قبل الامتحان.</p></li><li><h4 data-en="A map of the whole outline">خريطة للمنهج كله</h4><p data-en="Every lesson is tied to the official outline, and you see what is done and what is left.">كل درس مرتبط ببند من المنهج الرسمي، وترى ما أنجزته وما تبقّى.</p></li><li><h4 data-en="Mastery tracking">تتبّع الإتقان</h4><p data-en="A lesson counts when you really read it, and a question when you answer it right.">الدرس يُحسب عندما تقرأه فعلاً، والسؤال عندما تحلّه صحيحاً.</p></li><li><h4 data-en="Your progress follows you">تقدّمك معك أينما كنت</h4><p data-en="Saved to your code: start on your phone and continue on your computer.">مرتبط بكودك الشخصي: تبدأ على الموبايل وتكمل على الكمبيوتر.</p></li><li><h4 data-en="Your dashboard">لوحتك الشخصية</h4><p data-en="Your courses, your subscription and the days left, on one page.">دوراتك واشتراكك والأيام المتبقية في صفحة واحدة.</p></li><li><h4 data-en="An instructor who sees you">متابعة شخصية من المحاضر</h4><p data-en="Your instructor sees where you reached and where you stopped, so the follow-up is about you.">المحاضر يرى أين وصلت وأين توقفت، فتكون المتابعة لك أنت.</p></li></ul></div><div class="grp"><h3 class="rv"><span data-en="Your tools">أدواتك</span></h3><ul class="rv"><li><h4 data-en="The platform, your way">المنصة كما تريد</h4><p data-en="Set the platform to your needs and taste: the look, the view, and the tools. Choose what you want.">خصّص المنصة حسب احتياجاتك ورغبتك: الشكل، طريقة العرض، والأدوات. اختر ما تريد.</p></li><li><h4 data-en="An app on your phone">تطبيق على موبايلك</h4><p data-en="Install it on your home screen and open it full screen.">ثبّتها على شاشتك الرئيسية وافتحها بملء الشاشة.</p></li><li><h4 data-en="Printable handouts">ملفات جاهزة للطباعة</h4><p data-en="Varied sources for study and practice, as a ready-to-print PDF of any topic.">مصادر متنوعة للمذاكرة والتدريب، PDF جاهز للطباعة لأي موضوع.</p></li><li><h4 data-en="Phone and computer">موبايل وكمبيوتر</h4><p data-en="The same platform on both, and it opens after the first visit even offline.">نفس المنصة على الاثنين، وتفتح بعد أول مرة حتى بدون إنترنت.</p></li><li><h4 data-en="Your tables in Excel">تصدير الجداول إلى Excel</h4><p data-en="Take any table in a lesson to Excel in one tap.">أي جدول في الدرس تصدّره إلى Excel بضغطة واحدة.</p></li><li><h4 data-en="Focus timer and daily goal">مؤقّت تركيز وهدف يومي</h4><p data-en="Timed study sessions and a small goal every day.">وقت مذاكرة محسوب، وهدف صغير كل يوم.</p></li></ul></div></div>
   <p class="fine rv" data-en="Some features open according to your plan and your instructor's settings.">تختلف المزايا المتاحة حسب اشتراكك وإعدادات المحاضر.</p>
+</div></section>
+
+<section class="steps"><div class="wrap">
+  <p class="eyebrow rv" data-en="How to start">كيف تبدأ؟</p>
+  <ol>
+    <li class="rv"><span class="num" data-en="Step 1">الخطوة 1</span><h2 data-en="Request to join">اطلب الاشتراك</h2><p data-en="Send your name, your mobile number and the course you want. Available now: CMA Part 1.">أرسل اسمك ورقم جوالك والكورس الذي تريده. المتاح الآن: CMA Part 1.</p></li>
+    <li class="rv"><span class="num" data-en="Step 2">الخطوة 2</span><h2 data-en="Receive your code">استلم كودك</h2><p data-en="Your instructor sends you a personal access code once your enrolment is confirmed. The code is not issued instantly.">يرسل لك المحاضر كود دخول شخصياً بعد تأكيد اشتراكك. الكود لا يصدر فوراً.</p></li>
+    <li class="rv"><span class="num" data-en="Step 3">الخطوة 3</span><h2 data-en="Start studying and practising">ابدأ المذاكرة والتدريب</h2><p data-en="Sign in with your code on any device, and your progress stays with you.">ادخل بالكود من أي جهاز، وتقدّمك يبقى معك.</p></li>
+  </ol>
 </div></section>
 
 <section class="close" id="start"><div class="wrap">
@@ -225,6 +266,7 @@ els.forEach(function(e){e.setAttribute('data-ar',e.textContent)});
 var T={ar:document.title,en:"START TIME — Ashraf Fathy | Every step matters. And we're with you."};
 function setLang(l){L=l;root.lang=l;root.dir=l==='ar'?'rtl':'ltr';
   els.forEach(function(e){e.textContent=e.getAttribute('data-'+l)});
+  [].forEach.call(document.querySelectorAll('img[data-alt-ar]'),function(i){i.alt=i.getAttribute('data-alt-'+l)});
   lbs.forEach(function(x){x.textContent=l==='ar'?'English':'العربية'});document.title=T[l];}
 lbs.forEach(function(x){x.addEventListener('click',function(){setLang(L==='ar'?'en':'ar');try{localStorage.setItem('st-site-lang',L)}catch(e){}})});
 var tp=document.querySelector('.top');function sc(){tp.classList.toggle('s',window.scrollY>8)}window.addEventListener('scroll',sc,{passive:true});sc();
